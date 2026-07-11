@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from
 
 // 1. YOUR FIREBASE PROJECT CREDENTIALS (CONNECTED)
 const firebaseConfig = {
-  apiKey: "AIzaSyAIzaSyAUy2XgvCpuSGdpnNxJ8NiN1LFTFuqNUV8",
+  apiKey: "AIzaSyAUy2XgvCpuSGdpnNxJ8NiN1LFTFuqNUV8",
   authDomain: "trailblazers--29.firebaseapp.com",
   projectId: "trailblazers--29",
   storageBucket: "trailblazers--29.firebasestorage.app",
