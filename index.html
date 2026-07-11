@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department of Accounting | UNILAG</title>
+    
+    <!-- External Resources -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap">
+    
+    <!-- Internal Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loggedOutView" >
+        <!-- HEADER -->
+        <header class="site-header">
+            <div class="logo-area">
+                <img src="Unilag logo.jfif" alt="UNILAG logo" class="header-logo">
+                <h3>UNIVERSITY OF LAGOS</h3>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#gallery">Gallery</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="master-layout">
+            <main class="main-content">
+                <!-- HERO SECTION -->
+                <section class="hero-section">
+                    <div class="hero-text">
+                        <h1>ACC '29</h1>
+                        <h2>THE TRAILBLAZERS</h2>
+                        <h3>UNIVERSITY OF LAGOS</h3>
+                        <hr>
+                        <p class="branding-statement">Integrity, Excellence and Service</p>
+                    </div>
+                </section>
+
+                <!-- INFO GRID -->
+                <div class="info-grid">
+                    <article class="info-card welcome-box">
+                        <h3>WELCOME TO THE DEPARTMENT OF ACCOUNTING</h3>
+                        <p>Our department is committed to providing quality education and fostering a culture of integrity and excellence in the field of accounting. We offer a range of undergraduate and postgraduate programs designed to equip our students with the knowledge and skills needed to succeed in the dynamic world of accounting.</p>
+                    </article>
+
+                </div>
+            </main>
+
+            <!-- SIDEBAR -->
+            <aside class="sidebar-card login-card">
+                <div class="portal-links">
+                    <h3>Student Portal <i class="fa-solid fa-lock"></i></h3>
+                    <p>Welcome to the Student Portal. Please log in to access your courses, resources, and other important information.</p>
+                    <form>
+                        <div class="input-group">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" name="matriculation-number" placeholder="Matriculation Number" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" name="password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn-login">Login</button>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </form>
+                </div>
+            </aside>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="site-footer">
+            <div class="footer-left">
+                <h4>Building Competence. Inspiring Excellence.</h4>
+            </div>
+            <div class="footer-center">
+                <p>Follow Us</p>
+                <div class="social-icons">
+                    <a href="#" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <p><i class="fa-solid fa-location-dot"></i> Department of Accounting, University of Lagos, Akoka, Lagos State, Nigeria</p>
+            </div>
+            <div class="footer-right">
+                <p>&copy; 2026 Department of Accounting, University of Lagos. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+
+    <div id="LoggedInView" class="dashboard-layout-wrapper" style="display: none;">
+
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-branding">
+                <img src="Unilag logo.jfif" alt="UNILAG logo" class="sidebar-logo-img">
+                <div class="branding-text">
+                    <h3>UNIVERSITY OF LAGOS</h3>
+                    <P>Department of Accounting</P>
+                </div>
+            </div>
+
+            <div class="sidebar-section-title">STUDENT PORTAL</div>
+                <nav class="sidebar-grid-menu">
+                    <div class="menu-item active"><i class="fa-solid fa-user"></i><span>My Profile</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-book-open"></i><span>Courses</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-calendar-days"></i><span>Timetable</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-chart-simple"></i><span>Results</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-naira-sign"></i><span>Fees</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-credit-card"></i><span>Online Payments</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
+                    <div class="menu-item"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
+                </nav>
+
+                <button id="logoutBtn" class="logout-action-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <div class="logout-text-box">
+                        <span>LOGOUT</span>
+                        <small>Return to login screen</small>
+                    </div>
+                </button>
+
+                <div class="sidebar-section-title">QUICK LINKS</div>
+                    <ul class="sidebar-links-list">
+                        <li><a href="#">Academic Calendar <i class="fa-solid fa-chevron-right"></i></a></li>
+                        <li><a href="#">Past Questions <i class="fa-solid fa-chevron-right"></i></a></li>
+                        <li><a href="#">Contact Us <i class="fa-solid fa-chevron-right"></i></a></li>
+                    </ul>
+        </aside>
+        <main class="dashboard-main">
+            <div class="dashboard-top-nav">
+                <div class="welcome-greeting">
+                    <p>Welcome back,</p>
+                    <h2>Trailblazer <i class="fa-solid fa-circle-check" style="color: #1d9bf0; font-size:0.95rem;"></i></h2>
+                </div>
+                <div class="top-nav-actions">
+                    <div class="notification-bell-badge">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="badge-count">3</span>
+                    </div>
+                    <div class="user-avatar-circle"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </div>
+
+            <!-- CONTAINER FOR HERO AND TWO COLUMN DATA LAYOUT -->
+            <div class="dashboard-scroll-content">
+                
+                <section class="dashboard-hero-panel">
+                    <div class="hero-panel-content">
+                        <h1>ACC '29 <br><span class="highlight-title">THE TRAILBLAZERS</span></h1>
+                        <p class="hero-panel-tagline">Excellence. Integrity. Impact.</p>
+                        
+                        <div class="quick-action-row-buttons">
+                            <button class="action-pill-btn"><span><i class="fa-solid fa-calendar-days"></i> View Timetable</span> <i class="fa-solid fa-arrow-right pill-arrow"></i></button>
+                            <button class="action-pill-btn"><span><i class="fa-solid fa-chart-simple"></i> Check Results</span> <i class="fa-solid fa-arrow-right pill-arrow"></i></button>
+                            <button class="action-pill-btn"><span><i class="fa-solid fa-credit-card"></i> Make Payment</span> <i class="fa-solid fa-arrow-right pill-arrow"></i></button>
+                            <button class="action-pill-btn"><span><i class="fa-solid fa-bell"></i> View Notices</span> <i class="fa-solid fa-arrow-right pill-arrow"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- THE LOWER DATA MATRIX SPLIT -->
+                <div class="data-matrix-grid">
+                    
+                    <!-- LEFT COLUMN: QUICK ACCESS & ANNOUNCEMENTS -->
+                    <div class="matrix-left-col">
+                        
+                        <div class="matrix-card">
+                            <h3 class="matrix-title">QUICK ACCESS</h3>
+                            <div class="quick-access-box-grid">
+                                <div class="access-box"><i class="fa-solid fa-user"></i><span>My Profile</span></div>
+                                <div class="access-box"><i class="fa-solid fa-book-open"></i><span>Courses</span></div>
+                                <div class="access-box"><i class="fa-solid fa-calendar-days"></i><span>Timetable</span></div>
+                                <div class="access-box"><i class="fa-solid fa-chart-simple"></i><span>Results</span></div>
+                                <div class="access-box"><i class="fa-solid fa-naira-sign"></i><span>Fees</span></div>
+                                <div class="access-box"><i class="fa-solid fa-credit-card"></i><span>Online Payments</span></div>
+                                <div class="access-box"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
+                                <div class="access-box"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
+                            </div>
+                        </div>
+
+                        <div class="matrix-card">
+                            <h3 class="matrix-title">ANNOUNCEMENTS</h3>
+                            <div class="announcements-feed-list">
+                                <div class="feed-row-item">
+                                    <div class="feed-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                                    <div class="feed-details">
+                                        <h4>Mid-Semester Test</h4>
+                                        <p>All students are advised to check the timetable for updates on lecture schedules.</p>
+                                    </div>
+                                    <span class="feed-date">23 June 2026</span>
+                                </div>
+                                <div class="feed-row-item">
+                                    <div class="feed-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                                    <div class="feed-details">
+                                        <h4>Departmental Seminar</h4>
+                                        <p>The Departmental Seminar will hold as scheduled. All are expected to attend.</p>
+                                    </div>
+                                    <span class="feed-date">26 June 2026</span>
+                                </div>
+                            </div>
+                            <a href="#" class="matrix-footer-link">View all announcements <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN: ACADEMIC CALENDAR WIDGET -->
+                    <div class="matrix-right-col">
+                        <div class="matrix-card calendar-wrapper-card">
+                            <div class="calendar-header-row">
+                                <h3 class="matrix-title">ACADEMIC CALENDAR</h3>
+                                <a href="#" class="calendar-top-link">View full calendar <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+
+                            <!-- Mock Calendar Display -->
+                            <div class="calendar-month-selector">
+                                <i class="fa-solid fa-chevron-left"></i>
+                                <span>June 2026</span>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </div>
+
+                            <div class="calendar-grid-days">
+                                <div class="day-label">MON</div><div class="day-label">TUE</div><div class="day-label">WED</div><div class="day-label">THU</div><div class="day-label">FRI</div><div class="day-label">SAT</div><div class="day-label">SUN</div>
+                                <div class="day-num muted">26</div><div class="day-num muted">27</div><div class="day-num muted">28</div><div class="day-num muted">29</div><div class="day-num muted">30</div><div class="day-num muted">31</div><div class="day-num">1</div>
+                                <div class="day-num">2</div><div class="day-num">3</div><div class="day-num">4</div><div class="day-num">5</div><div class="day-num">6</div><div class="day-num">7</div><div class="day-num">8</div>
+                                <div class="day-num">9</div><div class="day-num">10</div><div class="day-num">11</div><div class="day-num">12</div><div class="day-num">13</div><div class="day-num">14</div><div class="day-num">15</div>
+                                <div class="day-num">16</div><div class="day-num">17</div><div class="day-num">18</div><div class="day-num active">19</div><div class="day-num">20</div><div class="day-num">21</div><div class="day-num">22</div>
+                                <div class="day-num">23</div><div class="day-num">24</div><div class="day-num">25</div><div class="day-num">26</div><div class="day-num">27</div><div class="day-num">28</div><div class="day-num">29</div>
+                                <div class="day-num">30</div><div class="day-num muted">1</div><div class="day-num muted">2</div><div class="day-num muted">3</div><div class="day-num muted">4</div><div class="day-num muted">5</div><div class="day-num muted">6</div>
+                            </div>
+
+                            <!-- Bottom focused schedule target box -->
+                            <div class="calendar-focused-event-card">
+                                <div class="focused-event-title-row">
+                                    <h4><span class="blue-indicator-dot"></span> Mid-Semester Test</h4>
+                                    <span class="focused-event-date">Mon, 23 June 2026</span>
+                                </div>
+                                <p>All students are advised to check the timetable for updates on lecture schedules.</p>
+                                <a href="#" class="view-all-events-btn">View all events <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div> 
+
+
+
+
+
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

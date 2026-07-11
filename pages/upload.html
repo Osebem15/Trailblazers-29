@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Portal - Upload Hub | UNILAG</title>
+    
+    <!-- External Resources -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+    
+    <!-- Internal Styles -->
+    <link rel="stylesheet" href="../css/upload.css">
+</head>
+<body>
+    <div class="upload-container">
+        <h2>Share Resources with Your Class</h2>
+        <p>Upload documents, presentations, and other resources for your classmates to access.</p>
+
+        <form id="upload-form">
+            <div class="form-group">
+                <label for="resource-title">Course Title / Topic Name</label>
+                <input 
+                    type="text" 
+                    id="resource-title" 
+                    name="resource-title" 
+                    placeholder="Enter the title or topic name" 
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="resource-type">Resource Type</label>
+                <select id="resource-type" name="resource-type" required>
+                    <option value="document">Document (PDF, Word, Excel)</option>
+                    <option value="video">Video Tutorial (MP4, AVI)</option>
+                    <option value="announcement">Important Text Announcement</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="file-input-container">
+                <label for="file-upload">Select File from Device</label>
+                <input 
+                    type="file" 
+                    id="file-upload" 
+                    name="file" 
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.mp4,.avi"
+                    required>
+            </div>
+
+            <button type="submit" class="upload-btn">Upload Resource</button>
+        </form>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Internal Scripts -->
+    <script src="../js/upload.js"></script>
+</body>
+</html>
