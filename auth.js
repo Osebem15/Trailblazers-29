@@ -1,109 +1,164 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { GOOGLE_API_KEY } from './config.js'; // Secured configuration reference
 
-// 1. YOUR FIREBASE PROJECT CREDENTIALS (CONNECTED)
+// 1. FIREBASE PROJECT CONFIGURATION
 const firebaseConfig = {
-  apiKey: "AIzaSyAUy2XgvCpuSGdpnNxJ8NiN1LFTFuqNUV8",
+  apiKey: GOOGLE_API_KEY, // Uses your masked key file safely
   authDomain: "trailblazers--29.firebaseapp.com",
   projectId: "trailblazers--29",
   storageBucket: "trailblazers--29.firebasestorage.app",
   messagingSenderId: "256240620470",
   appId: "1:256240620470:web:d727943d940d5366f1a717"
 };
-// Initialize Firebase
+
+// Initialize Firebase App Components
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
-// 2. UPDATED TO MATCH YOUR CONSOLE BACKEND
 const MATRIC_SUFFIX = "@student.local"; 
 
-// DOM Elements mapped exactly to your UNILAG markup
-const loginForm = document.querySelector('form'); // Targets the login form directly
+// DOM Element Selectors
+const loginForm = document.getElementById('login-form');
+const googleLoginBtn = document.getElementById('google-login-btn');
+const logoutBtn = document.getElementById('logoutBtn');
 const matricInput = document.querySelector('input[name="matriculation-number"]');
 const passwordInput = document.querySelector('input[name="password"]');
 const loggedOutView = document.getElementById('loggedOutView');
 const loggedInView = document.getElementById('LoggedInView');
-const logoutBtn = document.getElementById('logoutBtn');
+const ALLOWED_GOOGLE_EMAILS = [
+  "lecturer.admin@gmail.com",
+  "department.head@gmail.com",
+  "emmanuelosebeyo2@gmail.com" 
+];
 
-// Dynamically inject an error message block right above the login button
+// Inline Error Element Factory
 let authError = document.createElement('div');
 authError.style.cssText = "color: #ff4d4d; margin-bottom: 15px; font-size: 14px; display: none; font-family: 'Montserrat', sans-serif; font-weight: 600; text-align: center; width: 100%;";
 if (loginForm) {
-  const loginButton = loginForm.querySelector('.btn-login');
-  loginForm.insertBefore(authError, loginButton);
+  const loginButton = loginForm.querySelector('.btn-login') || loginForm.querySelector('button[type="submit"]');
+  if (loginButton) {
+    loginForm.insertBefore(authError, loginButton);
+  }
 }
 
-// 3. Track Authentication State
+// Helper to safely present UI feedback errors
+function displayError(message) {
+  authError.innerText = message;
+  authError.style.display = "block";
+}
+
+// 2. CORE AUTHENTICATION STATE OBSERVER (Handles all view toggles and restrictions automatically)
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // User is signed in -> switch to dashboard layout
-    loggedOutView.style.display = "none";
-    loggedInView.style.display = "flex"; 
+    // Check if the login method came from Google
+    const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
+
+    // If it's a Google user, check if their email is missing from your whitelist
+    if (isGoogleUser && !ALLOWED_GOOGLE_EMAILS.includes(user.email)) {
+      console.warn("Unauthorized Google login attempt blocked:", user.email);
+      
+      // 1. Show the custom red error message inside the sidebar
+      displayError("This Google account does not have access to this portal.");
+      
+      // 2. Boot them straight back out of Firebase
+      signOut(auth);
+      return; // Stop right here so the dashboard layout never triggers
+    }
+
+    // User passed checks (Either a valid Matric account or a whitelisted Google account)
+    if (loggedOutView) loggedOutView.style.display = "none";
+    if (loggedInView) loggedInView.style.display = "flex"; 
     if (loginForm) loginForm.reset();
     authError.style.display = "none";
   } else {
-    // User is signed out -> return to public site & login sidebar
-    loggedOutView.style.display = "block";
-    loggedInView.style.display = "none";
+    // User signed out -> Return display layout to public portal view
+    if (loggedOutView) loggedOutView.style.display = "block";
+    if (loggedInView) loggedInView.style.display = "none";
   }
 });
 
-// 4. Handle Login Form Submission
+// 3. TRADITIONAL MATRICULATION NUMBER / PASSWORD LOGIN
 if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    authError.style.display = "none";
+    authError.style.display = 'none'; // Clear old views
     
-    // Get values and clear spaces
-    let matric = matricInput.value.trim();
-    const password = passwordInput.value;
+    // Read directly from your mapped input elements
+    let rawMatric = matricInput ? matricInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
 
-    if (!matric || !password) {
-      authError.style.display = "block";
-      authError.innerText = "Please enter both Matriculation Number and Password.";
+    if (!rawMatric || !password) {
+      displayError("Please enter your matriculation number and password.");
       return;
     }
 
-    // If you accidentally typed the full email in the box, strip it down to just the matric number
-    if (matric.includes('@')) {
-      matric = matric.split('@')[0];
+    // Automatically append the domain suffix if the student only typed their raw numbers
+    if (!rawMatric.includes('@')) {
+      rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
     }
-    
-    const syntheticEmail = `${matric}${MATRIC_SUFFIX}`.toLowerCase();
 
-    signInWithEmailAndPassword(auth, syntheticEmail, password)
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, rawMatric, password);
+      console.log("Logged in successfully via Matric identity:", userCredential.user);
+      // No window.location.href needed! onAuthStateChanged handles the view flip automatically.
+    } catch (error) {
+      console.error("Matric Auth Error:", error.code);
+      displayError("Invalid credentials. Please verify your details and try again.");
+    }
+  });
+}
+
+// 4. ONE-CLICK GOOGLE SIGN-IN FLOW
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener('click', () => {
+    authError.style.display = 'none';
+
+    signInWithPopup(auth, googleProvider)
+      .then((result) => {
+        console.log("Logged in successfully via Google credential:", result.user);
+        // No window.location.href needed!
+      })
       .catch((error) => {
-        authError.style.display = "block";
-        console.error("Firebase Auth Error:", error);
-
-        switch (error.code) {
-          case 'auth/wrong-password':
-          case 'auth/user-not-found':
-          case 'auth/invalid-credential':
-          case 'auth/invalid-email':
-            authError.innerText = "Invalid Matric Number or Password.";
-            break;
-          case 'auth/network-request-failed':
-            authError.innerText = "Network error. Please check your internet connection and try again.";
-            break;
-          case 'auth/unauthorized-domain':
-            authError.innerText = "This domain is not authorized in Firebase Auth. Use localhost or add this domain to your Firebase console.";
-            break;
-          default:
-            authError.innerText = error.message || "An error occurred. Please try again.";
-            break;
-        }
+        console.error("Google Authentication Failed:", error.message);
+        displayError("Google sign-in failed. Please ensure your domain is trusted.");
       });
   });
 }
 
-// 5. Handle Logout Button Click
+// 5. SECURE SYSTEM LOGOUT FLOW
+// =======================================================
+// 5. SECURE SYSTEM LOGOUT FLOW
+// =======================================================
 if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    signOut(auth).catch((error) => console.error("Logout failed: ", error));
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // 🛑 Stops the browser from reloading or jumping pages
+    console.log("Logout button successfully clicked!"); // Check your console for this!
+
+    signOut(auth)
+      .then(() => {
+        console.log("User logged out cleanly from Firebase.");
+        // The onAuthStateChanged observer will automatically flip the views now
+      })
+      .catch((error) => {
+        console.error("Logout process error:", error.message);
+      });
   });
+} else {
+  console.log("Warning: JavaScript could not find an element with id='logoutBtn'");
 }
-// Store announcements globally for filtering
+
+// =======================================================
+// ANNOUNCEMENTS DATA ENGINE & CALENDAR LOGIC
+// =======================================================
 window.allAnnouncements = [];
 
 async function fetchAnnouncements() {
@@ -111,16 +166,10 @@ async function fetchAnnouncements() {
   if (!feedContainer) return;
 
   try {
-    // Dynamically read from your local JSON file
     const response = await fetch('announcements.json');
     const data = await response.json();
-
-    // Store announcements globally
     window.allAnnouncements = data;
-
-    // Render all announcements initially
     renderAnnouncementsByDate(null);
-
   } catch (error) {
     console.error("Error reading announcements data file:", error);
     feedContainer.innerHTML = '<div class="feed-row-item"><p style="color: #ef4444;">Failed to load notices.</p></div>';
@@ -131,13 +180,11 @@ function renderAnnouncementsByDate(selectedDate) {
   const feedContainer = document.querySelector('.announcements-feed-list');
   if (!feedContainer) return;
 
-  // Filter announcements by selected date
   let filteredAnnouncements = window.allAnnouncements;
   if (selectedDate) {
     filteredAnnouncements = window.allAnnouncements.filter(ann => ann.date === selectedDate);
   }
 
-  // Clear container
   feedContainer.innerHTML = '';
 
   if (filteredAnnouncements.length === 0) {
@@ -145,7 +192,6 @@ function renderAnnouncementsByDate(selectedDate) {
     return;
   }
 
-  // Render filtered announcements
   filteredAnnouncements.forEach((announcement) => {
     const rowHTML = `
       <div class="feed-row-item">
@@ -165,33 +211,25 @@ function attachCalendarListeners() {
   const dayNumbers = document.querySelectorAll('.day-num');
   dayNumbers.forEach(dayEl => {
     dayEl.addEventListener('click', function() {
-      // Only allow clicking on current month dates (not muted)
       if (this.classList.contains('muted')) return;
 
-      // Remove active class from all days
       dayNumbers.forEach(el => el.classList.remove('active'));
-      // Add active class to clicked day
       this.classList.add('active');
 
-      // Get the day number
       const dayNum = this.textContent.trim();
-      // Format date as "DD/MM/YYYY" - using June 2026 as shown in calendar
-      const selectedDate = `${dayNum.padStart(2, '0')}/06/2026`;
+      const selectedDate = `${dayNum.padStart(2, '0')}/06/2026`; // Configured target timeline
       
-      // Filter and render announcements for this date
       renderAnnouncementsByDate(selectedDate);
     });
-    // Add pointer cursor to indicate clickability
+    
     if (!dayEl.classList.contains('muted')) {
       dayEl.style.cursor = 'pointer';
     }
   });
 }
 
-// Call it to render your list when your main screen initializes
+// Engine Boot Routine
 fetchAnnouncements();
-
-// Attach calendar listeners after DOM is ready
 setTimeout(() => {
   attachCalendarListeners();
 }, 100);

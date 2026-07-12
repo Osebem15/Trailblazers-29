@@ -321,7 +321,7 @@ body {
     border-color: var(--gold-accent);
 }
 
-.btn-login {
+.btn-primary {
     width: 100%;
     padding: 12px;
     background-color: var(--gold-accent);
@@ -335,7 +335,7 @@ body {
     transition: background 0.3s;
 }
 
-.btn-login:hover {
+.btn-primary:hover {
     background-color: var(--gold-glow);
 }
 
@@ -349,6 +349,65 @@ body {
 
 .forgot-password:hover {
     color: var(--text-main);
+}
+
+/* Divider line between traditional form and Google button */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: #a0aec0;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #2d3748;
+}
+
+.auth-divider span {
+  padding: 0 10px;
+}
+
+/* Custom Google Button Layout */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  background-color: #ffffff;
+  color: #1a202c;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-google img {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-google:hover {
+  background-color: #f7fafc;
+}
+
+.btn-google:active {
+  transform: scale(0.99);
+}
+
+/* Simple error message formatting */
+.error-text {
+  color: #e53e3e;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  display: none; /* Hidden by default, turned on via JS */
 }
 
 /* Footer */

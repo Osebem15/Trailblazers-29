@@ -50,24 +50,33 @@
 
                 </div>
             </main>
-
-            <!-- SIDEBAR -->
             <aside class="sidebar-card login-card">
                 <div class="portal-links">
                     <h3>Student Portal <i class="fa-solid fa-lock"></i></h3>
                     <p>Welcome to the Student Portal. Please log in to access your courses, resources, and other important information.</p>
-                    <form>
+                    <form id="login-form">
                         <div class="input-group">
-                            <i class="fa-solid fa-user"></i>
-                            <input type="text" name="matriculation-number" placeholder="Matriculation Number" required>
+                            <label for="email-input">Matric Number / Email</label>
+                            <input type="email" id="email-input" required placeholder="250201324@student.local">
                         </div>
+  
                         <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" name="password" placeholder="Password" required>
+                            <label for="password-input">Password</label>
+                            <input type="password" id="password-input" required placeholder="••••••••">
                         </div>
-                        <button type="submit" class="btn-login">Login</button>
-                        <a href="#" class="forgot-password">Forgot Password?</a>
+
+                        <div id="error-message" class="error-text"></div>
+
+                            <button type="submit" class="btn-primary">Login</button>
                     </form>
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <button type="button" id="google-login-btn" class="btn-google">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                            Sign in with Google
+                    </button>
                 </div>
             </aside>
         </div>
