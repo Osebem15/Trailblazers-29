@@ -1,4 +1,3 @@
-import { GOOGLE_API_KEY } from './config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { 
   getAuth, 
@@ -12,7 +11,7 @@ import { GOOGLE_API_KEY } from './config.js'; // Secured configuration reference
 
 // 1. FIREBASE PROJECT CONFIGURATION
 const firebaseConfig = {
-  apiKey: GOOGLE_API_KEY, 
+  apiKey: "AIzaSyAUy2XgvCpuSGdpnNxJ8NiN1LFTFuqNUV8", 
   authDomain: "trailblazers--29.firebaseapp.com",
   projectId: "trailblazers--29",
   storageBucket: "trailblazers--29.firebasestorage.app",
