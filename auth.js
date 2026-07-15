@@ -7,11 +7,11 @@ import {
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { GOOGLE_API_KEY } from './config.js'; // Secured configuration reference
+import { GOOGLE_API_KEY } from './config.js';
 
 // 1. FIREBASE PROJECT CONFIGURATION
 const firebaseConfig = {
-  apiKey: "AIzaSyAUy2XgvCpuSGdpnNxJ8NiN1LFTFuqNUV8", 
+  apiKey: GOOGLE_API_KEY,
   authDomain: "trailblazers--29.firebaseapp.com",
   projectId: "trailblazers--29",
   storageBucket: "trailblazers--29.firebasestorage.app",
