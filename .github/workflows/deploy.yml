@@ -1,0 +1,37 @@
+name: Deploy Static Site
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Create Config File From Secret
+        run: |
+          echo "export const GOOGLE_API_KEY = '${{ secrets.GOOGLE_API_KEY }}';" > config.js
+
+      - name: Setup GitHub Pages Engine
+        uses: actions/configure-pages@v4
+
+      - name: Upload Hidden Site Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy Live Portal
+        id: deployment
+        uses: actions/deploy-pages@v4
