@@ -444,6 +444,7 @@ html, body {
 .dashboard-scroll-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden; /* Prevents horizontal scrolling */
     width: 100%;
 }
 
@@ -574,10 +575,14 @@ html, body {
         display: block !important;
     }
 
-    .data-matrix-grid {
-        grid-template-columns: 1fr;
-        padding: 15px 0 25px 0;
-    }
+   .data-matrix-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr; /* Uses proportional fractions to fit 100% width perfectly */
+    gap: 16px; /* Tightens gap between Quick Access and Calendar */
+    padding: 24px 0 40px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
 
     .quick-access-box-grid {
         grid-template-columns: repeat(2, 1fr);
