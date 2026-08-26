@@ -182,6 +182,49 @@ sidebarLinks.forEach(link => {
     }
   });
 });
+// =======================================================
+// DYNAMIC TAB & VIEW SWITCHER
+// =======================================================
+function switchDashboardTab(tabName) {
+    const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+    const homeView = document.getElementById('dashboardHomeView');
+    const coursesView = document.getElementById('coursesView');
+
+    // 1. Update active highlight in sidebar
+    menuItems.forEach(item => {
+        const itemText = item.querySelector('span')?.textContent.trim();
+        if (itemText === tabName) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    // 2. Toggle main view panels
+    if (tabName === 'Courses') {
+        if (homeView) homeView.style.display = 'none';
+        if (coursesView) coursesView.style.display = 'block';
+    } else if (tabName === 'My Profile') {
+        if (coursesView) coursesView.style.display = 'none';
+        if (homeView) homeView.style.display = 'block';
+    }
+}
+
+// Sidebar item click listeners
+document.querySelectorAll('.sidebar-grid-menu .menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const tabName = item.querySelector('span')?.textContent.trim();
+        switchDashboardTab(tabName);
+    });
+});
+
+// Quick access box click listeners
+document.querySelectorAll('.access-box').forEach(box => {
+    box.addEventListener('click', () => {
+        const tabName = box.querySelector('span')?.textContent.trim();
+        switchDashboardTab(tabName);
+    });
+});
 
 // =======================================================
 // ANNOUNCEMENTS DATA ENGINE & CALENDAR LOGIC
