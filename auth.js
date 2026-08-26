@@ -149,6 +149,39 @@ if (logoutBtn) {
       });
   });
 }
+// =======================================================
+// MOBILE SIDEBAR DRAWER TOGGLE LOGIC
+// =======================================================
+const menuToggleBtn = document.getElementById('menu-toggle-btn');
+const dashboardSidebar = document.querySelector('.dashboard-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarLinks = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+
+if (menuToggleBtn && dashboardSidebar) {
+  // Toggle sidebar and backdrop overlay
+  menuToggleBtn.addEventListener('click', () => {
+    dashboardSidebar.classList.toggle('active');
+    if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
+  });
+}
+
+// Close drawer when tapping anywhere on the dark backdrop
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    dashboardSidebar.classList.remove('active');
+    sidebarOverlay.classList.remove('active');
+  });
+}
+
+// Close drawer automatically when a user selects a menu item on mobile
+sidebarLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      dashboardSidebar.classList.remove('active');
+      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+    }
+  });
+});
 
 // =======================================================
 // ANNOUNCEMENTS DATA ENGINE & CALENDAR LOGIC
