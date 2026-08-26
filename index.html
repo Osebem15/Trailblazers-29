@@ -498,6 +498,112 @@
                         </div>
                     </div>
                 </div>
+                 <!-- RESULTS VIEW -->
+            <div id="resultsView" class="view-panel" style="display: none;">
+    
+                <!-- CGPA & Semester Summary Card -->
+                <div class="matrix-card gpa-summary-card">
+                    <div class="gpa-info">
+                        <span class="gpa-label">CURRENT CGPA</span>
+                        <h2 class="gpa-value">4.67 <small>/ 5.00</small></h2>
+                        <p class="gpa-status"><i class="fa-solid fa-award"></i> First Class Standing</p>
+                    </div>
+                    <div class="gpa-stats">
+                        <div class="stat-badge"><span>Units Passed</span> <strong>18 / 18</strong></div>
+                        <div class="stat-badge"><span>Semester GPA</span> <strong>4.67</strong></div>
+                    </div>
+                </div>
+
+                <!-- Course Results Grid -->
+                <div class="matrix-card">
+                    <h3 class="matrix-title">FIRST SEMESTER RESULTS (2025/2026)</h3>
+                    <div class="results-grid">
+            
+                        <div class="result-card" data-code="ACC 101" data-title="Principles of Accounting I" data-ca="26/30" data-exam="62/70" data-total="88" data-grade="A" data-gp="5.0">
+                            <div class="result-card-header">
+                                <span class="course-code-tag">ACC 101</span>
+                                <span class="grade-badge grade-a">Grade A</span>
+                            </div>
+                            <h4>Principles of Accounting I</h4>
+                            <div class="result-card-footer">
+                                <span>3 Units</span>
+                                <span class="view-score-link">View Breakdown <i class="fa-solid fa-chevron-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="result-card" data-code="ACC 102" data-title="Introductory Financial Accounting" data-ca="24/30" data-exam="58/70" data-total="82" data-grade="A" data-gp="5.0">
+                            <div class="result-card-header">
+                                <span class="course-code-tag">ACC 102</span>
+                                <span class="grade-badge grade-a">Grade A</span>
+                            </div>
+                            <h4>Introductory Financial Accounting</h4>
+                            <div class="result-card-footer">
+                                <span>3 Units</span>
+                                <span class="view-score-link">View Breakdown <i class="fa-solid fa-chevron-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="result-card" data-code="ECO 102" data-title="Elements of Economics I" data-ca="22/30" data-exam="51/70" data-total="73" data-grade="A" data-gp="5.0">
+                            <div class="result-card-header">
+                                <span class="course-code-tag">ECO 102</span>
+                                <span class="grade-badge grade-a">Grade A</span>
+                            </div>
+                            <h4>Elements of Economics I</h4>
+                            <div class="result-card-footer">
+                                <span>3 Units</span>
+                                <span class="view-score-link">View Breakdown <i class="fa-solid fa-chevron-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="result-card" data-code="AMS 104" data-title="Mathematics for Business" data-ca="20/30" data-exam="46/70" data-total="66" data-grade="B" data-gp="4.0">
+                            <div class="result-card-header">
+                                <span class="course-code-tag">AMS 104</span>
+                                <span class="grade-badge grade-b">Grade B</span>
+                            </div>
+                            <h4>Mathematics for Business</h4>
+                            <div class="result-card-footer">
+                                <span>3 Units</span>
+                                <span class="view-score-link">View Breakdown <i class="fa-solid fa-chevron-right"></i></span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULT BREAKDOWN MODAL -->
+            <div id="resultModal" class="modal-overlay" style="display: none;">
+                <div class="modal-card">
+                        <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+                        <div class="modal-header">
+                            <span id="modalCourseCode" class="course-code-tag">ACC 101</span>
+                            <h3 id="modalCourseTitle">Principles of Accounting I</h3>
+                        </div>
+        
+                        <div class="score-breakdown-list">
+                            <div class="score-row">
+                                <span>Continuous Assessment (CA)</span>
+                                <strong id="modalCA">26 / 30</strong>
+                            </div>
+                            <div class="score-row">
+                                <span>Semester Examination</span>
+                                <strong id="modalExam">62 / 70</strong>
+                            </div>
+                            <div class="score-row total-row">
+                                <span>Total Score</span>
+                                <strong id="modalTotal">88 / 100</strong>
+                            </div>
+                            <div class="score-row grade-row">
+                                <span>Letter Grade & GP</span>
+                                <strong id="modalGrade">A (5.0 GP)</strong>
+                            </div>
+                        </div>
+
+                        <button id="downloadPdfBtn" class="btn-primary modal-pdf-btn">
+                            <i class="fa-solid fa-file-pdf"></i> Download Official PDF Slip
+                        </button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

@@ -199,6 +199,7 @@ function switchDashboardTab(tabName) {
   const homeView = document.getElementById('dashboardHomeView');
   const coursesView = document.getElementById('coursesView');
   const timetableView = document.getElementById('timetableView');
+  const resultsView = document.getElementById('resultsView');
 
   // Update active highlight in sidebar menu
   menuItems.forEach(item => {
@@ -214,12 +215,15 @@ function switchDashboardTab(tabName) {
   if (homeView) homeView.style.display = 'none';
   if (coursesView) coursesView.style.display = 'none';
   if (timetableView) timetableView.style.display = 'none';
+  if (resultsView) resultsView.style.display = 'none';
 
   // Route active view
   if (tabName === 'Courses' && coursesView) {
     coursesView.style.display = 'block';
   } else if (tabName === 'Timetable' && timetableView) {
     timetableView.style.display = 'block';
+  } else if (tabName === 'Results' && resultsView) {
+    resultsView.style.display = 'block';
   } else if (homeView) {
     homeView.style.display = 'block';
   }
@@ -265,3 +269,57 @@ function attachCalendarListeners() {
 }
 
 attachCalendarListeners();
+
+// =======================================================
+// 9. RESULTS SCORECARD MODAL & PDF HANDLER
+// =======================================================
+const resultModal = document.getElementById('resultModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+
+document.querySelectorAll('.result-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const code = card.dataset.code;
+    const title = card.dataset.title;
+    const ca = card.dataset.ca;
+    const exam = card.dataset.exam;
+    const total = card.dataset.total;
+    const grade = card.dataset.grade;
+    const gp = card.dataset.gp;
+
+    const modalCodeEl = document.getElementById('modalCourseCode');
+    const modalTitleEl = document.getElementById('modalCourseTitle');
+    const modalCAEl = document.getElementById('modalCA');
+    const modalExamEl = document.getElementById('modalExam');
+    const modalTotalEl = document.getElementById('modalTotal');
+    const modalGradeEl = document.getElementById('modalGrade');
+
+    if (modalCodeEl) modalCodeEl.textContent = code;
+    if (modalTitleEl) modalTitleEl.textContent = title;
+    if (modalCAEl) modalCAEl.textContent = ca;
+    if (modalExamEl) modalExamEl.textContent = exam;
+    if (modalTotalEl) modalTotalEl.textContent = `${total} / 100`;
+    if (modalGradeEl) modalGradeEl.textContent = `${grade} (${gp} GP)`;
+
+    if (resultModal) resultModal.style.display = 'flex';
+  });
+});
+
+if (closeModalBtn) {
+  closeModalBtn.addEventListener('click', () => {
+    if (resultModal) resultModal.style.display = 'none';
+  });
+}
+
+if (resultModal) {
+  resultModal.addEventListener('click', (e) => {
+    if (e.target === resultModal) resultModal.style.display = 'none';
+  });
+}
+
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+if (downloadPdfBtn) {
+  downloadPdfBtn.addEventListener('click', () => {
+    const courseCode = document.getElementById('modalCourseCode')?.textContent || 'Course';
+    alert(`Downloading official result slip for ${courseCode}...`);
+  });
+}

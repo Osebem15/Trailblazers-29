@@ -961,6 +961,208 @@ html, body {
     font-size: 0.78rem;
     font-weight: 600;
 }
+/* ==========================================
+   RESULTS & SCORECARD MODAL STYLES
+   ========================================== */
+.gpa-summary-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(79, 139, 255, 0.12) 0%, rgba(2, 19, 41, 0.8) 100%);
+    border: 1px solid rgba(79, 139, 255, 0.3);
+    margin-bottom: 20px;
+}
+
+.gpa-label {
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    color: #7aa5ff;
+    font-weight: 700;
+}
+
+.gpa-value {
+    font-size: 2.8rem;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.gpa-value small {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+.gpa-status {
+    color: var(--gold-glow);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.gpa-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.stat-badge {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 18px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-badge span {
+    font-size: 0.75rem;
+    color: #8fa5c3;
+}
+
+.stat-badge strong {
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+/* Results Card Grid */
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 15px;
+}
+
+.result-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-3px);
+    background: rgba(79, 139, 255, 0.08);
+    border-color: rgba(79, 139, 255, 0.3);
+}
+
+.result-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.grade-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.grade-a {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.grade-b {
+    background: rgba(79, 139, 255, 0.15);
+    color: #7aa5ff;
+    border: 1px solid rgba(79, 139, 255, 0.3);
+}
+
+.result-card h4 {
+    font-size: 0.95rem;
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.result-card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #8fa5c3;
+}
+
+.view-score-link {
+    color: #4f8bff;
+    font-weight: 600;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-card {
+    background: #041326;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: #8fa5c3;
+    font-size: 1.6rem;
+    cursor: pointer;
+}
+
+.score-breakdown-list {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    font-size: 0.88rem;
+    color: #cbd5e0;
+}
+
+.total-row {
+    background: rgba(79, 139, 255, 0.12);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.grade-row {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--gold-glow);
+    font-weight: 700;
+}
+
+.modal-pdf-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
 @media (max-width: 768px) {
   /* Force vertical stacking on mobile */
   .data-matrix-grid {
