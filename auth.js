@@ -57,7 +57,7 @@ function displayError(message) {
   authError.style.display = "block";
 }
 
-// 2. CORE AUTHENTICATION STATE OBSERVER (Handles restrictions and views)
+// 2. CORE AUTHENTICATION STATE OBSERVER
 onAuthStateChanged(auth, (user) => {
   if (user) {
     const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
@@ -88,7 +88,7 @@ if (loginForm) {
     e.preventDefault();
     authError.style.display = 'none'; 
     
-    let rawMatric = matricInput ? matricInput.value.trim() : "";
+    let rawMatric = matricInput ? matricInput.value.trim().toLowerCase() : "";
     const password = passwordInput ? passwordInput.value : "";
 
     if (!rawMatric || !password) {
@@ -96,16 +96,24 @@ if (loginForm) {
       return;
     }
 
+    // Format matric input to full synthetic email format
     if (!rawMatric.includes('@')) {
       rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
     }
+
+    console.log("Attempting login for synthetic email:", rawMatric);
 
     try {
       await signInWithEmailAndPassword(auth, rawMatric, password);
       console.log("Logged in successfully via Matric identity.");
     } catch (error) {
-      console.error("Matric Auth Error:", error.code);
-      displayError("Invalid credentials. Please verify your details and try again.");
+      console.error("Matric Auth Error Code:", error.code, "| Message:", error.message);
+      
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        displayError("Invalid credentials. Verify your matric number and password.");
+      } else {
+        displayError(`Login error: ${error.message}`);
+      }
     }
   });
 }
@@ -120,8 +128,8 @@ if (googleLoginBtn) {
         console.log("Logged in successfully via Google credential:", result.user);
       })
       .catch((error) => {
-        console.error("Google Authentication Failed:", error.message);
-        displayError("Google sign-in failed. Please ensure your domain is trusted.");
+        console.error("Google Authentication Failed Code:", error.code, "| Message:", error.message);
+        displayError(`Google sign-in failed (${error.code}). Check browser console for details.`);
       });
   });
 }

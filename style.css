@@ -301,7 +301,7 @@ body {
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-main);
+    color: silver;
     font-size: 0.85rem;
 }
 
@@ -989,4 +989,91 @@ body {
 .day-num.active {
     background-color: #4f8bff;
     box-shadow: 0 10px 25px rgba(79,139,255,0.25);
+}
+/* ==========================================
+   MOBILE RESPONSIVE LAYOUT (Screens < 768px)
+   ========================================== */
+@media (max-width: 768px) {
+
+  /* 1. Reduce outer container padding for compact mobile screens */
+  #loggedOutView {
+    padding: 15px 16px;
+  }
+
+  /* 2. Switch Master Layout from 2 columns to a single-column flex stack */
+  .master-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Ensure main dashboard items stay first, login sidebar second */
+  .master-layout > :first-child {
+    order: 1;
+    width: 100%;
+  }
+
+  .sidebar-card,
+  .login-card {
+    order: 2;
+    width: 100%;
+  }
+
+  /* 3. Site Header adjustment */
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 10px 0 20px 0;
+  }
+
+  .nav-menu {
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  /* 4. Compress Hero Section typography for mobile viewports */
+  .hero-section {
+    padding: 24px 20px;
+    margin-bottom: 20px;
+  }
+
+  .hero-text h1 {
+    font-size: 2.1rem;
+    line-height: 1.2;
+  }
+
+  .hero-text h2 {
+    font-size: 1.1rem;
+  }
+
+  .hero-text hr {
+    width: 100%;
+  }
+
+  .stats-bar {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .stat-item {
+    flex: 1 1 45%;
+  }
+
+  /* 5. In-Dashboard matrix & quick access grid mobile stack */
+  .data-matrix-grid {
+    grid-template-columns: 1fr;
+    padding: 15px 0 25px 0;
+  }
+
+  .quick-access-box-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 6. Footer stack */
+  .site-footer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
 }
