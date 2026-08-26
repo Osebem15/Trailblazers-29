@@ -1145,3 +1145,21 @@ body {
     display: block;
   }
 }
+@media (max-width: 768px) {
+  /* Scale down hero title to prevent horizontal overflow */
+  .hero-panel-content h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-panel-tagline {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+
+  /* Adjust top navbar welcome greeting size for smaller screens */
+  .welcome-greeting h2 {
+    font-size: 1.35rem;
+  }
+}
