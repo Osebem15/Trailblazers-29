@@ -437,7 +437,7 @@ body {
     margin-top: 10px;
 }
 
-/* Inside Dashboard Panels Structure */
+/* Dashboard layout */
 .dashboard-layout-wrapper {
     display: flex !important;
     flex-direction: row !important;
@@ -448,222 +448,6 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
-}
-
-.dashboard-sidebar {
-    flex: 0 0 260px;      /* Fixed structural width */
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
-    height: 100%;
-    background-color: #041121;
-    border-right: 1px solid #09213d;
-    padding: 25px 15px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;  /* Allows the menu to scroll internally if items overflow */
-    box-sizing: border-box;
-}
-
-.dashboard-main {
-    flex: 1 1 auto;
-    width: calc(100% - 260px);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-width: 0;
-    overflow: hidden;
-    max-width: none;
-}
-
-.dashboard-top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background-color: #010810;
-    border-bottom: 1px solid #0a1b30;
-    flex-shrink: 0;
-    width: 100%;
-}
-
-/* FIXED SCROLL VALUE BUGS HERE */
-.dashboard-scroll-content {
-    flex: 1;
-    overflow-y: auto; /* Swapped from hidden to auto to allow mouse scroll */
-    background-color: #010810;
-    width: 100%;
-}
-
-.dashboard-hero-panel {
-    background: linear-gradient(to right, #010810 20%, rgba(1, 8, 16, 0.4) 60%, rgba(1, 8, 16, 0) 100%), 
-                url('campus-gate.jpg') no-repeat center right / cover;
-    padding: 50px 40px;
-    flex-shrink: 0;
-    width: 100%;
-}
-
-.hero-panel-content h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 0 0 10px 0;
-}
-
-.highlight-title {
-    color: var(--gold-glow);
-}
-
-.hero-panel-tagline {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-    margin: 0 0 25px 0;
-    letter-spacing: 1px;
-}
-
-/* Two column matrix structure layout grid */
-.data-matrix-grid {
-    display: grid;
-    grid-template-columns: 63% 35%;
-    gap: 2%;
-    padding: 0 40px 40px 40px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.matrix-left-col, .matrix-right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-.matrix-card {
-    background-color: #040d1a;
-    border: 1px solid #0a1b30;
-    border-radius: 8px;
-    padding: 24px;
-}
-
-.matrix-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #3b82f6;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-}
-
-/* Quick Access Box Grid (5 Columns) */
-.quick-access-box-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-}
-
-.access-box {
-    background-color: #051326;
-    border: 1px solid #0b223d;
-    border-radius: 6px;
-    height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.access-box:hover {
-    border-color: #2563eb;
-    background-color: #082142;
-    transform: translateY(-2px);
-}
-
-.access-box i {
-    font-size: 1.5rem;
-    color: #2563eb;
-}
-
-.access-box span {
-    font-size: 0.78rem;
-    color: #e2e8f0;
-    text-align: center;
-}
-
-/* Announcements feed list architecture */
-.announcements-feed-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    background-color: #0a1b30;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.feed-row-item {
-    background-color: #051326;
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.feed-details h4 {
-    font-size: 0.88rem;
-    color: #fff;
-    margin-bottom: 3px;
-}
-
-.feed-details p {
-    font-size: 0.78rem;
-    color: #94a3b8;
-    line-height: 1.4;
-}
-
-.feed-date {
-    font-size: 0.75rem;
-    color: #64748b;
-    white-space: nowrap;
-}
-
-/* Academic Calendar grid structure */
-.calendar-grid-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.day-label {
-    font-size: 0.68rem;
-    font-weight: bold;
-    color: #64748b;
-    padding-bottom: 5px;
-}
-
-.day-num {
-    font-size: 0.82rem;
-    color: #cbd5e0;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 50%;
-}
-
-.day-num.active {
-    background-color: #2563eb;
-    color: #fff;
-    font-weight: bold;
-    box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
-}
-
-/* Dashboard polished dark theme overrides */
-.dashboard-layout-wrapper {
     background: #020812;
 }
 
@@ -675,6 +459,10 @@ body {
     border-right: 1px solid rgba(255,255,255,0.05);
     padding: 28px 20px;
     box-shadow: 4px 0 30px rgba(0, 0, 0, 0.35);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
 .sidebar-branding {
@@ -799,14 +587,34 @@ body {
 }
 
 .dashboard-main {
+    flex: 1 1 auto;
     width: calc(100% - 280px);
     padding: 28px 32px;
     background: linear-gradient(180deg, #020a12 0%, #020511 100%);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    overflow: hidden;
+    max-width: none;
 }
 
 .dashboard-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 18px 0;
+    background-color: #010810;
     border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.dashboard-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #010810;
+    width: 100%;
 }
 
 .welcome-greeting p {
@@ -828,21 +636,32 @@ body {
 }
 
 .dashboard-hero-panel {
+    background: linear-gradient(to right, #010810 20%, rgba(1, 8, 16, 0.4) 60%, rgba(1, 8, 16, 0) 100%),
+                url('campus-gate.jpg') no-repeat center right / cover;
     padding: 42px 40px 34px;
     border-radius: 24px;
     min-height: 340px;
     border: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    width: 100%;
 }
 
 .hero-panel-content h1 {
     font-size: 3.2rem;
     font-weight: 800;
     color: #ffffff;
+    margin: 0 0 10px 0;
+}
+
+.highlight-title {
+    color: var(--gold-glow);
 }
 
 .hero-panel-tagline {
+    font-size: 1.1rem;
     color: #9ab2de;
     margin-bottom: 30px;
+    letter-spacing: 1px;
 }
 
 .quick-action-row-buttons {
@@ -889,21 +708,29 @@ body {
     }
 }
 
-@media (max-width: 768px) {
-    .quick-action-row-buttons {
-        grid-template-columns: 1fr;
-    }
-
-    .action-pill-btn {
-        padding: 14px 16px;
-        font-size: 0.9rem;
-    }
-}
-
 .data-matrix-grid {
+    display: grid;
     grid-template-columns: 62% 38%;
     gap: 22px;
     padding: 32px 0 40px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.matrix-left-col,
+.matrix-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.matrix-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #3b82f6;
+    margin-bottom: 20px;
+    text-transform: uppercase;
 }
 
 .matrix-card {
@@ -914,6 +741,7 @@ body {
 }
 
 .quick-access-box-grid {
+    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
 }
@@ -923,6 +751,18 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 18px;
     height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.access-box i {
+    font-size: 1.5rem;
+    color: #2563eb;
 }
 
 .access-box:hover {
@@ -938,16 +778,24 @@ body {
 }
 
 .announcements-feed-list {
+    display: flex;
+    flex-direction: column;
     gap: 14px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 24px;
     padding: 18px;
+    overflow: hidden;
+    margin-bottom: 15px;
 }
 
 .feed-row-item {
     background: rgba(255,255,255,0.04);
     border-radius: 18px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .feed-row-item .feed-icon {
@@ -961,22 +809,45 @@ body {
 .feed-details h4 {
     font-size: 0.95rem;
     color: #f8fbff;
+    margin-bottom: 3px;
 }
 
 .feed-details p {
+    font-size: 0.78rem;
     color: #b2c5e6;
+    line-height: 1.4;
+}
+
+.feed-date {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
 }
 
 .calendar-grid-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
     gap: 10px;
+    text-align: center;
     margin-bottom: 18px;
 }
 
 .day-label {
+    font-size: 0.68rem;
+    font-weight: bold;
     color: #7f9cc1;
+    padding-bottom: 5px;
 }
 
 .day-num {
+    font-size: 0.82rem;
+    color: #cbd5e0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
     background: rgba(255,255,255,0.03);
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
@@ -988,6 +859,8 @@ body {
 
 .day-num.active {
     background-color: #4f8bff;
+    color: #fff;
+    font-weight: bold;
     box-shadow: 0 10px 25px rgba(79,139,255,0.25);
 }
 /* ==========================================
@@ -1070,12 +943,73 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 
+    .quick-action-row-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .action-pill-btn {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+    }
+
   /* 6. Footer stack */
   .site-footer {
     flex-direction: column;
     gap: 15px;
     text-align: center;
   }
+
+    .menu-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dashboard-main {
+        width: 100% !important;
+        padding: 16px !important;
+    }
+
+    .dashboard-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        z-index: 100;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .dashboard-sidebar.active {
+        transform: translateX(280px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .hero-panel-content h1 {
+        font-size: 1.5rem !important;
+        line-height: 1.25 !important;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-panel-content h1 .highlight-title {
+        font-size: 1.25rem !important;
+    }
+
+    .hero-panel-tagline {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-hero-panel {
+        padding: 24px 16px !important;
+    }
+
+    .welcome-greeting h2 {
+        font-size: 1.35rem;
+    }
 }
 /* ==========================================
    MOBILE SIDEBAR DRAWER STYLES
@@ -1110,74 +1044,25 @@ body {
   z-index: 99;
 }
 
-/* Mobile Screens (< 768px) */
-@media (max-width: 768px) {
-  .menu-toggle-btn {
+.hero-status-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.status-pill {
     display: flex;
     align-items: center;
-    justify-content: center;
-  }
-
-  /* Expand Main Content to Full Screen Width */
-  .dashboard-main {
-    width: 100% !important;
-    padding: 16px !important;
-  }
-
-  /* Convert Sidebar into Hidden Off-Canvas Drawer */
-  .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px; /* Hide off-screen left */
-    height: 100vh;
-    z-index: 100;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
-  }
-
-  /* Active Class: Slide Sidebar Over Dashboard */
-  .dashboard-sidebar.active {
-    transform: translateX(280px);
-  }
-
-  /* Show Backdrop Overlay when Menu is Open */
-  .sidebar-overlay.active {
-    display: block;
-  }
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
 }
-@media (max-width: 768px) {
-  /* Scale down hero title to prevent horizontal overflow */
-  .hero-panel-content h1 {
-    font-size: 1.75rem !important;
-    line-height: 1.2;
-    letter-spacing: 0.5px;
-  }
 
-  .hero-panel-tagline {
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-  }
-
-  /* Adjust top navbar welcome greeting size for smaller screens */
-  .welcome-greeting h2 {
-    font-size: 1.35rem;
-  }
-}
-@media (max-width: 768px) {
-  /* Reduce panel padding so text has more horizontal room */
-  .dashboard-hero-panel {
-    padding: 24px 16px !important;
-  }
-
-  /* Scale down the hero heading */
-  .hero-panel-content h1 {
-    font-size: 1.5rem !important;
-    line-height: 1.25 !important;
-  }
-
-  /* Explicitly target the TRAILBLAZERS span to fit on one line */
-  .hero-panel-content h1 .highlight-title {
-    font-size: 1.25rem !important;
-    letter-spacing: 0.5px;
-  }
+.status-pill i {
+    color: var(--gold-glow);
 }
