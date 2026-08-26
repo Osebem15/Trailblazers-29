@@ -856,9 +856,43 @@ html, body {
     font-weight: 600;
 }
 
+/* ==========================================
+   ENHANCED SCROLLABLE TABLE STYLES
+   ========================================== */
 .table-responsive {
     width: 100%;
+    max-height: 65vh; /* Constrains height so long lists scroll vertically */
+    overflow-y: auto;
     overflow-x: auto;
+    border-radius: 12px;
+}
+
+/* Custom Scrollbar Styling for Table */
+.table-responsive::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(79, 139, 255, 0.3);
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 139, 255, 0.5);
+}
+
+/* Sticky Column Headers when Scrolling Down */
+.data-table th {
+    position: sticky;
+    top: 0;
+    background: #041326; /* Solid backdrop so rows slide under headers */
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .data-table {
@@ -867,16 +901,7 @@ html, body {
     text-align: left;
 }
 
-.data-table th {
-    background: rgba(255, 255, 255, 0.04);
-    color: #7f9cc1;
-    padding: 14px 16px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
+
 
 .data-table td {
     padding: 16px;
