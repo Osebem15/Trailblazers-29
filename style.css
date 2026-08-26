@@ -826,3 +826,16 @@ html, body {
     margin-left: auto;
     font-weight: 600;
 }
+@media (max-width: 768px) {
+  /* Force data matrix grid to stack Quick Access on top and Calendar below */
+  .data-matrix-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 16px 0 30px 0;
+  }
+
+  .matrix-left-col,
+  .matrix-right-col {
+    width: 100% !important;
+  }
+}
