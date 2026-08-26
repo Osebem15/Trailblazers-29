@@ -1163,3 +1163,21 @@ body {
     font-size: 1.35rem;
   }
 }
+@media (max-width: 768px) {
+  /* Reduce panel padding so text has more horizontal room */
+  .dashboard-hero-panel {
+    padding: 24px 16px !important;
+  }
+
+  /* Scale down the hero heading */
+  .hero-panel-content h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Explicitly target the TRAILBLAZERS span to fit on one line */
+  .hero-panel-content h1 .highlight-title {
+    font-size: 1.25rem !important;
+    letter-spacing: 0.5px;
+  }
+}
