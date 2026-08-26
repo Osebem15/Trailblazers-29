@@ -9,7 +9,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { GOOGLE_API_KEY } from './config.js';
 
+// =======================================================
 // 1. FIREBASE PROJECT CONFIGURATION
+// =======================================================
 const firebaseConfig = {
   apiKey: GOOGLE_API_KEY,
   authDomain: "trailblazers--29.firebaseapp.com",
@@ -57,7 +59,9 @@ function displayError(message) {
   authError.style.display = "block";
 }
 
+// =======================================================
 // 2. CORE AUTHENTICATION STATE OBSERVER
+// =======================================================
 onAuthStateChanged(auth, (user) => {
   if (user) {
     const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
@@ -82,7 +86,9 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
+// =======================================================
 // 3. TRADITIONAL MATRICULATION NUMBER / PASSWORD LOGIN
+// =======================================================
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -118,7 +124,9 @@ if (loginForm) {
   });
 }
 
+// =======================================================
 // 4. ONE-CLICK GOOGLE SIGN-IN FLOW
+// =======================================================
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', () => {
     authError.style.display = 'none';
@@ -134,7 +142,9 @@ if (googleLoginBtn) {
   });
 }
 
+// =======================================================
 // 5. SECURE SYSTEM LOGOUT FLOW
+// =======================================================
 if (logoutBtn) {
   logoutBtn.addEventListener('click', (e) => {
     e.preventDefault(); 
@@ -149,8 +159,9 @@ if (logoutBtn) {
       });
   });
 }
+
 // =======================================================
-// MOBILE SIDEBAR DRAWER TOGGLE LOGIC
+// 6. MOBILE SIDEBAR DRAWER TOGGLE LOGIC
 // =======================================================
 const menuToggleBtn = document.getElementById('menu-toggle-btn');
 const dashboardSidebar = document.querySelector('.dashboard-sidebar');
@@ -158,14 +169,12 @@ const sidebarOverlay = document.getElementById('sidebar-overlay');
 const sidebarLinks = document.querySelectorAll('.sidebar-grid-menu .menu-item');
 
 if (menuToggleBtn && dashboardSidebar) {
-  // Toggle sidebar and backdrop overlay
   menuToggleBtn.addEventListener('click', () => {
     dashboardSidebar.classList.toggle('active');
     if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
   });
 }
 
-// Close drawer when tapping anywhere on the dark backdrop
 if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
     dashboardSidebar.classList.remove('active');
@@ -173,7 +182,6 @@ if (sidebarOverlay) {
   });
 }
 
-// Close drawer automatically when a user selects a menu item on mobile
 sidebarLinks.forEach(link => {
   link.addEventListener('click', () => {
     if (window.innerWidth <= 768) {
@@ -182,123 +190,78 @@ sidebarLinks.forEach(link => {
     }
   });
 });
+
 // =======================================================
-// DYNAMIC TAB & VIEW SWITCHER
+// 7. DYNAMIC TAB & VIEW SWITCHER
 // =======================================================
 function switchDashboardTab(tabName) {
-    const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
-    const homeView = document.getElementById('dashboardHomeView');
-    const coursesView = document.getElementById('coursesView');
+  const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+  const homeView = document.getElementById('dashboardHomeView');
+  const coursesView = document.getElementById('coursesView');
+  const timetableView = document.getElementById('timetableView');
 
-    // 1. Update active highlight in sidebar
-    menuItems.forEach(item => {
-        const itemText = item.querySelector('span')?.textContent.trim();
-        if (itemText === tabName) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-
-    // 2. Toggle main view panels
-    if (tabName === 'Courses') {
-        if (homeView) homeView.style.display = 'none';
-        if (coursesView) coursesView.style.display = 'block';
-    } else if (tabName === 'My Profile') {
-        if (coursesView) coursesView.style.display = 'none';
-        if (homeView) homeView.style.display = 'block';
+  // Update active highlight in sidebar menu
+  menuItems.forEach(item => {
+    const itemText = item.querySelector('span')?.textContent.trim();
+    if (itemText === tabName) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
     }
-}
-
-// Sidebar item click listeners
-document.querySelectorAll('.sidebar-grid-menu .menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const tabName = item.querySelector('span')?.textContent.trim();
-        switchDashboardTab(tabName);
-    });
-});
-
-// Quick access box click listeners
-document.querySelectorAll('.access-box').forEach(box => {
-    box.addEventListener('click', () => {
-        const tabName = box.querySelector('span')?.textContent.trim();
-        switchDashboardTab(tabName);
-    });
-});
-
-// =======================================================
-// ANNOUNCEMENTS DATA ENGINE & CALENDAR LOGIC
-// =======================================================
-window.allAnnouncements = [];
-
-async function fetchAnnouncements() {
-  const feedContainer = document.querySelector('.announcements-feed-list');
-  if (!feedContainer) return;
-
-  try {
-    const response = await fetch('announcements.json');
-    const data = await response.json();
-    window.allAnnouncements = data;
-    renderAnnouncementsByDate(null);
-  } catch (error) {
-    console.error("Error reading announcements data file:", error);
-    feedContainer.innerHTML = '<div class="feed-row-item"><p style="color: #ef4444;">Failed to load notices.</p></div>';
-  }
-}
-
-function renderAnnouncementsByDate(selectedDate) {
-  const feedContainer = document.querySelector('.announcements-feed-list');
-  if (!feedContainer) return;
-
-  let filteredAnnouncements = window.allAnnouncements;
-  if (selectedDate) {
-    filteredAnnouncements = window.allAnnouncements.filter(ann => ann.date === selectedDate);
-  }
-
-  feedContainer.innerHTML = '';
-
-  if (filteredAnnouncements.length === 0) {
-    feedContainer.innerHTML = '<div class="feed-row-item"><p style="color: #94a3b8;">No announcements for this date.</p></div>';
-    return;
-  }
-
-  filteredAnnouncements.forEach((announcement) => {
-    const rowHTML = `
-      <div class="feed-row-item">
-        <div class="feed-icon"><i class="fas fa-bullhorn"></i></div>
-        <div class="feed-details">
-          <h4>${announcement.title}</h4>
-          <p>${announcement.content}</p>
-        </div>
-        <div class="feed-date">${announcement.date}</div>
-      </div>
-    `;
-    feedContainer.insertAdjacentHTML('beforeend', rowHTML);
   });
+
+  // Hide all view panels first
+  if (homeView) homeView.style.display = 'none';
+  if (coursesView) coursesView.style.display = 'none';
+  if (timetableView) timetableView.style.display = 'none';
+
+  // Route active view
+  if (tabName === 'Courses' && coursesView) {
+    coursesView.style.display = 'block';
+  } else if (tabName === 'Timetable' && timetableView) {
+    timetableView.style.display = 'block';
+  } else if (homeView) {
+    homeView.style.display = 'block';
+  }
 }
 
+// Attach event listeners to Sidebar Menu Items
+document.querySelectorAll('.sidebar-grid-menu .menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const tabName = item.querySelector('span')?.textContent.trim();
+    if (tabName) switchDashboardTab(tabName);
+  });
+});
+
+// Attach event listeners to Quick Access Cards
+document.querySelectorAll('.access-box').forEach(box => {
+  box.addEventListener('click', () => {
+    const tabName = box.querySelector('span')?.textContent.trim();
+    if (tabName) switchDashboardTab(tabName);
+  });
+});
+
+// =======================================================
+// 8. INTERACTIVE CALENDAR DATE SELECTOR LOGIC
+// =======================================================
 function attachCalendarListeners() {
   const dayNumbers = document.querySelectorAll('.day-num');
+  const focusedEventDate = document.querySelector('.focused-event-date');
+  
   dayNumbers.forEach(dayEl => {
+    if (dayEl.classList.contains('muted')) return;
+    
+    dayEl.style.cursor = 'pointer';
     dayEl.addEventListener('click', function() {
-      if (this.classList.contains('muted')) return;
-
       dayNumbers.forEach(el => el.classList.remove('active'));
       this.classList.add('active');
 
       const dayNum = this.textContent.trim();
-      const selectedDate = `${dayNum.padStart(2, '0')}/06/2026`;
-      
-      renderAnnouncementsByDate(selectedDate);
+      if (focusedEventDate) {
+        focusedEventDate.textContent = `Mon, ${dayNum} June 2026`;
+      }
     });
-    
-    if (!dayEl.classList.contains('muted')) {
-      dayEl.style.cursor = 'pointer';
-    }
   });
 }
 
-fetchAnnouncements();
-setTimeout(() => {
-  attachCalendarListeners();
-}, 100);
+attachCalendarListeners();
