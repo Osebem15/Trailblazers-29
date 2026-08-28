@@ -1163,6 +1163,89 @@ html, body {
     gap: 10px;
     margin-top: 10px;
 }
+/* ==========================================
+   RESULTS SEARCH & GPA CALCULATOR STYLES
+   ========================================== */
+.search-input-box {
+    position: relative;
+    min-width: 260px;
+}
+
+.search-input-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f9cc1;
+    font-size: 0.85rem;
+}
+
+.search-input-box input {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    background: rgba(0, 11, 24, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.search-input-box input:focus {
+    border-color: #4f8bff;
+}
+
+.gpa-lookup-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.gpa-lookup-bar input {
+    flex: 1;
+    min-width: 240px;
+    padding: 11px 16px;
+    background: rgba(0, 11, 24, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.grade-select {
+    background: #020b18;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    width: 100%;
+    outline: none;
+}
+
+.gpa-result-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gpa-score-output {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.gpa-score-output strong {
+    font-size: 1.8rem;
+    color: var(--gold-glow);
+}
 @media (max-width: 768px) {
   /* Force vertical stacking on mobile */
   .data-matrix-grid {
