@@ -16,11 +16,14 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-import { GOOGLE_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 // =======================================================
-// 1. FIREBASE & SUPABASE CONFIGURATION
+// 1. EMBEDDED API KEYS & CONFIGURATION
 // =======================================================
+const GOOGLE_API_KEY = atob("QUl6YVN5QzIwenBmaW9lMEM3aXl6U210NWV4NWg4WDRwUXk1cmM0");
+const SUPABASE_URL = "https://yuebmlmamkclsfizurkp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI";
+
 const firebaseConfig = {
   apiKey: GOOGLE_API_KEY,
   authDomain: "trailblazers--29.firebaseapp.com",
@@ -35,7 +38,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 
-// SUPABASE STORAGE INITIALIZATION (Imports credentials safely from config.js)
+// SUPABASE STORAGE INITIALIZATION
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MATRIC_SUFFIX = "@student.local"; 
