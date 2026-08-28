@@ -1,3 +1,4 @@
-export const GOOGLE_API_KEY = atob("QUl6YVN5QTB4Z3ZOQUJxN3JYMEhjU2dUWkx6U3d1bjNfbFU=");
+// config.js
+export const GOOGLE_API_KEY = atob("QUl6YVN5QzIwenBmaW9lMEM3aXl6U210NWV4NWg4WDRwUXk1cmM0");
 export const SUPABASE_URL = "https://yuebmlmamkclsfizurkp.supabase.co";
 export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI";
