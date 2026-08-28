@@ -16,7 +16,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-import { GOOGLE_API_KEY } from './config.js';
+import { GOOGLE_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 // =======================================================
 // 1. FIREBASE & SUPABASE CONFIGURATION
@@ -35,9 +35,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 
-// SUPABASE STORAGE INITIALIZATION (Free tier - No credit card required)
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+// SUPABASE STORAGE INITIALIZATION (Imports credentials safely from config.js)
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MATRIC_SUFFIX = "@student.local"; 

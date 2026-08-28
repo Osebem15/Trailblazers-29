@@ -1,4 +1,4 @@
 // config.example.js
-export const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY_HERE";
-export const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
-export const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+export const GOOGLE_API_KEY = "AIzaSyA0xgvNABq62rH07X0HcSgTZLzSwun3_lU";
+export const SUPABASE_URL = "https://yuebmlmamkclsfizurkp.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI";
