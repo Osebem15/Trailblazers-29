@@ -1,0 +1,197 @@
+{
+  "_readme": "==============================================================",
+  "_readme2": "  TB-DATA.JSON — Trailblazers AI Context File",
+  "_readme3": "  This is the SINGLE SOURCE OF TRUTH for the TB AI bots.",
+  "_readme4": "  The AI reads only the section it needs per question.",
+  "_readme5": "",
+  "_readme6": "  HOW TO EDIT:",
+  "_readme7": "  - To add/remove a course: edit the 'courses' array below.",
+  "_readme8": "    Each course has: code, title, units, semester, description.",
+  "_readme9": "  - To update the timetable: edit the 'timetable' array.",
+  "_readme10": "    Each slot has: day, time, course (code), venue, room.",
+  "_readme11": "    Use null for venue/room if the class has no fixed room.",
+  "_readme12": "  - To update dept info/FAQ: edit the 'department' section.",
+  "_readme13": "  - DO NOT delete the section keys (courses, timetable, etc.)",
+  "_readme14": "    The AI uses these keys to find the right section.",
+  "_readme15": "==============================================================",
+
+  "department": {
+    "name": "Department of Accounting",
+    "faculty": "Faculty of Management Sciences",
+    "university": "University of Lagos (UNILAG)",
+    "location": "Akoka, Lagos State, Nigeria",
+    "motto": "Integrity, Excellence and Service",
+    "class": "ACC '29 — The Trailblazers",
+    "current_level": "100 Level",
+    "current_semester": "2nd Semester",
+    "current_session": "2025/2026",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@thetrailblazers.29",
+      "twitter": "Coming soon",
+      "instagram": "Coming soon",
+      "linkedin": "Coming soon"
+    },
+    "contacts": {
+      "general_enquiries": "Visit the student affairs office on campus",
+      "student_id_renewal": "Report to the student affairs office",
+      "portal_issues": "Contact the class tech team via social media"
+    },
+    "faq": [
+      {
+        "q": "How do I log in?",
+        "a": "Use your matric number as your email (format: matricnumber@student.local) and your password. You can also sign in with Google if your email is approved."
+      },
+      {
+        "q": "I forgot my password",
+        "a": "Use the password reset option on the login screen or reach out to the tech team."
+      },
+      {
+        "q": "How do I register for courses?",
+        "a": "Course registration is done via the official UNILAG portal. Watch the Notices section for when registration opens."
+      },
+      {
+        "q": "How do I upload course materials?",
+        "a": "Only authorised users can upload materials. Students can download materials from the Courses section after logging in."
+      },
+      {
+        "q": "What portal sections are available?",
+        "a": "My Profile, Courses, Timetable, Results, Fees, Notices, Documents."
+      }
+    ]
+  },
+
+  "courses": [
+    {
+      "_note": "--- 1ST SEMESTER COURSES --- Edit code, title, units, description below",
+      "semester": "1st",
+      "code": "ACC 101",
+      "title": "Introduction to Financial Accounting I",
+      "units": 3,
+      "description": "Fundamentals of accounting: the accounting equation, double-entry bookkeeping, ledger accounts, trial balance and financial statements for sole traders."
+    },
+    {
+      "semester": "1st",
+      "code": "AMS 101",
+      "title": "Introduction to Management",
+      "units": 2,
+      "description": "Core management concepts: planning, organising, leading and controlling. Covers major management theories and organisational behaviour."
+    },
+    {
+      "semester": "1st",
+      "code": "SOC 101",
+      "title": "Introduction to Sociology I",
+      "units": 2,
+      "description": "Sociological concepts, culture, socialisation, social stratification and institutions."
+    },
+    {
+      "semester": "1st",
+      "code": "AMS 103",
+      "title": "Introduction to Computer Science",
+      "units": 2,
+      "description": "Basics of computing: hardware, software, operating systems, internet, spreadsheets, word processing and intro to programming logic."
+    },
+    {
+      "_note": "--- 2ND SEMESTER COURSES ---",
+      "semester": "2nd",
+      "code": "ACC 102",
+      "title": "Introduction to Financial Accounting II",
+      "units": 3,
+      "description": "Continuation of ACC 101. Covers control accounts, bank reconciliation, partnership accounts, depreciation methods and incomplete records."
+    },
+    {
+      "semester": "2nd",
+      "code": "AMS 102",
+      "title": "Business Mathematics",
+      "units": 2,
+      "description": "Mathematical techniques for business: sets, matrices, linear equations, progressions, interest calculations and introductory statistics."
+    },
+    {
+      "semester": "2nd",
+      "code": "AMS 104",
+      "title": "Principles of Project Management",
+      "units": 3,
+      "description": "Project planning, scheduling, risk management, resource allocation and project evaluation techniques."
+    },
+    {
+      "semester": "2nd",
+      "code": "ECO 102",
+      "title": "Elements of Economics II",
+      "units": 3,
+      "description": "Microeconomics: demand, supply, market equilibrium, elasticity, consumer theory, production theory, costs and market structures."
+    },
+    {
+      "semester": "2nd",
+      "code": "GST 112",
+      "title": "Logic, Philosophy and Human Existence",
+      "units": 2,
+      "description": "Philosophical reasoning, logical argumentation, ethics and the nature of human existence."
+    },
+    {
+      "semester": "2nd",
+      "code": "LAG-PSY 136",
+      "title": "General Psychology",
+      "units": 2,
+      "description": "Fundamentals of human psychology: perception, learning, motivation, personality, development and social behaviour."
+    },
+    {
+      "semester": "2nd",
+      "code": "SOC 106",
+      "title": "Introduction to Sociology II",
+      "units": 2,
+      "description": "Continuation of SOC 101. Social change, deviance, social movements, globalisation and sociological research methods."
+    }
+  ],
+
+  "timetable": [
+    {
+      "_note": "--- TIMETABLE --- Edit day, time, course, venue, room as needed. Use null for empty slots.",
+      "day": "Monday",
+      "time": "8:00 AM - 10:00 AM",
+      "course": "ACC 102",
+      "venue": "DLI",
+      "room": "NB2 / Room 103"
+    },
+    {
+      "day": "Monday",
+      "time": "12:00 PM - 2:00 PM",
+      "course": "AMS 104",
+      "venue": "DLI",
+      "room": "NB2 / Room 102"
+    },
+    {
+      "day": "Tuesday",
+      "time": "8:00 AM - 10:00 AM",
+      "course": "ECO 102",
+      "venue": "Staff School",
+      "room": null
+    },
+    {
+      "day": "Tuesday",
+      "time": "10:00 AM - 12:00 PM",
+      "course": "AMS 104",
+      "venue": "DLI",
+      "room": "NB2 / Room 103"
+    },
+    {
+      "day": "Tuesday",
+      "time": "12:00 PM - 2:00 PM",
+      "course": "AMS 102",
+      "venue": "DLI",
+      "room": "NB2 / Room 103"
+    },
+    {
+      "day": "Wednesday",
+      "time": "10:00 AM - 12:00 PM",
+      "course": "SOC 106",
+      "venue": "Staff School",
+      "room": null
+    },
+    {
+      "day": "Thursday",
+      "time": "4:00 PM - 6:00 PM",
+      "course": "LAG-PSY 136",
+      "venue": "Online",
+      "room": null
+    }
+  ]
+}

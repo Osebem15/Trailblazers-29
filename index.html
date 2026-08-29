@@ -11,6 +11,37 @@
     
     <!-- Internal Styles -->
     <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* TB AI Floating Button */
+    #tb-fab {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #C5A059, #D4AF37);
+      box-shadow: 0 4px 24px rgba(197,160,89,0.55);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+    }
+    #tb-fab:hover {
+      transform: scale(1.09);
+      box-shadow: 0 6px 32px rgba(197,160,89,0.75);
+    }
+    .tb-fab-logo {
+      font-size: 18px; font-weight: 900;
+      color: #000b18; line-height: 1;
+    }
+    .tb-fab-sub {
+      font-size: 8px; font-weight: 700; color: #000b18;
+      letter-spacing: 0.5px; margin-top: 2px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    @media (max-width: 480px) {
+      #tb-fab { bottom: 18px; right: 18px; width: 56px; height: 56px; }
+    }
+  </style>
 </head>
 <body>
     <div id="loggedOutView">
@@ -499,77 +530,112 @@
 
                 <!-- RESULTS & GPA CALCULATOR VIEW -->
                 <div id="resultsView" class="view-panel" style="display: none;">
-                    <!-- 1. COURSE SELECTION LIST (SHOWN BY DEFAULT) -->
+                    <!-- 1. COURSE SELECTION LIST (SHOWN BY DEFAULT WITH SEMESTER TOGGLE) -->
                     <div id="resultsCourseListView" class="matrix-card">
-                        <div class="table-header-row">
-                            <h3><i class="fa-solid fa-square-poll-vertical section-header-icon"></i> Departmental Course Results</h3>
-                            <span class="total-units-badge">First Semester 2025/2026</span>
-                        </div>
-                        <p class="section-subtext">Select a course to view the full student score breakdown sheet.</p>
+                        <div class="table-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h3><i class="fa-solid fa-square-poll-vertical section-header-icon"></i> Departmental Course Results</h3>
+                                <p class="section-subtext" style="margin-top: 4px;">Select a course to view the full student score breakdown sheet.</p>
+                            </div>
 
-                        <div class="results-grid">
-                            <div class="result-card course-score-trigger" data-code="ACC 101" data-title="Principles of Accounting I">
+                            <!-- Semester Toggle Group -->
+                            <div class="semester-toggle-group" style="display: flex; background: rgba(255, 255, 255, 0.05); padding: 4px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <button id="btnFirstSemester" onclick="switchSemester('1st')" style="padding: 6px 16px; border-radius: 16px; border: none; background: #1d9bf0; color: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                                    1st Semester
+                                </button>
+                                <button id="btnSecondSemester" onclick="switchSemester('2nd')" style="padding: 6px 16px; border-radius: 16px; border: none; background: transparent; color: #8fa5c3; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                                    2nd Semester
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="results-grid" style="margin-top: 16px;">
+                            <!-- 1st Semester Courses -->
+                            <div class="result-card course-score-trigger results-course-card" data-semester="1st" data-code="ACC 101" data-title="Principles of Accounting I">
                                 <div class="result-card-header">
                                     <span class="course-code-tag">ACC 101</span>
                                     <span class="total-units-badge">3 Units</span>
                                 </div>
-                                <h4>Principles of Accounting I</h4>
+                                <h4>INTRODUCTION TO FINANCIAL ACCOUNTING I</h4>
                                 <div class="result-card-footer">
-                                    <span>172 Students Recorded</span>
+                                    <span>178 Students Recorded</span>
                                     <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
                                 </div>
                             </div>
 
-                            <div class="result-card course-score-trigger" data-code="ACC 102" data-title="Introductory Financial Accounting">
+                            <div class="result-card course-score-trigger results-course-card" data-semester="1st" data-code="AMS 101" data-title="INTRODUCTION TO MANAGEMENT">
+                                <div class="result-card-header">
+                                    <span class="course-code-tag">AMS 101</span>
+                                    <span class="total-units-badge">2 Units</span>
+                                </div>
+                                <h4>INTRODUCTION TO MANAGEMENT</h4>
+                                <div class="result-card-footer">
+                                    <span>254 Students Recorded</span>
+                                    <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+                            <div class="result-card course-score-trigger results-course-card" data-semester="1st" data-code="SOC 101" data-title="Introduction to Sociology I">
+                                 <div class="result-card-header">
+                                    <span class="course-code-tag">SOC 101</span>
+                                    <span class="total-units-badge">2 Units</span>
+                                </div>
+                                <p>INTRODUCTION TO SOCIOLOGY I</p>
+                                <div class="result-card-footer">
+                                    <span>177 Students Recorded</span>
+                                    <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+                            <div class="result-card course-score-trigger results-course-card" data-semester="1st" data-code="AMS 103" data-title="INTRODUCTION TO COMPUTER SCIENCE">
+                                 <div class="result-card-header">
+                                    <span class="course-code-tag">AMS 103</span>
+                                    <span class="total-units-badge">2 Units</span>
+                                </div>
+                                <p>INTRODUCTION TO COMPUTER STUDENTS</p>
+                                <div class="result-card-footer">
+                                    <span>Students Recorded</span>
+                                    <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+
+                            <!-- 2nd Semester Courses -->
+                            <div class="result-card course-score-trigger results-course-card" data-semester="2nd" data-code="ACC 102" data-title="Introductory Financial Accounting II" style="display: none;">
                                 <div class="result-card-header">
                                     <span class="course-code-tag">ACC 102</span>
                                     <span class="total-units-badge">3 Units</span>
                                 </div>
-                                <h4>Introductory Financial Accounting</h4>
+                                <h4>INTRODUCTION TO FINANCIAL ACCOUNTING II</h4>
                                 <div class="result-card-footer">
-                                    <span>172 Students Recorded</span>
+                                    <span>Pending Results</span>
                                     <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
                                 </div>
                             </div>
 
-                            <div class="result-card course-score-trigger" data-code="ECO 102" data-title="Elements of Economics I">
+                            <div class="result-card course-score-trigger results-course-card" data-semester="2nd" data-code="ECO 102" data-title="Elements of Economics II" style="display: none;">
                                 <div class="result-card-header">
                                     <span class="course-code-tag">ECO 102</span>
                                     <span class="total-units-badge">3 Units</span>
                                 </div>
-                                <h4>Elements of Economics I</h4>
+                                <h4>INTRODUCTION TO ECONOMICS II</h4>
                                 <div class="result-card-footer">
-                                    <span>170 Students Recorded</span>
-                                    <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
-                                </div>
-                            </div>
-
-                            <div class="result-card course-score-trigger" data-code="AMS 104" data-title="Mathematics for Business">
-                                <div class="result-card-header">
-                                    <span class="course-code-tag">AMS 104</span>
-                                    <span class="total-units-badge">3 Units</span>
-                                </div>
-                                <h4>Mathematics for Business</h4>
-                                <div class="result-card-footer">
-                                    <span>168 Students Recorded</span>
+                                    <span>Pending Results</span>
                                     <span class="view-score-link">View Scoresheet <i class="fa-solid fa-arrow-right"></i></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. SCROLLABLE COURSE STUDENT SCORESHEET (HIDDEN UNTIL COURSE CLICKED) -->
+                    <!-- 2. SCROLLABLE COURSE STUDENT SCORESHEET (NAME COLUMN REMOVED) -->
                     <div id="courseScoresDetailView" class="matrix-card" style="display: none;">
                         <div class="table-header-row">
                             <div>
                                 <button id="backToCoursesBtn" class="btn-outline btn-back">
                                     <i class="fa-solid fa-arrow-left"></i> Back to Courses
                                 </button>
-                                <h3 id="activeCourseTitle">ACC 101 - Principles of Accounting I</h3>
+                                <h3 id="activeCourseTitle">ACC 101 - INTRODUCTION TO FINANCIAL ACCOUNTING I</h3>
                             </div>
                             <div class="search-input-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="studentSearchInput" placeholder="Search by Name or Matric No...">
+                                <input type="text" id="studentSearchInput" placeholder="Search by Matric No...">
                             </div>
                         </div>
 
@@ -579,10 +645,9 @@
                                     <tr>
                                         <th>S/N</th>
                                         <th>Matriculation No</th>
-                                        <th>Student Name</th>
-                                        <th>CA Score (30)</th>
-                                        <th>Exam Score (70)</th>
-                                        <th>Total Score (100)</th>
+                                        <th>CA Score</th>
+                                        <th>Exam Score</th>
+                                        <th>Total Score</th>
                                         <th>Grade</th>
                                     </tr>
                                 </thead>
@@ -606,7 +671,7 @@
 
                         <!-- Auto-fill lookup box -->
                         <div class="gpa-lookup-bar">
-                            <input type="text" id="gpaMatricLookupInput" placeholder="Enter Matric No (e.g., 230901001)...">
+                            <input type="text" id="gpaMatricLookupInput" placeholder="Enter Matric No (e.g., 250201001)...">
                             <button id="autoFillGradesBtn" class="btn-primary btn-inline-action">
                                 Auto-Fill My Grades
                             </button>
@@ -624,7 +689,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>ACC 101</strong> - Principles of Accounting I</td>
+                                        <td><strong>ACC 101</strong> - INTRODUCTION TO FINANCIAL ACCOUNTING I</td>
                                         <td>3</td>
                                         <td>
                                             <select class="grade-select" data-units="3">
@@ -639,7 +704,52 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>ACC 102</strong> - Introductory Financial Accounting</td>
+                                        <td>SOC 101 - INTRODUCTION TO SOCIOLOGY I</td>
+                                        <td>2</td>
+                                        <td>
+                                            <select class="grade-select" data-units="2" style="padding: 6px; border-radius: 6px; background: #111; color: #fff; border: 1px solid #333;">
+                                                <option value="">-- Select --</option>
+                                                <option value="5">A (70-100)</option>
+                                                <option value="4">B (60-69)</option>
+                                                <option value="3">C (50-59)</option>
+                                                <option value="2">D (45-49)</option>
+                                                <option value="1">E (40-44)</option>
+                                                <option value="0">F (0-39)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>AMS 101 - INTRODUCTION TO MANAGEMENT</td>
+                                        <td>2</td>
+                                        <td>
+                                            <select class="grade-select" data-units="2" style="padding: 6px; border-radius: 6px; background: #111; color: #fff; border: 1px solid #333;">
+                                                <option value="">-- Select --</option>
+                                                <option value="5">A (70-100)</option>
+                                                <option value="4">B (60-69)</option>
+                                                <option value="3">C (50-59)</option>
+                                                <option value="2">D (45-49)</option>
+                                                <option value="1">E (40-44)</option>
+                                                <option value="0">F (0-39)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>AMS 103 - INTRODUCTION TO COMPUTER SCIENCE</td>
+                                        <td>2</td>
+                                        <td>
+                                            <select class="grade-select" data-units="2" style="padding: 6px; border-radius: 6px; background: #111; color: #fff; border: 1px solid #333;">
+                                                <option value="">-- Select --</option>
+                                                <option value="5">A (70-100)</option>
+                                                <option value="4">B (60-69)</option>
+                                                <option value="3">C (50-59)</option>
+                                                <option value="2">D (45-49)</option>
+                                                <option value="1">E (40-44)</option>
+                                                <option value="0">F (0-39)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ACC 102</strong> - INTRODUCTION TO FINANCIAL ACCOUNTING II</td>
                                         <td>3</td>
                                         <td>
                                             <select class="grade-select" data-units="3">
@@ -654,7 +764,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>ECO 102</strong> - Elements of Economics I</td>
+                                        <td><strong>ECO 102</strong> - INTRODUCTION TO ECONOMICS II</td>
                                         <td>3</td>
                                         <td>
                                             <select class="grade-select" data-units="3">
@@ -669,7 +779,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>AMS 104</strong> - Mathematics for Business</td>
+                                        <td><strong>AMS 104</strong> - PRINCIPLES OF PROJECT MANAGEMENT</td>
                                         <td>3</td>
                                         <td>
                                             <select class="grade-select" data-units="3">
@@ -720,11 +830,11 @@
                             <h3><i class="fa-solid fa-user-gear gold-header-icon"></i> Admin Payment Manager</h3>
                             <div class="search-input-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="duesAdminSearchInput" placeholder="Search student name or matric...">
+                                <input type="text" id="duesAdminSearchInput" placeholder="Search student matric...">
                             </div>
                         </div>
                         <p class="card-description">
-                            Toggle the payment switch next to a student's name to update their dues clearance.
+                            Toggle the payment switch next to a student's matric number to update their dues clearance.
                         </p>
 
                         <div class="table-responsive admin-table-scroll">
@@ -733,7 +843,6 @@
                                     <tr>
                                         <th>S/N</th>
                                         <th>Matric No</th>
-                                        <th>Student Name</th>
                                         <th>Dues Status</th>
                                         <th>Toggle Status</th>
                                     </tr>
@@ -903,5 +1012,11 @@
 
     <!-- Scripts -->
     <script type="module" src="auth.js"></script>
+
+  <!-- TB AI Floating Button -->
+  <a href="ai.html" id="tb-fab" title="Chat with TB AI">
+    <span class="tb-fab-logo">&#120139;&#120121;</span>
+    <span class="tb-fab-sub">AI</span>
+  </a>
 </body>
 </html>
