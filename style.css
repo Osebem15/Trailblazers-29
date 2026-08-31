@@ -1343,3 +1343,157 @@ html, body {
         margin-top: 4px !important;
     }
 }
+.gpa-calculator-card {
+    background: #12161f;
+    border: 1px solid #232d3f;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    color: #e2e8f0;
+}
+
+.gpa-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.semester-toggle-group {
+    display: flex;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.gpa-toggle-btn {
+    background: transparent;
+    border: none;
+    color: #8b949e;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gpa-toggle-btn:hover {
+    color: #f0f6fc;
+}
+
+.gpa-toggle-btn.active {
+    background: #1d9bf0;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.dashboard-table th, 
+.dashboard-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #21262d;
+}
+
+.dashboard-table th {
+    color: #8b949e;
+    font-weight: 600;
+    background: #161b22;
+}
+
+.unit-badge {
+    background: rgba(29, 155, 240, 0.15);
+    color: #1d9bf0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.custom-select {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #f0f6fc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.custom-select:focus {
+    border-color: #1d9bf0;
+}
+
+.gpa-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #21262d;
+}
+
+.btn-primary {
+    background: #1d9bf0;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1a8cd8;
+}
+
+.gpa-display-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: #8b949e;
+}
+
+.gpa-display-box strong {
+    color: #1d9bf0;
+    font-size: 1.4rem;
+}
+/* Custom Dark Theme Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0d1117;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1d9bf0;
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #30363d #0d1117;
+}
