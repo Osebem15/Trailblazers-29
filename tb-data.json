@@ -91,7 +91,7 @@
       "description": "Basics of computing: hardware, software, operating systems, internet, spreadsheets, word processing and intro to programming logic."
     },
     {
-      "_note": "--- 2ND SEMESTER COURSES ---",
+      "_note": "--- 2ND SEMESTER COURSES --- UPDATED TO MATCH CURRENT PORTAL",
       "semester": "2nd",
       "code": "ACC 102",
       "title": "Introduction to Financial Accounting II",
@@ -101,7 +101,7 @@
     {
       "semester": "2nd",
       "code": "AMS 102",
-      "title": "Business Mathematics",
+      "title": "Basic Mathematics",
       "units": 2,
       "description": "Mathematical techniques for business: sets, matrices, linear equations, progressions, interest calculations and introductory statistics."
     },
@@ -109,28 +109,28 @@
       "semester": "2nd",
       "code": "AMS 104",
       "title": "Principles of Project Management",
-      "units": 3,
+      "units": 2,
       "description": "Project planning, scheduling, risk management, resource allocation and project evaluation techniques."
     },
     {
       "semester": "2nd",
       "code": "ECO 102",
-      "title": "Elements of Economics II",
-      "units": 3,
+      "title": "Principles of Economics II",
+      "units": 2,
       "description": "Microeconomics: demand, supply, market equilibrium, elasticity, consumer theory, production theory, costs and market structures."
     },
     {
       "semester": "2nd",
       "code": "GST 112",
-      "title": "Logic, Philosophy and Human Existence",
+      "title": "Nigerian People and Culture",
       "units": 2,
-      "description": "Philosophical reasoning, logical argumentation, ethics and the nature of human existence."
+      "description": "Exploration of Nigerian culture, heritage, and societal values."
     },
     {
       "semester": "2nd",
       "code": "LAG-PSY 136",
-      "title": "General Psychology",
-      "units": 2,
+      "title": "Introduction to Psychology II",
+      "units": 3,
       "description": "Fundamentals of human psychology: perception, learning, motivation, personality, development and social behaviour."
     },
     {
@@ -144,7 +144,7 @@
 
   "timetable": [
     {
-      "_note": "--- TIMETABLE --- Edit day, time, course, venue, room as needed. Use null for empty slots.",
+      "_note": "--- TIMETABLE --- 2ND SEMESTER CURRENT SCHEDULE",
       "day": "Monday",
       "time": "8:00 AM - 10:00 AM",
       "course": "ACC 102",
