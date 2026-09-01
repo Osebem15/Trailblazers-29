@@ -189,7 +189,36 @@
                     <h2>Trailblazer <i class="fa-solid fa-circle-check verified-badge-icon"></i></h2>
                 </div>
                 <div class="top-nav-actions">
-                    <div class="user-avatar-circle"><i class="fa-solid fa-user"></i></div>
+                    <div class="profile-dropdown-container">
+                        <div class="user-avatar-circle" id="profileDropdownBtn">
+                            <img id="userAvatarImg" src="" alt="Profile" style="display: none;">
+                            <i id="userAvatarIcon" class="fa-solid fa-user"></i>
+                        </div>
+
+                        <!-- Dropdown Menu -->
+                        <div id="profileDropdownMenu" class="profile-dropdown-menu">
+                            <div class="dropdown-header">
+                                <strong id="dropdownUserName">Trailblazer</strong>
+                                <small>Accounting '29</small>
+                            </div>
+
+                            <label for="profilePicInput" class="dropdown-item-btn">
+                                <i class="fa-solid fa-camera"></i> Change Picture
+                            </label>
+                            <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+
+                            <button id="toggleThemeBtn" class="dropdown-item-btn">
+                                <i class="fa-solid fa-moon" id="themeIcon"></i>
+                                <span id="themeText">Toggle Theme</span>
+                            </button>
+
+                            <div class="dropdown-divider">
+                                <button id="dropdownLogoutBtn" class="dropdown-item-btn danger">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -245,27 +274,21 @@
                                 </div>
 
                                 <div class="calendar-month-selector">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                    <span>June 2026</span>
-                                    <i class="fa-solid fa-chevron-right"></i>
+                                    <i class="fa-solid fa-chevron-left" id="prevMonthBtn"></i>
+                                    <span id="calendarMonthYearText">June 2026</span>
+                                    <i class="fa-solid fa-chevron-right" id="nextMonthBtn"></i>
                                 </div>
 
-                                <div class="calendar-grid-days">
-                                    <div class="day-label">MON</div><div class="day-label">TUE</div><div class="day-label">WED</div><div class="day-label">THU</div><div class="day-label">FRI</div><div class="day-label">SAT</div><div class="day-label">SUN</div>
-                                    <div class="day-num muted">26</div><div class="day-num muted">27</div><div class="day-num muted">28</div><div class="day-num muted">29</div><div class="day-num muted">30</div><div class="day-num muted">31</div><div class="day-num">1</div>
-                                    <div class="day-num">2</div><div class="day-num">3</div><div class="day-num">4</div><div class="day-num">5</div><div class="day-num">6</div><div class="day-num">7</div><div class="day-num">8</div>
-                                    <div class="day-num">9</div><div class="day-num">10</div><div class="day-num">11</div><div class="day-num">12</div><div class="day-num">13</div><div class="day-num">14</div><div class="day-num">15</div>
-                                    <div class="day-num">16</div><div class="day-num">17</div><div class="day-num">18</div><div class="day-num active">19</div><div class="day-num">20</div><div class="day-num">21</div><div class="day-num">22</div>
-                                    <div class="day-num">23</div><div class="day-num">24</div><div class="day-num">25</div><div class="day-num">26</div><div class="day-num">27</div><div class="day-num">28</div><div class="day-num">29</div>
-                                    <div class="day-num">30</div><div class="day-num muted">1</div><div class="day-num muted">2</div><div class="day-num muted">3</div><div class="day-num muted">4</div><div class="day-num muted">5</div><div class="day-num muted">6</div>
+                                <div class="calendar-grid-days" id="calendarGridDays">
+        
                                 </div>
 
-                                <div class="calendar-focused-event-card">
+                                <div class="calendar-focused-event-card" id="calendarFocusedEventCard">
                                     <div class="focused-event-title-row">
-                                        <h4><span class="blue-indicator-dot"></span> Mid-Semester Test</h4>
+                                        <h4 id="focusedEventTitle"><span class="blue-indicator-dot"></span> Mid-Semester Test</h4>
                                         <span class="focused-event-date">Mon, 23 June 2026</span>
                                     </div>
-                                    <p>All students are advised to check the timetable for updates on lecture schedules.</p>
+                                    <p id="focusedEventText">All students are advised to check the timetable for updates on lecture schedules.</p>
                                     <a href="#" class="view-all-events-btn">View all events <i class="fa-solid fa-arrow-right"></i></a>
                                 </div>
                             </div>
@@ -1012,7 +1035,7 @@
                     </div>
                 </div>
 
-                <!-- FEES VIEW (CLASS DUES & ADMIN TRACKER) -->
+                <!-- ACCESSIBLE & RESPONSIVE FEES VIEW -->
                 <div id="feesView" class="view-panel" style="display: none;">
                     <!-- Class Dues Summary Card -->
                     <div class="matrix-card gpa-summary-card">
@@ -1097,13 +1120,24 @@
 
                 <!-- NOTICES VIEW -->
                 <div id="noticesView" class="view-panel" style="display: none;">
+                    <!-- Admin Post Announcement Section (Visible to Admin Users) -->
+                    <div id="adminNoticePostCard" class="matrix-card admin-notice-card" style="display: none;">
+                        <h3><i class="fa-solid fa-bullhorn"></i> Post New Announcement</h3>
+                        <form id="postNoticeForm">
+                            <input type="text" id="noticeTitleInput" placeholder="Announcement Title" required>
+                            <input type="date" id="noticeDateInput" required>
+                            <textarea id="noticeTextInput" placeholder="Announcement text..." rows="3" required></textarea>
+                            <button type="submit" class="btn-primary">Publish Announcement</button>
+                        </form>
+                    </div>
+
                     <div class="matrix-card">
                         <div class="table-header-row">
                             <h3><i class="fa-solid fa-bell section-header-icon"></i> Departmental Bulletins & Notices</h3>
-                            <span class="total-units-badge">2 Active Announcements</span>
+                            <span class="total-units-badge" id="activeNoticeCount">2 Active Announcements</span>
                         </div>
 
-                        <div class="notices-grid">
+                        <div class="notices-grid" id="noticesContainer">
                             <article class="matrix-card notice-card-important">
                                 <div class="notice-card-header">
                                     <span class="course-code-tag">IMPORTANT</span>
@@ -1990,6 +2024,7 @@
      <!-- Supabase JS Client library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="auth.js"></script>
+    <script type="module" src="app.js"></script>
 
   <!-- TB AI Floating Button -->
   <a href="ai.html" id="tb-fab" title="Chat with TB AI">

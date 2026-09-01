@@ -1497,3 +1497,317 @@ html, body {
     scrollbar-width: thin;
     scrollbar-color: #30363d #0d1117;
 }
+/* Add these styles to the bottom of style.css */
+
+/* --- TB AI Floating Button --- */
+#tb-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, #C5A059, #D4AF37);
+  box-shadow: 0 4px 24px rgba(197,160,89,0.55);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer; text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  user-select: none;
+}
+#tb-fab:hover {
+  transform: scale(1.09);
+  box-shadow: 0 6px 32px rgba(197,160,89,0.75);
+}
+.tb-fab-logo {
+  font-size: 18px; font-weight: 900;
+  color: #000b18; line-height: 1;
+}
+.tb-fab-sub {
+  font-size: 8px; font-weight: 700; color: #000b18;
+  letter-spacing: 0.5px; margin-top: 2px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* --- GPA CALCULATOR TOGGLE FIX --- */
+.gpa-calculator-card {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 10px;
+  padding: 20px;
+}
+.gpa-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+.gpa-header-row h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #f0f6fc;
+}
+.gpa-toggle-btn {
+  background: transparent;
+  color: #8b949e;
+  border: none;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.gpa-toggle-btn:focus, .gpa-toggle-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.gpa-toggle-btn.active {
+  background: #1d9bf0 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3) !important;
+}
+
+/* --- FEES VIEW ACCESSIBILITY & RESPONSIVENESS --- */
+#feesView {
+  font-size: 0.82rem;
+}
+#feesView h2.gpa-value {
+  font-size: 1.5rem;
+}
+#feesView .data-table {
+  font-size: 0.8rem;
+  width: 100%;
+  min-width: 500px;
+}
+#feesView .matrix-card {
+  padding: 14px;
+  overflow-x: auto;
+}
+#feesView .stat-badge span {
+  font-size: 0.72rem;
+}
+#feesView .stat-badge strong {
+  font-size: 0.85rem;
+}
+.admin-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* --- PROFILE DROPDOWN MENU --- */
+.profile-dropdown-container {
+  position: relative;
+}
+.user-avatar-circle {
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.profile-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  width: 220px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 1000;
+  padding: 6px 0;
+}
+.profile-dropdown-menu.show {
+  display: block;
+}
+.dropdown-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid #30363d;
+  font-size: 0.85rem;
+  color: #f0f6fc;
+}
+.dropdown-header small {
+  display: block;
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+.dropdown-item-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  color: #c9d1d9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dropdown-item-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #ffffff;
+}
+.dropdown-item-btn.danger {
+  color: #f85149;
+}
+.dropdown-item-btn.danger:hover {
+  background: rgba(248, 81, 73, 0.15);
+}
+.dropdown-divider {
+  border-top: 1px solid #30363d;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+/* --- LIGHT THEME STYLES --- */
+body.light-theme {
+  background-color: #f6f8fa !important;
+  color: #24292f !important;
+}
+body.light-theme .dashboard-main,
+body.light-theme .matrix-card,
+body.light-theme .gpa-calculator-card {
+  background-color: #ffffff !important;
+  color: #24292f !important;
+  border-color: #d0d7de !important;
+}
+body.light-theme .profile-dropdown-menu {
+  background-color: #ffffff;
+  border-color: #d0d7de;
+  color: #24292f;
+}
+body.light-theme .dropdown-header {
+  border-bottom-color: #d0d7de;
+  color: #24292f;
+}
+body.light-theme .dropdown-item-btn {
+  color: #24292f;
+}
+body.light-theme .dropdown-item-btn:hover {
+  background-color: #f3f4f6;
+}
+
+/* --- CALENDAR DYNAMIC STYLES --- */
+.day-num.selected-day {
+  border: 2px solid #1d9bf0 !important;
+  border-radius: 50%;
+}
+.day-num.today-highlight {
+  background: #1d9bf0 !important;
+  color: #ffffff !important;
+  font-weight: bold;
+  border-radius: 50%;
+}
+
+/* --- ADMIN NOTICE POST CARD --- */
+.admin-notice-card {
+  margin-bottom: 20px;
+}
+.admin-notice-card h3 {
+  margin-top: 0;
+  color: #1d9bf0;
+}
+.admin-notice-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.admin-notice-card input,
+.admin-notice-card textarea {
+  padding: 10px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  color: #fff;
+  border-radius: 6px;
+}
+.admin-notice-card button {
+  align-self: flex-start;
+  padding: 8px 18px;
+}
+
+/* --- ACCORDION DETAILS & ACTIONS --- */
+.accordion-course-item {
+  margin-bottom: 12px;
+  padding: 16px;
+}
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.course-topics-wrapper {
+  margin-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 12px;
+}
+.accordion-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.accordion-actions-row h5 {
+  color: var(--gold-glow);
+  margin: 0;
+}
+.accordion-actions-row button {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  margin: 0;
+}
+.topic-expandable {
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.topic-expandable summary {
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.topic-expandable summary span {
+  font-size: 0.75rem;
+  color: #8fa5c3;
+  font-weight: normal;
+}
+.materials-list {
+  margin-top: 10px;
+  padding-left: 10px;
+}
+.material-file-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.material-file-row span {
+  color: #8fa5c3;
+  font-size: 0.85rem;
+}
+.material-file-row span i {
+  color: #ff4d4d;
+  margin-right: 6px;
+}
+.material-file-row a {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  #tb-fab { bottom: 18px; right: 18px; width: 56px; height: 56px; }
+  #feesView { font-size: 0.78rem; }
+}

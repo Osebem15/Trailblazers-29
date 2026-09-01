@@ -230,7 +230,183 @@ if (uploadMaterialForm) {
     }
   });
 }
-
+const studentDirectory = {
+    "250201054": "Fakayode Oluwasemilore",
+    "250201013": "Abidekun Elizabeth",
+    "250201368": "Abubakar Kehinde",
+    "250201302": "Adaramola Bisola",
+    "250201355": "Adebamowo Emmanuel",
+    "250201306": "Adebayo Ife",
+    "250201408": "Adebayo Oluwatofunmi",
+    "250201379": "Adebowale-David Oluwaranolasimi",
+    "250201391": "Adedeji Tosin",
+    "250201021": "Adefalujo Oluwafunmilayo",
+    "250201407": "Adekunle Enoch",
+    "250201400": "Adeleke Ayodeji",
+    "250201052": "Ademola Elijah",
+    "250201403": "Adeniji Tanitoluwa",
+    "250201402": "Adeniran Abdullah",
+    "250201325": "Adeniran Oluwadamilola",
+    "250201378": "Adeniyi Temitope",
+    "250201308": "Adesanya Adetutu",
+    "250201292": "Adewole Habeeb",
+    "250201404": "Adeyanju Mulikat",
+    "250201393": "Adigun Mosopefoluwa",
+    "250201029": "Adio Oluwanifemi",
+    "250201007": "Adukanle Precious",
+    "250201107": "Afolabi Daniel",
+    "250201301": "Afolabi Hezekiah",
+    "250201069": "Afolabiozua Ebubechukwu",
+    "250201028": "Agbalaya Hiqmat",
+    "250201337": "Agbasi Chimamanda",
+    "250201343": "Agboola Olabisi",
+    "250201341": "Ajadi Fathia",
+    "250201293": "Ajayi Ifeoluwa",
+    "250201070": "Ajayi Isaac",
+    "250201294": "Ajayi Motunrayo",
+    "250201358": "Ajenifuja Anuoluwapo",
+    "250201011": "Ajibade Adeola",
+    "250201396": "Ajibade Fathia",
+    "250201338": "Ajibola Peace",
+    "250201050": "Ajisegiri Eniola",
+    "250201018": "Akande Olamide",
+    "250301018": "Akande Olamide",
+    "250201367": "Akapo David",
+    "250201365": "Akinbode Hameedat",
+    "250201066": "Akinbode Precious",
+    "250201046": "Akinola Olusolape",
+    "250201049": "Akinrefon Eniola",
+    "250201042": "Akintan Jamal",
+    "250201322": "Akinyemi Faith",
+    "250201345": "Alabi Emmanuel",
+    "250201037": "Aladetohun Oluwakamimayo",
+    "250201035": "Alawode Praise",
+    "250201008": "Ambelly Aleeyah",
+    "250201111": "Amole Abdulsamad",
+    "250201353": "Amosun Daniella",
+    "250201005": "Anene Deborah",
+    "250201079": "Asaolu Babatope",
+    "250201356": "Ayesoro Eniola",
+    "250201369": "Ayinla Abosede",
+    "250201117": "Badewole Prosper",
+    "250201047": "Bakare Gold",
+    "250201305": "Bakare Idris",
+    "250201053": "Bakare Sulhaa",
+    "250201032": "Bankole Ibukun",
+    "250201290": "Bankole Jason",
+    "250201376": "Bassey Favour",
+    "250201340": "Batula Oluwaranti",
+    "250201387": "Bello Mohammed",
+    "250201374": "Bena Elizabeth",
+    "250201012": "Bode-Adams Ireoluwa",
+    "250201017": "Borokinni Precious",
+    "250201359": "Busari Abdullah",
+    "250201014": "Chiegwu Wilson",
+    "250201373": "Chukwu Esther",
+    "250201109": "Chukwudi Okeh-chidera",
+    "250201328": "Coker Omogbemisola",
+    "250201398": "Collins Victoria",
+    "250201038": "Da-silva Precious",
+    "250201009": "Dike Joy",
+    "250201366": "Ehiremen Mercy",
+    "250201349": "Ejike Esther",
+    "250201300": "Ekeopara Chibuike",
+    "250201081": "Emmanuel Okon",
+    "250201380": "Emmanuel Olatoye",
+    "250201304": "Eniafe Abdulwahab",
+    "250201384": "Fadairo Oluwaferanmi",
+    "250201055": "Fadare Fadeshola",
+    "250201015": "Fakorede Aliyah",
+    "250201406": "Farayibi Daniel",
+    "250201063": "Fashina Ifeoluwa",
+    "250201023": "Folorunsho Mosunmola",
+    "250201382": "Garuba Aishat",
+    "250201112": "Hamzah Fareedah",
+    "250201044": "Hassan Eniola",
+    "250201381": "Hussein Mutmainnah",
+    "250201288": "Huthman Sheriffdeen",
+    "250201106": "Ibitoye Olawumi",
+    "250201339": "Ibrahim Aleeyat",
+    "250201022": "Ilori Oluwatofunmi",
+    "250201389": "Imran Al-Ameen",
+    "250201361": "Isogun Oluwasegun",
+    "250201031": "John Chisom",
+    "250201030": "Kalu Glory",
+    "250201025": "Kayode Adebakin",
+    "250201068": "Kazeem Abdullateef",
+    "250201010": "Kelani Victor",
+    "250201071": "Kila Khadijah",
+    "250201295": "Lamidi Emmanuel",
+    "250201392": "Lisa Adam",
+    "250201397": "Makanjuola Halleluyah",
+    "250201383": "Mobolade Zainab",
+    "250201334": "Monsuru Abdul",
+    "250201036": "Morawo Adedayo",
+    "250201399": "Mustapha Abdul",
+    "250201319": "Mustapha Amirat",
+    "250201344": "Njoku Francis",
+    "250201016": "Nnadi Francis",
+    "250201333": "Nwankwo Favour",
+    "250201033": "Nwofia Jedidah",
+    "250201320": "Obasesan-Yusuf Jafar",
+    "250201362": "Odio Esther",
+    "250201291": "Odughu Gift",
+    "250201113": "Odusola Moyinoluwa",
+    "250201390": "Oduwaye Toluwalase",
+    "250201321": "Ogbeide Serena",
+    "250201020": "Ogunbayo Anuoluwapo",
+    "250201401": "Ogunfowokan Oluwatetisimi",
+    "250201024": "Ogunkoya Oluwademilade",
+    "250201323": "Ojora Roheem",
+    "250201003": "Okunubi Mujeeb",
+    "250201394": "Ola Selimot",
+    "250201108": "Olabamerun Inioluwa",
+    "250201335": "Oladimeji Isaac",
+    "250201064": "Oladiran Praise",
+    "250201289": "Oladunjoye Opemipo",
+    "250201296": "Oladuntoye Oluwatimilehin",
+    "250201348": "Olaitan Oluwanifemi",
+    "250201375": "Olajire Quam",
+    "250201299": "Olaleye Mopelola",
+    "250201045": "Olanrewaju Daniel",
+    "250201303": "Olanrewaju Juliet",
+    "250201001": "Olaosun Isaac",
+    "250201364": "Olasunkanmi Mariam",
+    "250201105": "Olasunmiboye Adedamola",
+    "250201331": "Olomo Adeshina",
+    "250201065": "Olufade Oluwaseyi",
+    "250201395": "Olulana Ibukunoluwa",
+    "250201043": "Oluwalajiki Deborah",
+    "250201347": "Oluwole Oluwakayode",
+    "250201019": "Omeje Somfe",
+    "250201051": "Omeke Precious",
+    "250201354": "Omereme Ifeanyi",
+    "250201330": "Oni Daniel",
+    "250201318": "Oni Victoria",
+    "250201360": "Opeyemi Faithful",
+    "250201324": "Osebeyo Emmanuel",
+    "250201317": "Oviawe Faith",
+    "250201342": "Oyebadejo Tobiloba",
+    "250201371": "Oyebulu Olayiwola",
+    "250201336": "Oyeniran Olamide",
+    "250201363": "Oyeniyi-Okedun Christiana",
+    "250201067": "Princewill Joy-Abasi",
+    "250201002": "Quadri Oluwaseni",
+    "250201372": "Sajowa Kehinde",
+    "250201357": "Salamade Adesola",
+    "250201114": "Salau Misturah",
+    "250201386": "Samuel Eniola",
+    "250201027": "Sani Mubarak",
+    "250201026": "Shittu Olamiposi",
+    "250201332": "Shiyanbade Faderera",
+    "250201316": "Shobayo Malik",
+    "250201297": "Sobur Kotun",
+    "250201346": "Ugo Onyekachi",
+    "250201405": "Uthman Omonifemi",
+    "250201048": "Uzoechi Chika",
+    "250201110": "Yusuf Abdul-azeez",
+    "250201004": "Yusuph Aishat"
+};
 // =======================================================
 // 2. AUTH OBSERVER + DYNAMIC GREETING & ADMIN CHECK
 // =======================================================
@@ -244,13 +420,17 @@ onAuthStateChanged(auth, (user) => {
       return;
     }
 
+// Extract matriculation number or display name safely
+    let cleanMatric = user.email ? user.email.replace(MATRIC_SUFFIX, '').replace('@gmail.com', '').trim() : '';
+    let displayName = studentDirectory[cleanMatric] || user.displayName || 'Trailblazer'
     const greetingHeader = document.querySelector('.welcome-greeting h2');
     if (greetingHeader) {
-      let displayName = user.displayName;
-      if (!displayName && user.email) {
-        displayName = user.email.replace(MATRIC_SUFFIX, '').replace('@gmail.com', '').toUpperCase();
-      }
-      greetingHeader.innerHTML = `${displayName || 'Student'} <i class="fa-solid fa-circle-check" style="color: #1d9bf0; font-size:0.95rem;"></i>`;
+      greetingHeader.innerHTML = `${displayName} <i class="fa-solid fa-circle-check verified-badge-icon" style="color: #1d9bf0;"></i>`;
+    }
+
+    const dropdownNameLabel = document.getElementById("dropdownUserName");
+    if (dropdownNameLabel) {
+      dropdownNameLabel.textContent = displayName;
     }
 
     const adminPanel = document.getElementById('adminFeesControl');
@@ -272,17 +452,18 @@ onAuthStateChanged(auth, (user) => {
     if (loggedInView) loggedInView.style.display = "none";
   }
 });
+// =======================================================
+// 3. LOGIN & LOGOUT FLOWS
+// =======================================================
 
-// =======================================================
-// 3. LOGIN & LOGOUT FLOWS (ROBUST AUTH & AUTO-REGISTER)
-// =======================================================
+// 3A. EMAIL / MATRICULATION LOGIN FORM
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     authError.style.display = 'none'; 
 
-    const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.querySelector('input[name="matriculation-number"]');
-    const passwordInput = loginForm.querySelector('input[name="password"]') || document.querySelector('input[name="password"]');
+    const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.getElementById('email-input');
+    const passwordInput = loginForm.querySelector('input[name="password"]');
 
     let rawMatric = matricInput ? matricInput.value.trim().toLowerCase() : "";
     const password = passwordInput ? passwordInput.value : "";
@@ -292,28 +473,32 @@ if (loginForm) {
       return;
     }
 
-    if (!rawMatric.includes('@')) rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
+    // Extract digits for student lookup
+    const extractedMatric = rawMatric.replace(/[^0-9]/g, '');
+    if (typeof setStudentDisplayName === 'function') {
+      setStudentDisplayName(extractedMatric);
+    }
 
-    try {
+    if (!rawMatric.includes('@')) rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
+try {
       await signInWithEmailAndPassword(auth, rawMatric, password);
     } catch (error) {
       console.error("Firebase Auth Sign-In Error:", error.code, error.message);
-      
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+
+      if (error.code === 'auth/user-not-found') {
         try {
           await createUserWithEmailAndPassword(auth, rawMatric, password);
         } catch (createErr) {
-          console.error("Firebase Auth Registration Error:", createErr.code, createErr.message);
           if (createErr.code === 'auth/weak-password') {
             displayError("Password must be at least 6 characters long.");
+          } else if (createErr.code === 'auth/email-already-in-use') {
+            displayError("Incorrect password for this account. Please try again.");
           } else {
-            displayError("Invalid credentials or account creation failed. Verify your password.");
+            displayError("Account creation failed. Please verify your details.");
           }
         }
-      } else if (error.code === 'auth/wrong-password') {
-        displayError("Incorrect password. Please try again.");
-      } else if (error.code === 'auth/unauthorized-domain') {
-        displayError("This domain is not authorized in the Firebase Console.");
+      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        displayError("Invalid matriculation number/email or password.");
       } else {
         displayError(`Authentication failed: ${error.message}`);
       }
@@ -321,19 +506,26 @@ if (loginForm) {
   });
 }
 
+// 3B. GOOGLE SIGN-IN BUTTON
 if (googleLoginBtn) {
-  googleLoginBtn.addEventListener('click', () => {
-    signInWithPopup(auth, googleProvider).catch((error) => {
+  googleLoginBtn.addEventListener('click', async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
       console.error("Google Sign-In Error:", error);
-      displayError(`Google sign-in failed: ${error.message}`);
-    });
+      displayError("Google sign-in failed. Please try again.");
+    }
   });
 }
 
+// 3C. LOGOUT BUTTON
 if (logoutBtn) {
-  logoutBtn.addEventListener('click', (e) => {
-    e.preventDefault(); 
-    signOut(auth);
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
   });
 }
 
@@ -2054,15 +2246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // GPA / CGPA Calculation Function
+// GPA / CGPA Calculation Function
     function calculateGPA() {
         let totalQualityPoints = 0;
         let totalUnits = 0;
 
         tableRows.forEach(row => {
-            // Only include visible rows in the current tab
             if (row.style.display !== "none") {
                 const select = row.querySelector(".grade-select");
+                if (!select) return;
                 const gradeValue = select.value;
                 const units = parseFloat(select.dataset.units);
 
@@ -2074,11 +2266,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        if (totalUnits > 0) {
-            const calculated = (totalQualityPoints / totalUnits).toFixed(2);
-            gpaDisplay.textContent = calculated;
-        } else {
-            gpaDisplay.textContent = "0.00";
+        if (gpaDisplay) {
+            gpaDisplay.textContent = totalUnits > 0 
+              ? (totalQualityPoints / totalUnits).toFixed(2) 
+              : "0.00";
         }
     }
 
@@ -2177,77 +2368,73 @@ function openUploadModal(courseCode) {
 }
 
 // 2. Handle File Upload Form Submission
-document.getElementById('uploadMaterialForm').addEventListener('submit', async (e) => {
+const uploadMaterialFormEnd = document.getElementById('uploadMaterialForm');
+if (uploadMaterialFormEnd) {
+  uploadMaterialFormEnd.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const courseCode = document.getElementById('uploadTargetCourse').value;
-    const topicTitle = document.getElementById('uploadTargetTopic').value;
+    const courseCode = document.getElementById('uploadTargetCourse')?.value;
+    const topicTitle = document.getElementById('uploadTargetTopic')?.value;
     const fileInput = document.getElementById('materialFileInput');
-    const file = fileInput.files[0];
+    const file = fileInput?.files[0];
 
     if (!file) {
-        alert('Please select a file to upload.');
-        return;
+      alert('Please select a file to upload.');
+      return;
     }
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.innerText = 'Uploading...';
-    submitBtn.disabled = true;
+    if (submitBtn) {
+      submitBtn.innerText = 'Uploading...';
+      submitBtn.disabled = true;
+    }
 
     try {
-        // Generate a clean, unique file path inside the bucket
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
-        const filePath = `${courseCode}/${fileName}`;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+      const filePath = `${courseCode}/${fileName}`;
 
-        // Upload file to Supabase Storage Bucket
-        const { data: storageData, error: storageError } = await supabase.storage
-            .from('course-materials')
-            .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('course-materials')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-        if (storageError) throw storageError;
+      if (storageError) throw storageError;
 
-        // Get Public Download URL
-        const { data: publicUrlData } = supabase.storage
-            .from('course-materials')
-            .getPublicUrl(filePath);
+      const { data: publicUrlData } = supabase.storage
+        .from('course-materials')
+        .getPublicUrl(filePath);
 
-        const publicUrl = publicUrlData.publicUrl;
+      const publicUrl = publicUrlData.publicUrl;
 
-        // Save metadata record in Supabase Database
-        const { error: dbError } = await supabase
-            .from('study_materials')
-            .insert([
-                {
-                    course_code: courseCode,
-                    topic_title: topicTitle,
-                    file_name: file.name,
-                    file_url: publicUrl
-                }
-            ]);
+      const { error: dbError } = await supabase
+        .from('study_materials')
+        .insert([
+          {
+            course_code: courseCode,
+            topic_title: topicTitle,
+            file_name: file.name,
+            file_url: publicUrl
+          }
+        ]);
 
-        if (dbError) throw dbError;
+      if (dbError) throw dbError;
 
-        alert('Material uploaded successfully!');
-        document.getElementById('uploadNotesModal').close();
-        document.getElementById('uploadMaterialForm').reset();
-        
-        // Refresh materials list dynamically
+      alert('Material uploaded successfully!');
+      document.getElementById('uploadNotesModal')?.close();
+      uploadMaterialFormEnd.reset();
+
+      if (typeof fetchCourseMaterials === 'function') {
         fetchCourseMaterials(courseCode);
+      }
 
     } catch (err) {
-        console.error('Upload failed:', err);
-        alert(`Upload failed: ${err.message}`);
+      console.error('Upload failed:', err);
+      alert(`Upload failed: ${err.message}`);
     } finally {
+      if (submitBtn) {
         submitBtn.innerText = 'Upload to Cloud';
         submitBtn.disabled = false;
+      }
     }
-});
-
-// 3. Toggle Accordion Display
-function toggleCourseTopics(elementId) {
-    const wrapper = document.getElementById(elementId);
-    if (wrapper) {
-        wrapper.style.display = (wrapper.style.display === 'none' || wrapper.style.display === '') ? 'block' : 'none';
-    }
+  });
 }
