@@ -53,7 +53,8 @@ const loggedInView = document.getElementById('LoggedInView') || document.getElem
 const ALLOWED_GOOGLE_EMAILS = [
   "lecturer.admin@gmail.com",
   "department.head@gmail.com",
-  "emmanuelosebeyo2@gmail.com" 
+  "emmanuelosebeyo2@gmail.com",
+  "lamidiemmanuel08@gmail.com" 
 ];
 // Course Topics Map for Upload Modal Dropdowns
 const courseTopicsMap = {
@@ -324,7 +325,13 @@ if (uploadMaterialForm) {
       const targetAccordionId = `${course.toLowerCase().replace(/\s+/g, '')}-topics`;
       fetchTopicMaterials(course, targetAccordionId);
     } catch (error) {
+      console.error('Upload error:', error);
       alert(`Upload failed: ${error.message}`);
+    } finally {
+      if (submitBtn) {
+        submitBtn.innerText = 'Upload to Cloud';
+        submitBtn.disabled = false;
+      }
     }
   });
 }
