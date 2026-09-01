@@ -1980,8 +1980,6 @@
                                     </details>
                                 </div>
                             </div>
-            
-
                             <dialog id="uploadNotesModal" style="background: #0f172a; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 12px; padding: 24px; color: #ffffff; max-width: 450px; width: 90%;">
                                 <h3 style="margin-top: 0; color: var(--gold-glow);"><i class="fa-solid fa-file-circle-plus"></i> Upload Study Material</h3>
                                 <form id="uploadMaterialForm">
@@ -1992,21 +1990,14 @@
                                     <div class="input-group" style="margin-bottom: 12px;">
                                         <label style="color: #8fa5c3; font-size: 0.85rem;">Select Topic</label>
                                         <select id="uploadTargetTopic" required style="width: 100%; padding: 10px; background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                                            <option value="Topic 1: IASB Framework">Topic 1: IASB Framework</option>
-                                            <option value="Topic 2: IFRS 15 Revenue">Topic 2: IFRS 15 Revenue</option>
-                                            <option value="Topic 3: IAS 1 Financial Statements">Topic 3: IAS 1 Financial Statements</option>
-                                            <option value="Topic 4: IAS 2 Inventory">Topic 4: IAS 2 Inventory</option>
-                                            <option value="Topic 5: IAS 8 Policies & Estimates">Topic 5: IAS 8 Policies & Estimates</option>
-                                            <option value="Topic 6: IAS 16 PPE">Topic 6: IAS 16 PPE</option>
-                                            <option value="Topic 7: IAS 20 Government Grants">Topic 7: IAS 20 Government Grants</option>
-                                            <option value="Topic 8: IAS 23 Borrowing Costs">Topic 8: IAS 23 Borrowing Costs</option>
+                                            <!-- Populated dynamically via openUploadModal() -->
                                         </select>
                                     </div>
                                     <div class="input-group" style="margin-bottom: 16px;">
                                         <label style="color: #8fa5c3; font-size: 0.85rem;">Choose File (PDF, Video, Image)</label>
                                         <input type="file" id="materialFileInput" accept=".pdf,.mp4,.png,.jpg,.jpeg" required style="color: #8fa5c3;">
                                     </div>
-                                
+        
                                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
                                         <button type="button" class="btn-outline" onclick="document.getElementById('uploadNotesModal').close()" style="padding: 8px 16px;">Cancel</button>
                                         <button type="submit" class="btn-primary" style="width: auto; padding: 8px 20px; margin: 0;">Upload to Cloud</button>

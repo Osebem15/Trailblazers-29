@@ -1595,6 +1595,46 @@ html, body {
 }
 
 /* --- PROFILE DROPDOWN MENU --- */
+/* Profile Avatar Size & Shape Fix */
+.user-avatar-img, 
+.welcome-greeting img, 
+.profile-pic {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center; /* Focuses on the face */
+  flex-shrink: 0;
+}
+/* Lighting Enhancement & Styling */
+.user-avatar-img, 
+.welcome-greeting img, 
+.profile-pic {
+  /* Lift shadows and smooth out dark lighting in the photo */
+  filter: brightness(1.15) contrast(1.08) saturate(1.05);
+  
+  /* Modern ambient accent ring */
+  border: 2px solid rgba(29, 155, 240, 0.6);
+  box-shadow: 0 0 12px rgba(29, 155, 240, 0.25), 
+              0 4px 10px rgba(0, 0, 0, 0.5);
+  
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-avatar-img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(29, 155, 240, 0.4);
+}
+.welcome-header-container,
+.welcome-greeting-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
 .profile-dropdown-container {
   position: relative;
 }
