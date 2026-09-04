@@ -62,6 +62,304 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+const studentDuesRegistry = [
+  { matric: "250201054", name: "Fakayode Oluwasemilore", paid: false },
+  { matric: "250201013", name: "Abidekun Elizabeth", paid: false },
+  { matric: "250201368", name: "Abubakar Kehinde", paid: false },
+  { matric: "250201302", name: "Adaramola Bisola", paid: false },
+  { matric: "250201355", name: "Adebamowo Emmanuel", paid: false },
+  { matric: "250201306", name: "Adebayo Ife", paid: false },
+  { matric: "250201408", name: "Adebayo Oluwatofunmi", paid: false },
+  { matric: "250201379", name: "Adebowale-David Oluwaranolasimi", paid: false },
+  { matric: "250201391", name: "Adedeji Tosin", paid: false },
+  { matric: "250201021", name: "Adefalujo Oluwafunmilayo", paid: false },
+  { matric: "250201407", name: "Adekunle Enoch", paid: false },
+  { matric: "250201400", name: "Adeleke Ayodeji", paid: false },
+  { matric: "250201052", name: "Ademola Elijah", paid: false },
+  { matric: "250201403", name: "Adeniji Tanitoluwa", paid: false },
+  { matric: "250201402", name: "Adeniran Abdullah", paid: false },
+  { matric: "250201325", name: "Adeniran Oluwadamilola", paid: false },
+  { matric: "250201378", name: "Adeniyi Temitope", paid: false },
+  { matric: "250201308", name: "Adesanya Adetutu", paid: false },
+  { matric: "250201292", name: "Adewole Habeeb", paid: false },
+  { matric: "250201404", name: "Adeyanju Mulikat", paid: false },
+  { matric: "250201393", name: "Adigun Mosopefoluwa", paid: false },
+  { matric: "250201029", name: "Adio Oluwanifemi", paid: false },
+  { matric: "250201007", name: "Adukanle Precious", paid: false },
+  { matric: "250201107", name: "Afolabi Daniel", paid: false },
+  { matric: "250201301", name: "Afolabi Hezekiah", paid: false },
+  { matric: "250201069", name: "Afolabiozua Ebubechukwu", paid: false },
+  { matric: "250201028", name: "Agbalaya Hiqmat", paid: false },
+  { matric: "250201337", name: "Agbasi Chimamanda", paid: false },
+  { matric: "250201343", name: "Agboola Olabisi", paid: false },
+  { matric: "250201341", name: "Ajadi Fathia", paid: false },
+  { matric: "250201293", name: "Ajayi Ifeoluwa", paid: false },
+  { matric: "250201070", name: "Ajayi Isaac", paid: false },
+  { matric: "250201294", name: "Ajayi Motunrayo", paid: false },
+  { matric: "250201358", name: "Ajenifuja Anuoluwapo", paid: false },
+  { matric: "250201011", name: "Ajibade Adeola", paid: false },
+  { matric: "250201396", name: "Ajibade Fathia", paid: false },
+  { matric: "250201338", name: "Ajibola Peace", paid: false },
+  { matric: "250201050", name: "Ajisegiri Eniola", paid: false },
+  { matric: "250201018", name: "Akande Olamide", paid: false },
+  { matric: "250301018", name: "Akande Olamide", paid: false },
+  { matric: "250201367", name: "Akapo David", paid: false },
+  { matric: "250201365", name: "Akinbode Hameedat", paid: false },
+  { matric: "250201066", name: "Akinbode Precious", paid: false },
+  { matric: "250201046", name: "Akinola Olusolape", paid: false },
+  { matric: "250201049", name: "Akinrefon Eniola", paid: false },
+  { matric: "250201042", name: "Akintan Jamal", paid: false },
+  { matric: "250201322", name: "Akinyemi Faith", paid: false },
+  { matric: "250201345", name: "Alabi Emmanuel", paid: false },
+  { matric: "250201037", name: "Aladetohun Oluwakamimayo", paid: false },
+  { matric: "250201035", name: "Alawode Praise", paid: false },
+  { matric: "250201008", name: "Ambelly Aleeyah", paid: false },
+  { matric: "250201111", name: "Amole Abdulsamad", paid: false },
+  { matric: "250201353", name: "Amosun Daniella", paid: false },
+  { matric: "250201005", name: "Anene Deborah", paid: false },
+  { matric: "250201079", name: "Asaolu Babatope", paid: false },
+  { matric: "250201356", name: "Ayesoro Eniola", paid: false },
+  { matric: "250201369", name: "Ayinla Abosede", paid: false },
+  { matric: "250201117", name: "Badewole Prosper", paid: false },
+  { matric: "250201047", name: "Bakare Gold", paid: false },
+  { matric: "250201305", name: "Bakare Idris", paid: false },
+  { matric: "250201053", name: "Bakare Sulhaa", paid: false },
+  { matric: "250201032", name: "Bankole Ibukun", paid: false },
+  { matric: "250201290", name: "Bankole Jason", paid: false },
+  { matric: "250201376", name: "Bassey Favour", paid: false },
+  { matric: "250201340", name: "Batula Oluwaranti", paid: false },
+  { matric: "250201387", name: "Bello Mohammed", paid: false },
+  { matric: "250201374", name: "Bena Elizabeth", paid: false },
+  { matric: "250201012", name: "Bode-Adams Ireoluwa", paid: false },
+  { matric: "250201017", name: "Borokinni Precious", paid: false },
+  { matric: "250201359", name: "Busari Abdullah", paid: false },
+  { matric: "250201014", name: "Chiegwu Wilson", paid: false },
+  { matric: "250201373", name: "Chukwu Esther", paid: false },
+  { matric: "250201109", name: "Chukwudi Okeh-chidera", paid: false },
+  { matric: "250201328", name: "Coker Omogbemisola", paid: false },
+  { matric: "250201398", name: "Collins Victoria", paid: false },
+  { matric: "250201038", name: "Da-silva Precious", paid: false },
+  { matric: "250201009", name: "Dike Joy", paid: false },
+  { matric: "250201366", name: "Ehiremen Mercy", paid: false },
+  { matric: "250201349", name: "Ejike Esther", paid: false },
+  { matric: "250201300", name: "Ekeopara Chibuike", paid: false },
+  { matric: "250201081", name: "Emmanuel Okon", paid: false },
+  { matric: "250201380", name: "Emmanuel Olatoye", paid: false },
+  { matric: "250201304", name: "Eniafe Abdulwahab", paid: false },
+  { matric: "250201384", name: "Fadairo Oluwaferanmi", paid: false },
+  { matric: "250201055", name: "Fadare Fadeshola", paid: false },
+  { matric: "250201015", name: "Fakorede Aliyah", paid: false },
+  { matric: "250201406", name: "Farayibi Daniel", paid: false },
+  { matric: "250201063", name: "Fashina Ifeoluwa", paid: false },
+  { matric: "250201023", name: "Folorunsho Mosunmola", paid: false },
+  { matric: "250201382", name: "Garuba Aishat", paid: false },
+  { matric: "250201112", name: "Hamzah Fareedah", paid: false },
+  { matric: "250201044", name: "Hassan Eniola", paid: false },
+  { matric: "250201381", name: "Hussein Mutmainnah", paid: false },
+  { matric: "250201288", name: "Huthman Sheriffdeen", paid: false },
+  { matric: "250201106", name: "Ibitoye Olawumi", paid: false },
+  { matric: "250201339", name: "Ibrahim Aleeyat", paid: false },
+  { matric: "250201022", name: "Ilori Oluwatofunmi", paid: false },
+  { matric: "250201389", name: "Imran Al-Ameen", paid: false },
+  { matric: "250201361", name: "Isogun Oluwasegun", paid: false },
+  { matric: "250201031", name: "John Chisom", paid: false },
+  { matric: "250201030", name: "Kalu Glory", paid: false },
+  { matric: "250201025", name: "Kayode Adebakin", paid: false },
+  { matric: "250201068", name: "Kazeem Abdullateef", paid: false },
+  { matric: "250201010", name: "Kelani Victor", paid: false },
+  { matric: "250201071", name: "Kila Khadijah", paid: false },
+  { matric: "250201295", name: "Lamidi Emmanuel", paid: false },
+  { matric: "250201392", name: "Lisa Adam", paid: false },
+  { matric: "250201397", name: "Makanjuola Halleluyah", paid: false },
+  { matric: "250201383", name: "Mobolade Zainab", paid: false },
+  { matric: "250201334", name: "Monsuru Abdul", paid: false },
+  { matric: "250201036", name: "Morawo Adedayo", paid: false },
+  { matric: "250201399", name: "Mustapha Abdul", paid: false },
+  { matric: "250201319", name: "Mustapha Amirat", paid: false },
+  { matric: "250201344", name: "Njoku Francis", paid: false },
+  { matric: "250201016", name: "Nnadi Francis", paid: false },
+  { matric: "250201333", name: "Nwankwo Favour", paid: false },
+  { matric: "250201033", name: "Nwofia Jedidah", paid: false },
+  { matric: "250201320", name: "Obasesan-Yusuf Jafar", paid: false },
+  { matric: "250201362", name: "Odio Esther", paid: false },
+  { matric: "250201291", name: "Odughu Gift", paid: false },
+  { matric: "250201113", name: "Odusola Moyinoluwa", paid: false },
+  { matric: "250201390", name: "Oduwaye Toluwalase", paid: false },
+  { matric: "250201321", name: "Ogbeide Serena", paid: false },
+  { matric: "250201020", name: "Ogunbayo Anuoluwapo", paid: false },
+  { matric: "250201401", name: "Ogunfowokan Oluwatetisimi", paid: false },
+  { matric: "250201024", name: "Ogunkoya Oluwademilade", paid: false },
+  { matric: "250201323", name: "Ojora Roheem", paid: false },
+  { matric: "250201003", name: "Okunubi Mujeeb", paid: false },
+  { matric: "250201394", name: "Ola Selimot", paid: false },
+  { matric: "250201108", name: "Olabamerun Inioluwa", paid: false },
+  { matric: "250201335", name: "Oladimeji Isaac", paid: false },
+  { matric: "250201064", name: "Oladiran Praise", paid: false },
+  { matric: "250201289", name: "Oladunjoye Opemipo", paid: false },
+  { matric: "250201296", name: "Oladuntoye Oluwatimilehin", paid: false },
+  { matric: "250201348", name: "Olaitan Oluwanifemi", paid: false },
+  { matric: "250201375", name: "Olajire Quam", paid: false },
+  { matric: "250201299", name: "Olaleye Mopelola", paid: false },
+  { matric: "250201045", name: "Olanrewaju Daniel", paid: false },
+  { matric: "250201303", name: "Olanrewaju Juliet", paid: false },
+  { matric: "250201001", name: "Olaosun Isaac", paid: false },
+  { matric: "250201364", name: "Olasunkanmi Mariam", paid: false },
+  { matric: "250201105", name: "Olasunmiboye Adedamola", paid: false },
+  { matric: "250201331", name: "Olomo Adeshina", paid: false },
+  { matric: "250201065", name: "Olufade Oluwaseyi", paid: false },
+  { matric: "250201395", name: "Olulana Ibukunoluwa", paid: false },
+  { matric: "250201043", name: "Oluwalajiki Deborah", paid: false },
+  { matric: "250201347", name: "Oluwole Oluwakayode", paid: false },
+  { matric: "250201019", name: "Omeje Somfe", paid: false },
+  { matric: "250201051", name: "Omeke Precious", paid: false },
+  { matric: "250201354", name: "Omereme Ifeanyi", paid: false },
+  { matric: "250201330", name: "Oni Daniel", paid: false },
+  { matric: "250201318", name: "Oni Victoria", paid: false },
+  { matric: "250201360", name: "Opeyemi Faithful", paid: false },
+  { matric: "250201324", name: "Osebeyo Emmanuel", paid: false },
+  { matric: "250201317", name: "Oviawe Faith", paid: false },
+  { matric: "250201342", name: "Oyebadejo Tobiloba", paid: false },
+  { matric: "250201371", name: "Oyebulu Olayiwola", paid: false },
+  { matric: "250201336", name: "Oyeniran Olamide", paid: false },
+  { matric: "250201363", name: "Oyeniyi-Okedun Christiana", paid: false },
+  { matric: "250201067", name: "Princewill Joy-Abasi", paid: false },
+  { matric: "250201002", name: "Quadri Oluwaseni", paid: false },
+  { matric: "250201372", name: "Sajowa Kehinde", paid: false },
+  { matric: "250201357", name: "Salamade Adesola", paid: false },
+  { matric: "250201114", name: "Salau Misturah", paid: false },
+  { matric: "250201386", name: "Samuel Eniola", paid: false },
+  { matric: "250201027", name: "Sani Mubarak", paid: false },
+  { matric: "250201026", name: "Shittu Olamiposi", paid: false },
+  { matric: "250201332", name: "Shiyanbade Faderera", paid: false },
+  { matric: "250201316", name: "Shobayo Malik", paid: false },
+  { matric: "250201297", name: "Sobur Kotun", paid: false },
+  { matric: "250201346", name: "Ugo Onyekachi", paid: false },
+  { matric: "250201405", name: "Uthman Omonifemi", paid: false },
+  { matric: "250201048", name: "Uzoechi Chika", paid: false },
+  { matric: "250201110", name: "Yusuf Abdul-azeez", paid: false },
+  { matric: "250201004", name: "Yusuph Aishat", paid: false }
+];
+
+// Load persisted payments from localStorage
+const savedDues = localStorage.getItem('studentDuesRegistry');
+if (savedDues) {
+  try {
+    const parsed = JSON.parse(savedDues);
+    studentDuesRegistry.forEach(s => {
+      if (parsed[s.matric] !== undefined) {
+        s.paid = parsed[s.matric];
+      }
+    });
+  } catch (e) {
+    console.error("Error loading stored dues", e);
+  }
+}
+
+// Global UI Updater for Logged-In Student Dues
+window.updateStudentDuesUI = function(matricNumber) {
+  const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();
+  const student = studentDuesRegistry.find(s => s.matric === cleanMatric);
+
+  const statusText = document.getElementById('studentDuesStatusText');
+  const statusBadge = document.getElementById('duesStatusBadge');
+
+  const isPaid = student ? student.paid : false;
+
+  if (statusText) {
+    if (isPaid) {
+      statusText.className = "gpa-status status-success";
+      statusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> Status: Verified Paid`;
+    } else {
+      statusText.className = "gpa-status status-pending";
+      statusText.style.color = "#ff4d4d";
+      statusText.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Status: Pending Payment`;
+    }
+  }
+
+  if (statusBadge) {
+    if (isPaid) {
+      statusBadge.className = "grade-badge grade-a";
+      statusBadge.textContent = "Paid";
+      statusBadge.style.background = "";
+      statusBadge.style.color = "";
+    } else {
+      statusBadge.className = "grade-badge grade-b";
+      statusBadge.style.background = "rgba(255, 77, 77, 0.2)";
+      statusBadge.style.color = "#ff4d4d";
+      statusBadge.textContent = "Pending";
+    }
+  }
+};
+
+// Global Admin Table Renderer
+window.renderAdminDuesTable = function(filterQuery = '') {
+  const adminDuesTbody = document.getElementById('adminDuesTbody');
+  if (!adminDuesTbody) return;
+
+  adminDuesTbody.innerHTML = '';
+  const filtered = studentDuesRegistry.filter(s => 
+    s.name.toLowerCase().includes(filterQuery) || s.matric.toLowerCase().includes(filterQuery)
+  );
+
+  if (filtered.length === 0) {
+    adminDuesTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#8fa5c3;">No students found.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach((student, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td class="course-code-tag">${student.matric}</td>
+      <td><strong>${student.name}</strong></td>
+      <td>
+        <span class="grade-badge ${student.paid ? 'grade-a' : 'grade-b'}" style="${!student.paid ? 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;' : ''}">
+          ${student.paid ? 'Paid' : 'Pending'}
+        </span>
+      </td>
+      <td>
+        <label class="status-toggle-label">
+          <input type="checkbox" class="dues-toggle-checkbox" data-matric="${student.matric}" ${student.paid ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+    `;
+    adminDuesTbody.appendChild(row);
+  });
+
+  document.querySelectorAll('.dues-toggle-checkbox').forEach(chk => {
+    chk.addEventListener('change', (e) => {
+      const targetMatric = e.target.dataset.matric;
+      const targetStudent = studentDuesRegistry.find(s => s.matric === targetMatric);
+      if (targetStudent) {
+        targetStudent.paid = e.target.checked;
+
+        // Persist change to localStorage
+        const duesMap = {};
+        studentDuesRegistry.forEach(s => duesMap[s.matric] = s.paid);
+        localStorage.setItem('studentDuesRegistry', JSON.stringify(duesMap));
+
+        const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
+        const currentSearch = duesAdminSearchInput ? duesAdminSearchInput.value.toLowerCase().trim() : '';
+        window.renderAdminDuesTable(currentSearch);
+      }
+    });
+  });
+};
+
+const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
+if (duesAdminSearchInput) {
+  duesAdminSearchInput.addEventListener('input', (e) => {
+    window.renderAdminDuesTable(e.target.value.toLowerCase().trim());
+  });
+}
+
+const downloadDuesReceiptBtn = document.getElementById('downloadDuesReceiptBtn');
+if (downloadDuesReceiptBtn) {
+  downloadDuesReceiptBtn.addEventListener('click', () => {
+    alert("Downloading official ACC '29 Class Dues payment receipt...");
+  });
+}
 
     // Fetch existing announcements on page load
 async function fetchInitialAnnouncements() {
@@ -94,40 +392,54 @@ function subscribeToRealtimeAnnouncements() {
         .subscribe();
 }
 
-// Render a single notice card into the DOM
-function renderNoticeCard(notice, isNew = false) {
+// Helper to format YYYY-MM-DD into "Month Day, Year"
+function formatDateString(dateStr) {
+    if (!dateStr) return '';
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+// Update Active Announcements Counter
+function updateNoticeCount() {
+    const countBadge = document.getElementById('activeNoticeCount');
+    const container = document.getElementById('noticesContainer');
+    if (countBadge && container) {
+        const total = container.querySelectorAll('article').length;
+        countBadge.textContent = `${total} Active Announcement${total === 1 ? '' : 's'}`;
+    }
+}
+
+// Render Notice Card using category and formatted date
+function renderNoticeCard(notice) {
     const container = document.getElementById('noticesContainer');
     if (!container) return;
 
+    const category = (notice.category || 'GENERAL').toUpperCase();
+    const isImportant = category === 'IMPORTANT';
+
     const article = document.createElement('article');
-    article.className = isNew ? 'matrix-card notice-card-important' : 'matrix-card notice-card-general';
+    article.className = `matrix-card ${isImportant ? 'notice-card-important' : 'notice-card-general'}`;
     article.innerHTML = `
         <div class="notice-card-header">
-            <span class="${isNew ? 'course-code-tag' : 'total-units-badge'}">${isNew ? 'NEW' : 'ANNOUNCEMENT'}</span>
-            <small class="notice-date"><i class="fa-solid fa-clock"></i> ${notice.date}</small>
+            <span class="${isImportant ? 'course-code-tag' : 'total-units-badge'}">${category}</span>
+            <small class="notice-date"><i class="fa-solid fa-clock"></i> ${formatDateString(notice.date)}</small>
         </div>
         <h4 class="notice-title">${notice.title}</h4>
         <p class="notice-text">${notice.content}</p>
     `;
 
     container.prepend(article);
+    updateNoticeCount();
 }
 
 // Execute initial load and real-time listener
 fetchInitialAnnouncements();
 subscribeToRealtimeAnnouncements();
-
-    // Handle Logout
-    if (dropdownLogoutBtn) {
-        dropdownLogoutBtn.addEventListener("click", function () {
-            if (mainLogoutBtn) {
-                mainLogoutBtn.click();
-            } else {
-                document.getElementById("LoggedInView").style.display = "none";
-                document.getElementById("loggedOutView").style.display = "block";
-            }
-        });
-    }
 
     // --- 2. GPA CALCULATOR SEMESTER TOGGLE ---
     const gpaToggleBtns = document.querySelectorAll(".gpa-toggle-btn");

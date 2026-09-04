@@ -1707,147 +1707,536 @@ html, body {
   margin-top: 4px;
   padding-top: 4px;
 }
-
-/* --- LIGHT THEME STYLES --- */
-body.light-theme {
-  background-color: #f6f8fa !important;
-  color: #24292f !important;
-}
-body.light-theme .dashboard-main,
-body.light-theme .matrix-card,
-body.light-theme .gpa-calculator-card {
-  background-color: #ffffff !important;
-  color: #24292f !important;
-  border-color: #d0d7de !important;
-}
-body.light-theme .profile-dropdown-menu {
-  background-color: #ffffff;
-  border-color: #d0d7de;
-  color: #24292f;
-}
-body.light-theme .dropdown-header {
-  border-bottom-color: #d0d7de;
-  color: #24292f;
-}
-body.light-theme .dropdown-item-btn {
-  color: #24292f;
-}
-body.light-theme .dropdown-item-btn:hover {
-  background-color: #f3f4f6;
-}
-
-/* --- CALENDAR DYNAMIC STYLES --- */
-.day-num.selected-day {
-  border: 2px solid #1d9bf0 !important;
-  border-radius: 50%;
-}
-.day-num.today-highlight {
-  background: #1d9bf0 !important;
-  color: #ffffff !important;
-  font-weight: bold;
-  border-radius: 50%;
-}
-
-/* --- ADMIN NOTICE POST CARD --- */
 .admin-notice-card {
-  margin-bottom: 20px;
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
 }
+
 .admin-notice-card h3 {
-  margin-top: 0;
-  color: #1d9bf0;
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #f3f4f6;
 }
+
 .admin-notice-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
+
 .admin-notice-card input,
 .admin-notice-card textarea {
-  padding: 10px;
-  background: #0d1117;
-  border: 1px solid #30363d;
-  color: #fff;
-  border-radius: 6px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
 }
+
+.admin-notice-card textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
 .admin-notice-card button {
-  align-self: flex-start;
-  padding: 8px 18px;
+    background: #1d9bf0;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: background 0.2s;
 }
 
-/* --- ACCORDION DETAILS & ACTIONS --- */
-.accordion-course-item {
-  margin-bottom: 12px;
-  padding: 16px;
+.admin-notice-card button:hover {
+    background: #1a8cd8;
 }
-.accordion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-.course-topics-wrapper {
-  margin-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 12px;
-}
-.accordion-actions-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.accordion-actions-row h5 {
-  color: var(--gold-glow);
-  margin: 0;
-}
-.accordion-actions-row button {
-  width: auto;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  margin: 0;
-}
-.topic-expandable {
-  background: rgba(255,255,255,0.03);
-  border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-.topic-expandable summary {
-  color: #ffffff;
-  font-weight: 600;
-  cursor: pointer;
-}
-.topic-expandable summary span {
-  font-size: 0.75rem;
-  color: #8fa5c3;
-  font-weight: normal;
-}
-.materials-list {
-  margin-top: 10px;
-  padding-left: 10px;
-}
-.material-file-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.material-file-row span {
-  color: #8fa5c3;
-  font-size: 0.85rem;
-}
-.material-file-row span i {
-  color: #ff4d4d;
-  margin-right: 6px;
-}
-.material-file-row a {
-  padding: 4px 8px;
-  font-size: 0.75rem;
+.admin-notice-card .form-row {
+    display: flex;
+    gap: 12px;
 }
 
-@media (max-width: 480px) {
-  #tb-fab { bottom: 18px; right: 18px; width: 56px; height: 56px; }
-  #feesView { font-size: 0.78rem; }
+.admin-notice-card .form-row input,
+.admin-notice-card .form-row select {
+    flex: 1;
+}
+
+.admin-notice-card select {
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+/* ==========================================
+   INVERTED LIGHT THEME OVERRIDES
+   ========================================== */
+body.light-theme {
+    /* 1. Global Inverted Palette */
+    --bg-dark: #f0f4f8;
+    --card-bg: #ffffff;
+    --card-border: #cbd5e1;
+    --text-main: #000b18;      /* Primary text becomes dark blue */
+    --text-muted: #334155;     /* Muted text becomes slate blue */
+    
+    background-color: #f0f4f8 !important;
+    color: #000b18 !important;
+}
+
+/* 2. Structural Layouts & Containers */
+body.light-theme #loggedOutView,
+body.light-theme .dashboard-main,
+body.light-theme .dashboard-layout-wrapper {
+    background: #f0f4f8 !important;
+    color: #000b18 !important;
+}
+
+/* Sidebar Override (Inverted Dark Blue to Crisp Light Nav) */
+body.light-theme .dashboard-sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #cbd5e1 !important;
+    box-shadow: 4px 0 20px rgba(0, 11, 24, 0.06) !important;
+}
+
+body.light-theme .sidebar-branding .branding-text h3 {
+    color: #000b18 !important;
+}
+
+body.light-theme .sidebar-branding .branding-text p {
+    color: #475569 !important;
+}
+
+body.light-theme .sidebar-grid-menu .menu-item {
+    color: #1e293b !important;
+}
+
+body.light-theme .sidebar-grid-menu .menu-item:hover {
+    background: rgba(10, 37, 64, 0.06) !important;
+    color: #000b18 !important;
+}
+
+body.light-theme .sidebar-grid-menu .menu-item.active {
+    background: rgba(29, 155, 240, 0.12) !important;
+    color: #1d9bf0 !important;
+    border-left: 4px solid #1d9bf0 !important;
+}
+
+body.light-theme .sidebar-links-list a {
+    color: #334155 !important;
+}
+
+/* 3. Top Navigation & Welcome Section */
+body.light-theme .dashboard-top-nav {
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .welcome-greeting p {
+    color: #475569 !important;
+}
+
+body.light-theme .welcome-greeting h2 {
+    color: #000b18 !important;
+}
+
+body.light-theme .menu-toggle-btn {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #000b18 !important;
+}
+
+/* Dropdown Menu Inversion */
+body.light-theme .profile-dropdown-menu {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 10px 25px rgba(0, 11, 24, 0.1) !important;
+}
+
+body.light-theme .dropdown-header {
+    border-bottom-color: #e2e8f0 !important;
+    color: #000b18 !important;
+}
+
+body.light-theme .dropdown-header small {
+    color: #64748b !important;
+}
+
+body.light-theme .dropdown-item-btn {
+    color: #1e293b !important;
+}
+
+body.light-theme .dropdown-item-btn:hover {
+    background: #f1f5f9 !important;
+}
+
+/* 4. Hero Panels & Status Pills */
+body.light-theme .dashboard-hero-panel {
+    background: linear-gradient(to right, #ffffff 30%, rgba(255, 255, 255, 0.85) 70%, rgba(255, 255, 255, 0) 100%),
+                url('campus-gate.jpg') no-repeat center right / cover !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .hero-panel-content h1 {
+    color: #000b18 !important;
+}
+
+body.light-theme .hero-panel-tagline {
+    color: #334155 !important;
+}
+
+body.light-theme .status-pill {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000b18 !important;
+}
+
+/* 5. Matrix Cards & Quick Access Elements */
+body.light-theme .matrix-card,
+body.light-theme .info-card,
+body.light-theme .sidebar-card,
+body.light-theme .gpa-calculator-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000b18 !important;
+    box-shadow: 0 4px 12px rgba(0, 11, 24, 0.03) !important;
+}
+
+body.light-theme .matrix-title,
+body.light-theme .table-header-row h3 {
+    color: #000b18 !important;
+}
+
+body.light-theme .access-box {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #000b18 !important;
+}
+
+body.light-theme .access-box:hover {
+    background: #edf2f7 !important;
+}
+
+body.light-theme .access-box span {
+    color: #000b18 !important;
+    font-weight: 600;
+}
+
+/* 6. Calendar & Event Widgets */
+body.light-theme .calendar-month-selector,
+body.light-theme .calendar-focused-event-card {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #000b18 !important;
+}
+
+body.light-theme .focused-event-title-row h4,
+body.light-theme .calendar-focused-event-card p {
+    color: #000b18 !important;
+}
+
+body.light-theme .day-label {
+    color: #475569 !important;
+}
+
+body.light-theme .day-num {
+    color: #1e293b !important;
+    background: #f1f5f9 !important;
+}
+
+body.light-theme .day-num.muted {
+    color: #cbd5e1 !important;
+    background: transparent !important;
+}
+
+body.light-theme .day-num:not(.muted):hover {
+    background: rgba(29, 155, 240, 0.2) !important;
+    color: #000b18 !important;
+}
+
+/* 7. Tables, Inputs, Modals & Course Accordions */
+body.light-theme .data-table th {
+    background: #f1f5f9 !important;
+    color: #000b18 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+body.light-theme .data-table td {
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.light-theme .data-table td strong {
+    color: #000b18 !important;
+}
+
+body.light-theme .custom-select,
+body.light-theme input[type="text"],
+body.light-theme input[type="email"],
+body.light-theme input[type="password"],
+body.light-theme textarea {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #000b18 !important;
+}
+
+body.light-theme .topic-expandable {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+body.light-theme .topic-expandable summary {
+    color: #000b18 !important;
+}
+
+body.light-theme .material-file-row {
+    border-bottom-color: #e2e8f0 !important;
+}
+
+body.light-theme .material-file-row span {
+    color: #334155 !important;
+}
+
+/* 8. Notices & Feed Lists */
+body.light-theme .notice-card-important,
+body.light-theme .notice-card-general {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .notice-title {
+    color: #000b18 !important;
+}
+
+body.light-theme .notice-text {
+    color: #334155 !important;
+}
+
+/* Custom Light Scrollbar */
+body.light-theme ::-webkit-scrollbar-track {
+    background: #f0f4f8 !important;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+    background: #1d9bf0 !important;
+}
+/* ==========================================
+   FEES VIEW & SUMMARY CARD LIGHT THEME FIXES
+   ========================================== */
+body.light-theme .gpa-summary-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .gpa-value {
+    color: #000b18 !important;
+}
+
+body.light-theme .gpa-label {
+    color: #1d9bf0 !important;
+}
+
+body.light-theme .stat-badge {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .stat-badge span {
+    color: #475569 !important;
+}
+
+body.light-theme .stat-badge strong {
+    color: #000b18 !important;
+}
+/* ==========================================
+   RESULTS & COURSE CARD LIGHT THEME FIXES
+   ========================================== */
+/* 1. Fix Course Cards Background & Shadows */
+body.light-theme .result-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 4px 12px rgba(0, 11, 24, 0.05) !important;
+}
+
+/* 2. Fix White/Invisible Headings to Deep Slate Dark */
+body.light-theme .result-card h4,
+body.light-theme .result-card strong,
+body.light-theme .result-card-header h4 {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* 3. Fix Faint Secondary Text & Footers */
+body.light-theme .result-card p,
+body.light-theme .result-card-footer,
+body.light-theme .result-card-footer span,
+body.light-theme .result-card .feed-details p {
+    color: #334155 !important;
+    font-weight: 500 !important;
+}
+
+/* 4. Fix Select Dropdowns & Options Contrast */
+body.light-theme .grade-select,
+body.light-theme select,
+body.light-theme .custom-select {
+    background-color: #ffffff !important;
+    border: 1px solid #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+body.light-theme select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* 5. Improve Links & Badge Contrast */
+body.light-theme .view-score-link {
+    color: #0284c7 !important;
+    font-weight: 700 !important;
+}
+
+body.light-theme .unit-badge {
+    background: rgba(2, 132, 199, 0.12) !important;
+    color: #0369a1 !important;
+    border: 1px solid rgba(2, 132, 199, 0.3) !important;
+}
+/* ==========================================
+   GPA CALCULATOR TABLE LIGHT THEME FIX
+   ========================================== */
+body.light-theme .dashboard-table {
+    color: #0f172a !important;
+}
+
+body.light-theme .dashboard-table th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+}
+
+body.light-theme .dashboard-table td,
+body.light-theme .dashboard-table td span,
+body.light-theme .dashboard-table td strong,
+body.light-theme .dashboard-table tr {
+    color: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.light-theme .dashboard-table .custom-select,
+body.light-theme .dashboard-table select {
+    background-color: #ffffff !important;
+    border: 1px solid #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+body.light-theme .dashboard-table .custom-select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+/* ==========================================
+   UNIVERSAL LIGHT THEME TEXT CATCH-ALL
+   ========================================== */
+body.light-theme .dashboard-main *,
+body.light-theme .dashboard-main table,
+body.light-theme .dashboard-main th,
+body.light-theme .dashboard-main td,
+body.light-theme .dashboard-main select,
+body.light-theme .dashboard-main option,
+body.light-theme .dashboard-main label,
+body.light-theme .dashboard-main p,
+body.light-theme .dashboard-main span:not(.unit-badge):not(.grade-badge):not(.status-pill):not(.course-code-badge) {
+    color: #0f172a !important;
+}
+
+body.light-theme .dashboard-main select,
+body.light-theme .dashboard-main input {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+/* ==========================================
+   VIDEO-SPECIFIC LIGHT THEME FIXES
+   ========================================== */
+
+/* 1. Fix Result Cards Uppercase Titles & Subtext (00:08 - 00:09) */
+body.light-theme .result-card,
+body.light-theme .matrix-card,
+body.light-theme [class*="card"] {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.light-theme .result-card h4,
+body.light-theme .result-card h5,
+body.light-theme .result-card div,
+body.light-theme .result-card p,
+body.light-theme .matrix-card h4,
+body.light-theme .matrix-card p,
+body.light-theme .matrix-card div {
+    color: #0f172a !important;
+}
+
+body.light-theme .result-card span:not([class*="badge"]),
+body.light-theme .result-card small,
+body.light-theme .result-card .feed-date,
+body.light-theme [class*="student"],
+body.light-theme [class*="pending"] {
+    color: #475569 !important;
+}
+
+body.light-theme .view-scoresheet-btn,
+body.light-theme [class*="Scoresheet"] {
+    color: #0284c7 !important;
+    font-weight: 600 !important;
+}
+
+/* 2. Fix Inactive Semester Toggle Buttons (00:08 & 00:10 - 00:19) */
+body.light-theme .gpa-toggle-btn:not(.active),
+body.light-theme .semester-toggle-group button:not(.active),
+body.light-theme [class*="Semester"]:not(.active) {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .gpa-toggle-btn.active,
+body.light-theme .semester-toggle-group button.active {
+    background: #1d9bf0 !important;
+    color: #ffffff !important;
+}
+
+/* 3. Fix Sidebar Logout Button & Quick Links (00:00 - 00:07) */
+body.light-theme .logout-action-btn {
+    background: rgba(220, 38, 38, 0.1) !important;
+    border: 1px solid rgba(220, 38, 38, 0.3) !important;
+    color: #dc2626 !important;
+}
+
+body.light-theme .sidebar-links-list a,
+body.light-theme [class*="QUICK"] a,
+body.light-theme [class*="quick"] a {
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+body.light-theme .sidebar-links-list a:hover,
+body.light-theme [class*="quick"] a:hover {
+    color: #1d9bf0 !important;
+}
+.day-num.today-highlight {
+    background: #1d9bf0 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(29, 155, 240, 0.6);
 }
