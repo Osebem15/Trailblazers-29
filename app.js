@@ -1,573 +1,13 @@
-// Save this file as app.js in your project directory
-// Add at the very top of app.js if not already declared globally via auth.js
+// --- 1. SUPABASE INITIALIZATION ---
 if (typeof supabase === 'undefined' && typeof window.supabaseClient !== 'undefined') {
     var supabase = window.supabaseClient;
 } else if (typeof supabase === 'undefined') {
     const SUPABASE_URL = 'https://yuebmlmamkclsfizurkp.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI'; // Replace with your actual anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI';
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
-document.addEventListener("DOMContentLoaded", function () {
-    // --- 1. PROFILE DROPDOWN MENU HANDLER ---
-    const profileDropdownBtn = document.getElementById("profileDropdownBtn");
-    const profileDropdownMenu = document.getElementById("profileDropdownMenu");
-    const profilePicInput = document.getElementById("profilePicInput");
-    const userAvatarImg = document.getElementById("userAvatarImg");
-    const userAvatarIcon = document.getElementById("userAvatarIcon");
-    const toggleThemeBtn = document.getElementById("toggleThemeBtn");
-    const themeIcon = document.getElementById("themeIcon");
-    const themeText = document.getElementById("themeText");
-    const dropdownLogoutBtn = document.getElementById("dropdownLogoutBtn");
-    const mainLogoutBtn = document.getElementById("logoutBtn");
 
-    if (profileDropdownBtn && profileDropdownMenu) {
-        profileDropdownBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            profileDropdownMenu.classList.toggle("show");
-        });
-
-        document.addEventListener("click", function (e) {
-            if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
-                profileDropdownMenu.classList.remove("show");
-            }
-        });
-    }
-
-    // Handle Profile Picture Upload
-    if (profilePicInput) {
-        profilePicInput.addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    userAvatarImg.src = event.target.result;
-                    userAvatarImg.style.display = "block";
-                    if (userAvatarIcon) userAvatarIcon.style.display = "none";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    // Handle Theme Toggle
-    if (toggleThemeBtn) {
-        toggleThemeBtn.addEventListener("click", function () {
-            document.body.classList.toggle("light-theme");
-            const isLight = document.body.classList.contains("light-theme");
-            if (themeIcon) {
-                themeIcon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
-            }
-            if (themeText) {
-                themeText.textContent = isLight ? "Light Mode" : "Dark Mode";
-            }
-        });
-    }
-const studentDuesRegistry = [
-  { matric: "250201054", name: "Fakayode Oluwasemilore", paid: false },
-  { matric: "250201013", name: "Abidekun Elizabeth", paid: false },
-  { matric: "250201368", name: "Abubakar Kehinde", paid: false },
-  { matric: "250201302", name: "Adaramola Bisola", paid: false },
-  { matric: "250201355", name: "Adebamowo Emmanuel", paid: false },
-  { matric: "250201306", name: "Adebayo Ife", paid: false },
-  { matric: "250201408", name: "Adebayo Oluwatofunmi", paid: false },
-  { matric: "250201379", name: "Adebowale-David Oluwaranolasimi", paid: false },
-  { matric: "250201391", name: "Adedeji Tosin", paid: false },
-  { matric: "250201021", name: "Adefalujo Oluwafunmilayo", paid: false },
-  { matric: "250201407", name: "Adekunle Enoch", paid: false },
-  { matric: "250201400", name: "Adeleke Ayodeji", paid: false },
-  { matric: "250201052", name: "Ademola Elijah", paid: false },
-  { matric: "250201403", name: "Adeniji Tanitoluwa", paid: false },
-  { matric: "250201402", name: "Adeniran Abdullah", paid: false },
-  { matric: "250201325", name: "Adeniran Oluwadamilola", paid: false },
-  { matric: "250201378", name: "Adeniyi Temitope", paid: false },
-  { matric: "250201308", name: "Adesanya Adetutu", paid: false },
-  { matric: "250201292", name: "Adewole Habeeb", paid: false },
-  { matric: "250201404", name: "Adeyanju Mulikat", paid: false },
-  { matric: "250201393", name: "Adigun Mosopefoluwa", paid: false },
-  { matric: "250201029", name: "Adio Oluwanifemi", paid: false },
-  { matric: "250201007", name: "Adukanle Precious", paid: false },
-  { matric: "250201107", name: "Afolabi Daniel", paid: false },
-  { matric: "250201301", name: "Afolabi Hezekiah", paid: false },
-  { matric: "250201069", name: "Afolabiozua Ebubechukwu", paid: false },
-  { matric: "250201028", name: "Agbalaya Hiqmat", paid: false },
-  { matric: "250201337", name: "Agbasi Chimamanda", paid: false },
-  { matric: "250201343", name: "Agboola Olabisi", paid: false },
-  { matric: "250201341", name: "Ajadi Fathia", paid: false },
-  { matric: "250201293", name: "Ajayi Ifeoluwa", paid: false },
-  { matric: "250201070", name: "Ajayi Isaac", paid: false },
-  { matric: "250201294", name: "Ajayi Motunrayo", paid: false },
-  { matric: "250201358", name: "Ajenifuja Anuoluwapo", paid: false },
-  { matric: "250201011", name: "Ajibade Adeola", paid: false },
-  { matric: "250201396", name: "Ajibade Fathia", paid: false },
-  { matric: "250201338", name: "Ajibola Peace", paid: false },
-  { matric: "250201050", name: "Ajisegiri Eniola", paid: false },
-  { matric: "250201018", name: "Akande Olamide", paid: false },
-  { matric: "250301018", name: "Akande Olamide", paid: false },
-  { matric: "250201367", name: "Akapo David", paid: false },
-  { matric: "250201365", name: "Akinbode Hameedat", paid: false },
-  { matric: "250201066", name: "Akinbode Precious", paid: false },
-  { matric: "250201046", name: "Akinola Olusolape", paid: false },
-  { matric: "250201049", name: "Akinrefon Eniola", paid: false },
-  { matric: "250201042", name: "Akintan Jamal", paid: false },
-  { matric: "250201322", name: "Akinyemi Faith", paid: false },
-  { matric: "250201345", name: "Alabi Emmanuel", paid: false },
-  { matric: "250201037", name: "Aladetohun Oluwakamimayo", paid: false },
-  { matric: "250201035", name: "Alawode Praise", paid: false },
-  { matric: "250201008", name: "Ambelly Aleeyah", paid: false },
-  { matric: "250201111", name: "Amole Abdulsamad", paid: false },
-  { matric: "250201353", name: "Amosun Daniella", paid: false },
-  { matric: "250201005", name: "Anene Deborah", paid: false },
-  { matric: "250201079", name: "Asaolu Babatope", paid: false },
-  { matric: "250201356", name: "Ayesoro Eniola", paid: false },
-  { matric: "250201369", name: "Ayinla Abosede", paid: false },
-  { matric: "250201117", name: "Badewole Prosper", paid: false },
-  { matric: "250201047", name: "Bakare Gold", paid: false },
-  { matric: "250201305", name: "Bakare Idris", paid: false },
-  { matric: "250201053", name: "Bakare Sulhaa", paid: false },
-  { matric: "250201032", name: "Bankole Ibukun", paid: false },
-  { matric: "250201290", name: "Bankole Jason", paid: false },
-  { matric: "250201376", name: "Bassey Favour", paid: false },
-  { matric: "250201340", name: "Batula Oluwaranti", paid: false },
-  { matric: "250201387", name: "Bello Mohammed", paid: false },
-  { matric: "250201374", name: "Bena Elizabeth", paid: false },
-  { matric: "250201012", name: "Bode-Adams Ireoluwa", paid: false },
-  { matric: "250201017", name: "Borokinni Precious", paid: false },
-  { matric: "250201359", name: "Busari Abdullah", paid: false },
-  { matric: "250201014", name: "Chiegwu Wilson", paid: false },
-  { matric: "250201373", name: "Chukwu Esther", paid: false },
-  { matric: "250201109", name: "Chukwudi Okeh-chidera", paid: false },
-  { matric: "250201328", name: "Coker Omogbemisola", paid: false },
-  { matric: "250201398", name: "Collins Victoria", paid: false },
-  { matric: "250201038", name: "Da-silva Precious", paid: false },
-  { matric: "250201009", name: "Dike Joy", paid: false },
-  { matric: "250201366", name: "Ehiremen Mercy", paid: false },
-  { matric: "250201349", name: "Ejike Esther", paid: false },
-  { matric: "250201300", name: "Ekeopara Chibuike", paid: false },
-  { matric: "250201081", name: "Emmanuel Okon", paid: false },
-  { matric: "250201380", name: "Emmanuel Olatoye", paid: false },
-  { matric: "250201304", name: "Eniafe Abdulwahab", paid: false },
-  { matric: "250201384", name: "Fadairo Oluwaferanmi", paid: false },
-  { matric: "250201055", name: "Fadare Fadeshola", paid: false },
-  { matric: "250201015", name: "Fakorede Aliyah", paid: false },
-  { matric: "250201406", name: "Farayibi Daniel", paid: false },
-  { matric: "250201063", name: "Fashina Ifeoluwa", paid: false },
-  { matric: "250201023", name: "Folorunsho Mosunmola", paid: false },
-  { matric: "250201382", name: "Garuba Aishat", paid: false },
-  { matric: "250201112", name: "Hamzah Fareedah", paid: false },
-  { matric: "250201044", name: "Hassan Eniola", paid: false },
-  { matric: "250201381", name: "Hussein Mutmainnah", paid: false },
-  { matric: "250201288", name: "Huthman Sheriffdeen", paid: false },
-  { matric: "250201106", name: "Ibitoye Olawumi", paid: false },
-  { matric: "250201339", name: "Ibrahim Aleeyat", paid: false },
-  { matric: "250201022", name: "Ilori Oluwatofunmi", paid: false },
-  { matric: "250201389", name: "Imran Al-Ameen", paid: false },
-  { matric: "250201361", name: "Isogun Oluwasegun", paid: false },
-  { matric: "250201031", name: "John Chisom", paid: false },
-  { matric: "250201030", name: "Kalu Glory", paid: false },
-  { matric: "250201025", name: "Kayode Adebakin", paid: false },
-  { matric: "250201068", name: "Kazeem Abdullateef", paid: false },
-  { matric: "250201010", name: "Kelani Victor", paid: false },
-  { matric: "250201071", name: "Kila Khadijah", paid: false },
-  { matric: "250201295", name: "Lamidi Emmanuel", paid: false },
-  { matric: "250201392", name: "Lisa Adam", paid: false },
-  { matric: "250201397", name: "Makanjuola Halleluyah", paid: false },
-  { matric: "250201383", name: "Mobolade Zainab", paid: false },
-  { matric: "250201334", name: "Monsuru Abdul", paid: false },
-  { matric: "250201036", name: "Morawo Adedayo", paid: false },
-  { matric: "250201399", name: "Mustapha Abdul", paid: false },
-  { matric: "250201319", name: "Mustapha Amirat", paid: false },
-  { matric: "250201344", name: "Njoku Francis", paid: false },
-  { matric: "250201016", name: "Nnadi Francis", paid: false },
-  { matric: "250201333", name: "Nwankwo Favour", paid: false },
-  { matric: "250201033", name: "Nwofia Jedidah", paid: false },
-  { matric: "250201320", name: "Obasesan-Yusuf Jafar", paid: false },
-  { matric: "250201362", name: "Odio Esther", paid: false },
-  { matric: "250201291", name: "Odughu Gift", paid: false },
-  { matric: "250201113", name: "Odusola Moyinoluwa", paid: false },
-  { matric: "250201390", name: "Oduwaye Toluwalase", paid: false },
-  { matric: "250201321", name: "Ogbeide Serena", paid: false },
-  { matric: "250201020", name: "Ogunbayo Anuoluwapo", paid: false },
-  { matric: "250201401", name: "Ogunfowokan Oluwatetisimi", paid: false },
-  { matric: "250201024", name: "Ogunkoya Oluwademilade", paid: false },
-  { matric: "250201323", name: "Ojora Roheem", paid: false },
-  { matric: "250201003", name: "Okunubi Mujeeb", paid: false },
-  { matric: "250201394", name: "Ola Selimot", paid: false },
-  { matric: "250201108", name: "Olabamerun Inioluwa", paid: false },
-  { matric: "250201335", name: "Oladimeji Isaac", paid: false },
-  { matric: "250201064", name: "Oladiran Praise", paid: false },
-  { matric: "250201289", name: "Oladunjoye Opemipo", paid: false },
-  { matric: "250201296", name: "Oladuntoye Oluwatimilehin", paid: false },
-  { matric: "250201348", name: "Olaitan Oluwanifemi", paid: false },
-  { matric: "250201375", name: "Olajire Quam", paid: false },
-  { matric: "250201299", name: "Olaleye Mopelola", paid: false },
-  { matric: "250201045", name: "Olanrewaju Daniel", paid: false },
-  { matric: "250201303", name: "Olanrewaju Juliet", paid: false },
-  { matric: "250201001", name: "Olaosun Isaac", paid: false },
-  { matric: "250201364", name: "Olasunkanmi Mariam", paid: false },
-  { matric: "250201105", name: "Olasunmiboye Adedamola", paid: false },
-  { matric: "250201331", name: "Olomo Adeshina", paid: false },
-  { matric: "250201065", name: "Olufade Oluwaseyi", paid: false },
-  { matric: "250201395", name: "Olulana Ibukunoluwa", paid: false },
-  { matric: "250201043", name: "Oluwalajiki Deborah", paid: false },
-  { matric: "250201347", name: "Oluwole Oluwakayode", paid: false },
-  { matric: "250201019", name: "Omeje Somfe", paid: false },
-  { matric: "250201051", name: "Omeke Precious", paid: false },
-  { matric: "250201354", name: "Omereme Ifeanyi", paid: false },
-  { matric: "250201330", name: "Oni Daniel", paid: false },
-  { matric: "250201318", name: "Oni Victoria", paid: false },
-  { matric: "250201360", name: "Opeyemi Faithful", paid: false },
-  { matric: "250201324", name: "Osebeyo Emmanuel", paid: false },
-  { matric: "250201317", name: "Oviawe Faith", paid: false },
-  { matric: "250201342", name: "Oyebadejo Tobiloba", paid: false },
-  { matric: "250201371", name: "Oyebulu Olayiwola", paid: false },
-  { matric: "250201336", name: "Oyeniran Olamide", paid: false },
-  { matric: "250201363", name: "Oyeniyi-Okedun Christiana", paid: false },
-  { matric: "250201067", name: "Princewill Joy-Abasi", paid: false },
-  { matric: "250201002", name: "Quadri Oluwaseni", paid: false },
-  { matric: "250201372", name: "Sajowa Kehinde", paid: false },
-  { matric: "250201357", name: "Salamade Adesola", paid: false },
-  { matric: "250201114", name: "Salau Misturah", paid: false },
-  { matric: "250201386", name: "Samuel Eniola", paid: false },
-  { matric: "250201027", name: "Sani Mubarak", paid: false },
-  { matric: "250201026", name: "Shittu Olamiposi", paid: false },
-  { matric: "250201332", name: "Shiyanbade Faderera", paid: false },
-  { matric: "250201316", name: "Shobayo Malik", paid: false },
-  { matric: "250201297", name: "Sobur Kotun", paid: false },
-  { matric: "250201346", name: "Ugo Onyekachi", paid: false },
-  { matric: "250201405", name: "Uthman Omonifemi", paid: false },
-  { matric: "250201048", name: "Uzoechi Chika", paid: false },
-  { matric: "250201110", name: "Yusuf Abdul-azeez", paid: false },
-  { matric: "250201004", name: "Yusuph Aishat", paid: false }
-];
-
-// Load persisted payments from localStorage
-const savedDues = localStorage.getItem('studentDuesRegistry');
-if (savedDues) {
-  try {
-    const parsed = JSON.parse(savedDues);
-    studentDuesRegistry.forEach(s => {
-      if (parsed[s.matric] !== undefined) {
-        s.paid = parsed[s.matric];
-      }
-    });
-  } catch (e) {
-    console.error("Error loading stored dues", e);
-  }
-}
-
-// Global UI Updater for Logged-In Student Dues
-window.updateStudentDuesUI = function(matricNumber) {
-  const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();
-  const student = studentDuesRegistry.find(s => s.matric === cleanMatric);
-
-  const statusText = document.getElementById('studentDuesStatusText');
-  const statusBadge = document.getElementById('duesStatusBadge');
-
-  const isPaid = student ? student.paid : false;
-
-  if (statusText) {
-    if (isPaid) {
-      statusText.className = "gpa-status status-success";
-      statusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> Status: Verified Paid`;
-    } else {
-      statusText.className = "gpa-status status-pending";
-      statusText.style.color = "#ff4d4d";
-      statusText.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Status: Pending Payment`;
-    }
-  }
-
-  if (statusBadge) {
-    if (isPaid) {
-      statusBadge.className = "grade-badge grade-a";
-      statusBadge.textContent = "Paid";
-      statusBadge.style.background = "";
-      statusBadge.style.color = "";
-    } else {
-      statusBadge.className = "grade-badge grade-b";
-      statusBadge.style.background = "rgba(255, 77, 77, 0.2)";
-      statusBadge.style.color = "#ff4d4d";
-      statusBadge.textContent = "Pending";
-    }
-  }
-};
-
-// Global Admin Table Renderer
-window.renderAdminDuesTable = function(filterQuery = '') {
-  const adminDuesTbody = document.getElementById('adminDuesTbody');
-  if (!adminDuesTbody) return;
-
-  adminDuesTbody.innerHTML = '';
-  const filtered = studentDuesRegistry.filter(s => 
-    s.name.toLowerCase().includes(filterQuery) || s.matric.toLowerCase().includes(filterQuery)
-  );
-
-  if (filtered.length === 0) {
-    adminDuesTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#8fa5c3;">No students found.</td></tr>`;
-    return;
-  }
-
-  filtered.forEach((student, index) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td class="course-code-tag">${student.matric}</td>
-      <td><strong>${student.name}</strong></td>
-      <td>
-        <span class="grade-badge ${student.paid ? 'grade-a' : 'grade-b'}" style="${!student.paid ? 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;' : ''}">
-          ${student.paid ? 'Paid' : 'Pending'}
-        </span>
-      </td>
-      <td>
-        <label class="status-toggle-label">
-          <input type="checkbox" class="dues-toggle-checkbox" data-matric="${student.matric}" ${student.paid ? 'checked' : ''}>
-          <span class="toggle-slider"></span>
-        </label>
-      </td>
-    `;
-    adminDuesTbody.appendChild(row);
-  });
-
-  document.querySelectorAll('.dues-toggle-checkbox').forEach(chk => {
-    chk.addEventListener('change', (e) => {
-      const targetMatric = e.target.dataset.matric;
-      const targetStudent = studentDuesRegistry.find(s => s.matric === targetMatric);
-      if (targetStudent) {
-        targetStudent.paid = e.target.checked;
-
-        // Persist change to localStorage
-        const duesMap = {};
-        studentDuesRegistry.forEach(s => duesMap[s.matric] = s.paid);
-        localStorage.setItem('studentDuesRegistry', JSON.stringify(duesMap));
-
-        const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
-        const currentSearch = duesAdminSearchInput ? duesAdminSearchInput.value.toLowerCase().trim() : '';
-        window.renderAdminDuesTable(currentSearch);
-      }
-    });
-  });
-};
-
-const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
-if (duesAdminSearchInput) {
-  duesAdminSearchInput.addEventListener('input', (e) => {
-    window.renderAdminDuesTable(e.target.value.toLowerCase().trim());
-  });
-}
-
-const downloadDuesReceiptBtn = document.getElementById('downloadDuesReceiptBtn');
-if (downloadDuesReceiptBtn) {
-  downloadDuesReceiptBtn.addEventListener('click', () => {
-    alert("Downloading official ACC '29 Class Dues payment receipt...");
-  });
-}
-
-    // Fetch existing announcements on page load
-async function fetchInitialAnnouncements() {
-    const { data, error } = await supabase
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching announcements:', error);
-        return;
-    }
-
-    const container = document.getElementById('noticesContainer');
-    if (!container) return;
-
-    if (data && data.length > 0) {
-        container.innerHTML = ''; // Clear default static placeholders
-        data.forEach(notice => renderNoticeCard(notice));
-    }
-}
-
-// Subscribe to real-time additions
-function subscribeToRealtimeAnnouncements() {
-    supabase
-        .channel('public:announcements')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
-            renderNoticeCard(payload.new, true);
-        })
-        .subscribe();
-}
-
-// Helper to format YYYY-MM-DD into "Month Day, Year"
-function formatDateString(dateStr) {
-    if (!dateStr) return '';
-    const dateObj = new Date(dateStr);
-    if (isNaN(dateObj.getTime())) return dateStr;
-    return dateObj.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-    });
-}
-
-// Update Active Announcements Counter
-function updateNoticeCount() {
-    const countBadge = document.getElementById('activeNoticeCount');
-    const container = document.getElementById('noticesContainer');
-    if (countBadge && container) {
-        const total = container.querySelectorAll('article').length;
-        countBadge.textContent = `${total} Active Announcement${total === 1 ? '' : 's'}`;
-    }
-}
-
-// Render Notice Card using category and formatted date
-function renderNoticeCard(notice) {
-    const container = document.getElementById('noticesContainer');
-    if (!container) return;
-
-    const category = (notice.category || 'GENERAL').toUpperCase();
-    const isImportant = category === 'IMPORTANT';
-
-    const article = document.createElement('article');
-    article.className = `matrix-card ${isImportant ? 'notice-card-important' : 'notice-card-general'}`;
-    article.innerHTML = `
-        <div class="notice-card-header">
-            <span class="${isImportant ? 'course-code-tag' : 'total-units-badge'}">${category}</span>
-            <small class="notice-date"><i class="fa-solid fa-clock"></i> ${formatDateString(notice.date)}</small>
-        </div>
-        <h4 class="notice-title">${notice.title}</h4>
-        <p class="notice-text">${notice.content}</p>
-    `;
-
-    container.prepend(article);
-    updateNoticeCount();
-}
-
-// Execute initial load and real-time listener
-fetchInitialAnnouncements();
-subscribeToRealtimeAnnouncements();
-
-    // --- 2. GPA CALCULATOR SEMESTER TOGGLE ---
-    const gpaToggleBtns = document.querySelectorAll(".gpa-toggle-btn");
-    const gpaRows = document.querySelectorAll("#gpaTableBody tr");
-
-    gpaToggleBtns.forEach(btn => {
-        btn.addEventListener("click", function () {
-            gpaToggleBtns.forEach(b => b.classList.remove("active"));
-            this.classList.add("active");
-
-            const filter = this.getAttribute("data-filter");
-
-            gpaRows.forEach(row => {
-                const semester = row.getAttribute("data-semester");
-                if (filter === "all" || semester === filter) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        });
-    });
-
-    // --- 3. DYNAMIC FULL YEAR CALENDAR & EVENTS HANDLER ---
-    let currentCalendarDate = new Date();
-    const prevMonthBtn = document.getElementById("prevMonthBtn");
-    const nextMonthBtn = document.getElementById("nextMonthBtn");
-    const calendarMonthYearText = document.getElementById("calendarMonthYearText");
-    const calendarGridDays = document.getElementById("calendarGridDays");
-
-    const focusedEventTitle = document.getElementById("focusedEventTitle");
-    const focusedEventDate = document.getElementById("focusedEventDate");
-    const focusedEventText = document.getElementById("focusedEventText");
-
-    // Sample Event Repository indexed by YYYY-MM-DD
-    const sampleEvents = {
-        "2026-06-15": {
-            title: "<span class='blue-indicator-dot'></span> Mid-Semester Schedule Release",
-            text: "Mid-semester schedule released for ACC 102 and AMS 104."
-        },
-        "2026-06-23": {
-            title: "<span class='blue-indicator-dot'></span> Mid-Semester Test",
-            text: "All students are advised to check the timetable for updates on lecture schedules."
-        }
-    };
-
-    function renderCalendar(dateObj) {
-        if (!calendarGridDays || !calendarMonthYearText) return;
-
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth();
-
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        calendarMonthYearText.textContent = `${monthNames[month]} ${year}`;
-
-        calendarGridDays.innerHTML = `
-            <div class="day-label">MON</div><div class="day-label">TUE</div><div class="day-label">WED</div>
-            <div class="day-label">THU</div><div class="day-label">FRI</div><div class="day-label">SAT</div><div class="day-label">SUN</div>
-        `;
-
-        const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday start
-        const lastDay = new Date(year, month + 1, 0).getDate();
-        const prevLastDay = new Date(year, month, 0).getDate();
-
-        const today = new Date();
-
-        // Previous Month Days
-        for (let x = firstDayIndex; x > 0; x--) {
-            const dayDiv = document.createElement("div");
-            dayDiv.className = "day-num muted";
-            dayDiv.textContent = prevLastDay - x + 1;
-            calendarGridDays.appendChild(dayDiv);
-        }
-
-        // Current Month Days
-        for (let i = 1; i <= lastDay; i++) {
-            const dayDiv = document.createElement("div");
-            dayDiv.className = "day-num";
-            dayDiv.textContent = i;
-            dayDiv.style.cursor = "pointer";
-
-            const monthFormatted = String(month + 1).padStart(2, "0");
-            const dayFormatted = String(i).padStart(2, "0");
-            const dateKey = `${year}-${monthFormatted}-${dayFormatted}`;
-
-            // Highlight Today
-            if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                dayDiv.classList.add("today-highlight");
-            }
-
-            // Date Click Event Listener
-            dayDiv.addEventListener("click", function () {
-                document.querySelectorAll(".day-num").forEach(d => d.classList.remove("selected-day"));
-                this.classList.add("selected-day");
-
-                const displayDateStr = `${monthNames[month]} ${i}, ${year}`;
-                
-                if (sampleEvents[dateKey]) {
-                    focusedEventTitle.innerHTML = sampleEvents[dateKey].title;
-                    focusedEventDate.textContent = displayDateStr;
-                    focusedEventText.textContent = sampleEvents[dateKey].text;
-                } else {
-                    focusedEventTitle.innerHTML = "<span class='blue-indicator-dot' style='background: #8b949e;'></span> No Scheduled Events";
-                    focusedEventDate.textContent = displayDateStr;
-                    focusedEventText.textContent = "There are no events today.";
-                }
-            });
-
-            calendarGridDays.appendChild(dayDiv);
-        }
-    }
-
-    if (prevMonthBtn && nextMonthBtn) {
-        prevMonthBtn.addEventListener("click", function () {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-            renderCalendar(currentCalendarDate);
-        });
-
-        nextMonthBtn.addEventListener("click", function () {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-            renderCalendar(currentCalendarDate);
-        });
-    }
-
-    // Initial Calendar Render
-    renderCalendar(currentCalendarDate);
-});
-// Student Directory Mapping (Matric Number -> Clean Display Name)
+// --- 2. STUDENT DIRECTORY MAPPING ---
 const studentDirectory = {
     "250201054": "Fakayode Oluwasemilore",
     "250201013": "Abidekun Elizabeth",
@@ -746,20 +186,710 @@ const studentDirectory = {
     "250201004": "Yusuph Aishat"
 };
 
-// Function to update the greeting and header profile menu
-function setStudentDisplayName(matricNumber) {
+// Generate Class Dues Array
+const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({
+    matric: matric,
+    name: studentDirectory[matric],
+    paid: false
+}));
+
+// Load persisted payment status
+const savedDues = localStorage.getItem('studentDuesRegistry');
+if (savedDues) {
+    try {
+        const parsed = JSON.parse(savedDues);
+        studentDuesRegistry.forEach(s => {
+            if (parsed[s.matric] !== undefined) {
+                s.paid = parsed[s.matric];
+            }
+        });
+    } catch (e) {
+        console.error("Error loading stored dues:", e);
+    }
+}
+
+// --- 3. GLOBAL FUNCTIONS (REQUIRED FOR INLINE HTML ONCLICK / MODULE SCOPE) ---
+
+window.setStudentDisplayName = function(matricNumber) {
     const cleanMatric = String(matricNumber).trim();
     const displayName = studentDirectory[cleanMatric] || "Trailblazer";
 
-    // Update Hero Greeting Header
     const greetingHeader = document.querySelector(".welcome-greeting h2");
     if (greetingHeader) {
         greetingHeader.innerHTML = `${displayName} <i class="fa-solid fa-circle-check verified-badge-icon"></i>`;
     }
 
-    // Update Dropdown Name Label
     const dropdownNameLabel = document.getElementById("dropdownUserName");
     if (dropdownNameLabel) {
         dropdownNameLabel.textContent = displayName;
     }
+};
+
+window.switchToView = function(viewId) {
+    if (!viewId) return;
+
+    // Hide all view panels
+    document.querySelectorAll('.view-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+
+    // Show target view panel
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.style.display = 'block';
+    }
+
+    // Synchronize active sidebar menu state
+    document.querySelectorAll('.sidebar-grid-menu .menu-item').forEach(item => {
+        const label = item.querySelector('span')?.textContent.trim().toLowerCase();
+        
+        const viewToLabel = {
+            "dashboardHomeView": "my profile",
+            "coursesView": "courses",
+            "timetableView": "timetable",
+            "resultsView": "results",
+            "feesView": "fees",
+            "noticesView": "notices",
+            "documentsView": "documents"
+        };
+
+        if (viewToLabel[viewId] && label === viewToLabel[viewId]) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.switchSemester = function(semester) {
+    const btn1st = document.getElementById('btnFirstSemester');
+    const btn2nd = document.getElementById('btnSecondSemester');
+    const courseCards = document.querySelectorAll('.results-course-card');
+
+    if (semester === '1st') {
+        if (btn1st) { btn1st.style.background = '#1d9bf0'; btn1st.style.color = '#fff'; }
+        if (btn2nd) { btn2nd.style.background = 'transparent'; btn2nd.style.color = '#8fa5c3'; }
+    } else {
+        if (btn2nd) { btn2nd.style.background = '#1d9bf0'; btn2nd.style.color = '#fff'; }
+        if (btn1st) { btn1st.style.background = 'transparent'; btn1st.style.color = '#8fa5c3'; }
+    }
+
+    courseCards.forEach(card => {
+        if (card.getAttribute('data-semester') === semester) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+};
+
+window.toggleCourseTopics = function(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    if (wrapper) {
+        wrapper.style.display = (wrapper.style.display === 'none' || wrapper.style.display === '') ? 'block' : 'none';
+    }
+};
+
+window.openUploadModal = function(courseCode) {
+    const modal = document.getElementById('uploadNotesModal');
+    const courseInput = document.getElementById('uploadTargetCourse');
+    const topicSelect = document.getElementById('uploadTargetTopic');
+
+    if (courseInput) courseInput.value = courseCode;
+
+    if (topicSelect) {
+        topicSelect.innerHTML = `
+            <option value="Topic 1">Topic 1 Module Material</option>
+            <option value="Topic 2">Topic 2 Module Material</option>
+            <option value="Topic 3">Topic 3 Module Material</option>
+            <option value="General">General Practice Questions / Summary</option>
+        `;
+    }
+
+    if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+    }
+};
+
+window.updateStudentDuesUI = function(matricNumber) {
+    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();
+    const student = studentDuesRegistry.find(s => s.matric === cleanMatric);
+
+    const statusText = document.getElementById('studentDuesStatusText');
+    const statusBadge = document.getElementById('duesStatusBadge');
+    const isPaid = student ? student.paid : false;
+
+    if (statusText) {
+        if (isPaid) {
+            statusText.className = "gpa-status status-success";
+            statusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> Status: Verified Paid`;
+        } else {
+            statusText.className = "gpa-status status-pending";
+            statusText.style.color = "#ff4d4d";
+            statusText.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Status: Pending Payment`;
+        }
+    }
+
+    if (statusBadge) {
+        if (isPaid) {
+            statusBadge.className = "grade-badge grade-a";
+            statusBadge.textContent = "Paid";
+            statusBadge.style.background = "";
+            statusBadge.style.color = "";
+        } else {
+            statusBadge.className = "grade-badge grade-b";
+            statusBadge.style.background = "rgba(255, 77, 77, 0.2)";
+            statusBadge.style.color = "#ff4d4d";
+            statusBadge.textContent = "Pending";
+        }
+    }
+};
+
+window.renderAdminDuesTable = function(filterQuery = '') {
+    const adminDuesTbody = document.getElementById('adminDuesTbody');
+    if (!adminDuesTbody) return;
+
+    adminDuesTbody.innerHTML = '';
+    const filtered = studentDuesRegistry.filter(s => 
+        s.name.toLowerCase().includes(filterQuery) || s.matric.toLowerCase().includes(filterQuery)
+    );
+
+    if (filtered.length === 0) {
+        adminDuesTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#8fa5c3;">No students found.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td class="course-code-tag">${student.matric}</td>
+            <td><strong>${student.name}</strong></td>
+            <td>
+                <span class="grade-badge ${student.paid ? 'grade-a' : 'grade-b'}" style="${!student.paid ? 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;' : ''}">
+                    ${student.paid ? 'Paid' : 'Pending'}
+                </span>
+            </td>
+            <td>
+                <label class="status-toggle-label">
+                    <input type="checkbox" class="dues-toggle-checkbox" data-matric="${student.matric}" ${student.paid ? 'checked' : ''}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </td>
+        `;
+        adminDuesTbody.appendChild(row);
+    });
+
+    document.querySelectorAll('.dues-toggle-checkbox').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+            const targetMatric = e.target.dataset.matric;
+            const targetStudent = studentDuesRegistry.find(s => s.matric === targetMatric);
+            if (targetStudent) {
+                targetStudent.paid = e.target.checked;
+                const duesMap = {};
+                studentDuesRegistry.forEach(s => duesMap[s.matric] = s.paid);
+                localStorage.setItem('studentDuesRegistry', JSON.stringify(duesMap));
+
+                const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
+                const currentSearch = duesAdminSearchInput ? duesAdminSearchInput.value.toLowerCase().trim() : '';
+                window.renderAdminDuesTable(currentSearch);
+            }
+        });
+    });
+};
+
+// --- 4. SUPABASE ANNOUNCEMENTS LOGIC ---
+
+function formatDateString(dateStr) {
+    if (!dateStr) return '';
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
 }
+
+function updateNoticeCount() {
+    const countBadge = document.getElementById('activeNoticeCount');
+    const container = document.getElementById('noticesContainer');
+    if (countBadge && container) {
+        const total = container.querySelectorAll('article').length;
+        countBadge.textContent = `${total} Active Announcement${total === 1 ? '' : 's'}`;
+    }
+}
+
+function renderNoticeCard(notice) {
+    const container = document.getElementById('noticesContainer');
+    if (!container) return;
+
+    const category = (notice.category || 'GENERAL').toUpperCase();
+    const isImportant = category === 'IMPORTANT';
+
+    const article = document.createElement('article');
+    article.className = `matrix-card ${isImportant ? 'notice-card-important' : 'notice-card-general'}`;
+    article.innerHTML = `
+        <div class="notice-card-header">
+            <span class="${isImportant ? 'course-code-tag' : 'total-units-badge'}">${category}</span>
+            <small class="notice-date"><i class="fa-solid fa-clock"></i> ${formatDateString(notice.date)}</small>
+        </div>
+        <h4 class="notice-title">${notice.title}</h4>
+        <p class="notice-text">${notice.content}</p>
+    `;
+
+    container.prepend(article);
+    updateNoticeCount();
+}
+
+async function fetchInitialAnnouncements() {
+    if (typeof supabase === 'undefined') return;
+    const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching announcements:', error);
+        return;
+    }
+
+    const container = document.getElementById('noticesContainer');
+    if (!container) return;
+
+    if (data && data.length > 0) {
+        container.innerHTML = '';
+        data.forEach(notice => renderNoticeCard(notice));
+    }
+}
+
+function subscribeToRealtimeAnnouncements() {
+    if (typeof supabase === 'undefined') return;
+    supabase
+        .channel('public:announcements')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
+            renderNoticeCard(payload.new);
+        })
+        .subscribe();
+}
+
+// Helper: Populate Course Scoresheet table dynamically
+function populateCourseScoresheet(courseCode, courseTitle) {
+    const tbody = document.getElementById('studentScoresTbody');
+    const titleHeader = document.getElementById('activeCourseTitle');
+    if (titleHeader) titleHeader.textContent = `${courseCode} - ${courseTitle}`;
+
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const matrics = Object.keys(studentDirectory);
+    matrics.forEach((matric, idx) => {
+        // Generate illustrative score data
+        const ca = Math.floor(Math.random() * 11) + 20; // 20 - 30
+        const exam = Math.floor(Math.random() * 31) + 40; // 40 - 70
+        const total = ca + exam;
+        let grade = 'F';
+        if (total >= 70) grade = 'A';
+        else if (total >= 60) grade = 'B';
+        else if (total >= 50) grade = 'C';
+        else if (total >= 45) grade = 'D';
+        else if (total >= 40) grade = 'E';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td class="course-code-tag">${matric}</td>
+            <td>${ca}</td>
+            <td>${exam}</td>
+            <td><strong>${total}</strong></td>
+            <td><span class="grade-badge ${grade === 'A' ? 'grade-a' : 'grade-b'}">${grade}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// --- 5. DOM CONTENT LOADED INITIALIZATIONS ---
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // A. Intercept ALL Hash Links (e.g. <a href="#noticesView">) to drive SPA view switching
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href').replace('#', '');
+            if (document.getElementById(targetId)) {
+                e.preventDefault();
+                window.switchToView(targetId);
+            }
+        });
+    });
+
+    // B. Navigation Sidebar & Quick Access Box Click Triggers
+    const viewMap = {
+        "my profile": "dashboardHomeView",
+        "courses": "coursesView",
+        "timetable": "timetableView",
+        "results": "resultsView",
+        "fees": "feesView",
+        "notices": "noticesView",
+        "documents": "documentsView"
+    };
+
+    document.querySelectorAll(".sidebar-grid-menu .menu-item").forEach(item => {
+        item.addEventListener("click", function () {
+            const label = this.querySelector("span")?.textContent.trim().toLowerCase();
+            const targetViewId = viewMap[label];
+            if (targetViewId) {
+                window.switchToView(targetViewId);
+            }
+        });
+    });
+
+    document.querySelectorAll(".quick-access-box-grid .access-box").forEach(box => {
+        box.addEventListener("click", function () {
+            const label = this.querySelector("span")?.textContent.trim().toLowerCase();
+            const targetViewId = viewMap[label];
+            if (targetViewId) {
+                window.switchToView(targetViewId);
+            }
+        });
+    });
+
+    // C. Course Result Scoresheet View Controls
+    document.querySelectorAll('.course-score-trigger').forEach(card => {
+        card.addEventListener('click', function () {
+            const code = this.getAttribute('data-code') || 'ACC 101';
+            const title = this.getAttribute('data-title') || 'Course Title';
+
+            populateCourseScoresheet(code, title);
+
+            const listView = document.getElementById('resultsCourseListView');
+            const detailView = document.getElementById('courseScoresDetailView');
+            if (listView) listView.style.display = 'none';
+            if (detailView) detailView.style.display = 'block';
+        });
+    });
+
+    const backToCoursesBtn = document.getElementById('backToCoursesBtn');
+    if (backToCoursesBtn) {
+        backToCoursesBtn.addEventListener('click', function () {
+            const listView = document.getElementById('resultsCourseListView');
+            const detailView = document.getElementById('courseScoresDetailView');
+            if (detailView) detailView.style.display = 'none';
+            if (listView) listView.style.display = 'block';
+        });
+    }
+
+    const studentSearchInput = document.getElementById('studentSearchInput');
+    if (studentSearchInput) {
+        studentSearchInput.addEventListener('input', function (e) {
+            const query = e.target.value.toLowerCase().trim();
+            document.querySelectorAll('#studentScoresTbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+    // D. GPA Calculator Auto-Fill Lookup
+    const autoFillGradesBtn = document.getElementById('autoFillGradesBtn');
+    if (autoFillGradesBtn) {
+        autoFillGradesBtn.addEventListener('click', function () {
+            const input = document.getElementById('gpaMatricLookupInput');
+            const matric = input ? input.value.trim() : '';
+
+            if (!matric || !studentDirectory[matric]) {
+                alert("Please enter a valid student Matriculation Number from the directory.");
+                return;
+            }
+
+            document.querySelectorAll('.grade-select').forEach(select => {
+                select.value = "5"; // Auto-fill with Grade A for demonstration
+            });
+
+            const calcBtn = document.getElementById("calcGpaBtn");
+            if (calcBtn) calcBtn.click();
+            alert(`Grades automatically loaded for ${studentDirectory[matric]}!`);
+        });
+    }
+
+    // E. Mobile Drawer Hamburger Toggle
+    const menuToggleBtn = document.getElementById("menu-toggle-btn");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    const dashboardSidebar = document.querySelector(".dashboard-sidebar");
+
+    if (menuToggleBtn && dashboardSidebar) {
+        menuToggleBtn.addEventListener("click", function () {
+            dashboardSidebar.classList.toggle("mobile-open");
+            if (sidebarOverlay) sidebarOverlay.classList.toggle("active");
+        });
+    }
+
+    if (sidebarOverlay && dashboardSidebar) {
+        sidebarOverlay.addEventListener("click", function () {
+            dashboardSidebar.classList.remove("mobile-open");
+            sidebarOverlay.classList.remove("active");
+        });
+    }
+
+    // F. Profile Dropdown & Theme Settings
+    const profileDropdownBtn = document.getElementById("profileDropdownBtn");
+    const profileDropdownMenu = document.getElementById("profileDropdownMenu");
+    const profilePicInput = document.getElementById("profilePicInput");
+    const userAvatarImg = document.getElementById("userAvatarImg");
+    const userAvatarIcon = document.getElementById("userAvatarIcon");
+    const toggleThemeBtn = document.getElementById("toggleThemeBtn");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeText = document.getElementById("themeText");
+
+    if (profileDropdownBtn && profileDropdownMenu) {
+        profileDropdownBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            profileDropdownMenu.classList.toggle("show");
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
+                profileDropdownMenu.classList.remove("show");
+            }
+        });
+    }
+
+    if (profilePicInput) {
+        profilePicInput.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    userAvatarImg.src = event.target.result;
+                    userAvatarImg.style.display = "block";
+                    if (userAvatarIcon) userAvatarIcon.style.display = "none";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    if (toggleThemeBtn) {
+        toggleThemeBtn.addEventListener("click", function () {
+            document.body.classList.toggle("light-theme");
+            const isLight = document.body.classList.contains("light-theme");
+            if (themeIcon) {
+                themeIcon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
+            }
+            if (themeText) {
+                themeText.textContent = isLight ? "Light Mode" : "Dark Mode";
+            }
+        });
+    }
+
+    // G. GPA Calculator Filter & Calculation
+    const gpaToggleBtns = document.querySelectorAll(".gpa-toggle-btn");
+    const gpaRows = document.querySelectorAll("#gpaTableBody tr");
+
+    gpaToggleBtns.forEach(btn => {
+        btn.addEventListener("click", function () {
+            gpaToggleBtns.forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+
+            const filter = this.getAttribute("data-filter");
+
+            gpaRows.forEach(row => {
+                const semester = row.getAttribute("data-semester");
+                if (filter === "all" || semester === filter) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    });
+
+    const calcGpaBtn = document.getElementById("calcGpaBtn");
+    if (calcGpaBtn) {
+        calcGpaBtn.addEventListener("click", function () {
+            let totalPoints = 0;
+            let totalUnits = 0;
+
+            document.querySelectorAll("#gpaTableBody tr").forEach(row => {
+                if (row.style.display !== "none") {
+                    const select = row.querySelector(".grade-select");
+                    if (select && select.value !== "") {
+                        const gradeVal = parseFloat(select.value);
+                        const units = parseFloat(select.getAttribute("data-units") || "0");
+                        totalPoints += gradeVal * units;
+                        totalUnits += units;
+                    }
+                }
+            });
+
+            const gpaResultDisplay = document.getElementById("gpaResultDisplay");
+            if (gpaResultDisplay) {
+                gpaResultDisplay.textContent = totalUnits > 0 ? (totalPoints / totalUnits).toFixed(2) : "0.00";
+            }
+        });
+    }
+
+    // H. Dynamic Calendar Handler
+    let currentCalendarDate = new Date();
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
+    const calendarMonthYearText = document.getElementById("calendarMonthYearText");
+    const calendarGridDays = document.getElementById("calendarGridDays");
+
+    const focusedEventTitle = document.getElementById("focusedEventTitle");
+    const focusedEventDate = document.getElementById("focusedEventDate");
+    const focusedEventText = document.getElementById("focusedEventText");
+
+    const sampleEvents = {
+        "2026-06-15": {
+            title: "<span class='blue-indicator-dot'></span> Mid-Semester Schedule Release",
+            text: "Mid-semester schedule released for ACC 102 and AMS 104."
+        },
+        "2026-06-23": {
+            title: "<span class='blue-indicator-dot'></span> Mid-Semester Test",
+            text: "All students are advised to check the timetable for updates on lecture schedules."
+        }
+    };
+
+    async function renderCalendar(dateObj) {
+        if (!calendarGridDays || !calendarMonthYearText) return;
+
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        calendarMonthYearText.textContent = `${monthNames[month]} ${year}`;
+
+        calendarGridDays.innerHTML = `
+            <div class="day-label">MON</div><div class="day-label">TUE</div><div class="day-label">WED</div>
+            <div class="day-label">THU</div><div class="day-label">FRI</div><div class="day-label">SAT</div><div class="day-label">SUN</div>
+        `;
+
+        let dbAnnouncements = [];
+        if (typeof supabase !== 'undefined') {
+            const { data } = await supabase.from('announcements').select('*');
+            if (data) dbAnnouncements = data;
+        }
+
+        const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const prevLastDay = new Date(year, month, 0).getDate();
+        const today = new Date();
+
+        for (let x = firstDayIndex; x > 0; x--) {
+            const dayDiv = document.createElement("div");
+            dayDiv.className = "day-num muted";
+            dayDiv.textContent = prevLastDay - x + 1;
+            calendarGridDays.appendChild(dayDiv);
+        }
+
+        for (let i = 1; i <= lastDay; i++) {
+            const dayDiv = document.createElement("div");
+            dayDiv.className = "day-num";
+            dayDiv.textContent = i;
+            dayDiv.style.cursor = "pointer";
+
+            const monthFormatted = String(month + 1).padStart(2, "0");
+            const dayFormatted = String(i).padStart(2, "0");
+            const dateKey = `${year}-${monthFormatted}-${dayFormatted}`;
+
+            const matchedNotice = dbAnnouncements.find(n => n.date === dateKey);
+            if (matchedNotice || sampleEvents[dateKey]) {
+                dayDiv.classList.add("has-event");
+            }
+
+            if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayDiv.classList.add("today-highlight");
+            }
+
+            dayDiv.addEventListener("click", function () {
+                document.querySelectorAll(".day-num").forEach(d => d.classList.remove("selected-day"));
+                this.classList.add("selected-day");
+
+                const displayDateStr = `${monthNames[month]} ${i}, ${year}`;
+
+                if (matchedNotice) {
+                    focusedEventTitle.innerHTML = `<span class='blue-indicator-dot'></span> ${matchedNotice.title}`;
+                    focusedEventDate.textContent = displayDateStr;
+                    focusedEventText.textContent = matchedNotice.content;
+                } else if (sampleEvents[dateKey]) {
+                    focusedEventTitle.innerHTML = sampleEvents[dateKey].title;
+                    focusedEventDate.textContent = displayDateStr;
+                    focusedEventText.textContent = sampleEvents[dateKey].text;
+                } else {
+                    focusedEventTitle.innerHTML = "<span class='blue-indicator-dot' style='background: #8b949e;'></span> No Scheduled Events";
+                    focusedEventDate.textContent = displayDateStr;
+                    focusedEventText.textContent = "There are no events today.";
+                }
+            });
+
+            calendarGridDays.appendChild(dayDiv);
+        }
+    }
+
+    if (prevMonthBtn && nextMonthBtn) {
+        prevMonthBtn.addEventListener("click", function () {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar(currentCalendarDate);
+        });
+
+        nextMonthBtn.addEventListener("click", function () {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar(currentCalendarDate);
+        });
+    }
+
+    renderCalendar(currentCalendarDate);
+
+    // I. Supabase Announcements Load & Realtime Subscription
+    fetchInitialAnnouncements();
+    subscribeToRealtimeAnnouncements();
+
+    // J. Admin Post Notice Form
+    const postNoticeForm = document.getElementById('postNoticeForm');
+    if (postNoticeForm) {
+        postNoticeForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const title = document.getElementById('noticeTitleInput')?.value;
+            const date = document.getElementById('noticeDateInput')?.value;
+            const content = document.getElementById('noticeTextInput')?.value;
+
+            if (typeof supabase !== 'undefined') {
+                const { error } = await supabase.from('announcements').insert([{ title, date, content, category: 'GENERAL' }]);
+                if (error) alert("Error publishing announcement: " + error.message);
+                else {
+                    alert("Announcement published successfully!");
+                    postNoticeForm.reset();
+                }
+            }
+        });
+    }
+
+    // K. Document Upload Modal Form
+    const uploadMaterialForm = document.getElementById('uploadMaterialForm');
+    if (uploadMaterialForm) {
+        uploadMaterialForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            alert("Study material uploaded to cloud storage successfully!");
+            document.getElementById('uploadNotesModal')?.close();
+        });
+    }
+
+    // L. Admin Search Input Trigger
+    const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');
+    if (duesAdminSearchInput) {
+        duesAdminSearchInput.addEventListener('input', (e) => {
+            window.renderAdminDuesTable(e.target.value.toLowerCase().trim());
+        });
+    }
+
+    // M. Receipt Action Trigger
+    const downloadDuesReceiptBtn = document.getElementById('downloadDuesReceiptBtn');
+    if (downloadDuesReceiptBtn) {
+        downloadDuesReceiptBtn.addEventListener('click', () => {
+            alert("Downloading official ACC '29 Class Dues payment receipt...");
+        });
+    }
+});
