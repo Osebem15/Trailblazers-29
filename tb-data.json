@@ -6,7 +6,7 @@
   "_readme5": "",
   "_readme6": "  HOW TO EDIT:",
   "_readme7": "  - To add/remove a course: edit the 'courses' array below.",
-  "_readme8": "    Each course has: code, title, units, semester, description.",
+  "_readme8": "    Each course has: code, title, units, semester, description, topics.",
   "_readme9": "  - To update the timetable: edit the 'timetable' array.",
   "_readme10": "    Each slot has: day, time, course (code), venue, room.",
   "_readme11": "    Use null for venue/room if the class has no fixed room.",
@@ -22,8 +22,8 @@
     "location": "Akoka, Lagos State, Nigeria",
     "motto": "Integrity, Excellence and Service",
     "class": "ACC '29 — The Trailblazers",
-    "current_level": "100 Level",
-    "current_semester": "2nd Semester",
+    "current_level": "200 Level",
+    "current_semester": "1st Semester",
     "current_session": "2025/2026",
     "social": {
       "tiktok": "https://www.tiktok.com/@thetrailblazers.29",
@@ -56,140 +56,181 @@
       {
         "q": "What portal sections are available?",
         "a": "My Profile, Courses, Timetable, Results, Fees, Notices, Documents."
+      },
+      {
+        "q": "How do I pay class dues?",
+        "a": "Class dues are ₦500.00. Once verified, you can collect your official department course materials and handbooks from the class executives during lecture breaks at DLI NB2."
       }
     ]
   },
 
   "courses": [
     {
-      "_note": "--- 1ST SEMESTER COURSES --- Edit code, title, units, description below",
+      "_note": "--- 200 LEVEL 1ST SEMESTER COURSES ---",
       "semester": "1st",
-      "code": "ACC 101",
-      "title": "Introduction to Financial Accounting I",
+      "code": "ACC 201",
+      "title": "Financial Accounting II (Core Modules)",
       "units": 3,
-      "description": "Fundamentals of accounting: the accounting equation, double-entry bookkeeping, ledger accounts, trial balance and financial statements for sole traders."
+      "description": "Continuation of financial accounting principles. Covers the IASB framework, IFRS standards including IFRS 15 (Revenue), IAS 1 (Presentation of Financial Statements), IAS 2 (Inventories), IAS 8 (Accounting Policies), IAS 16 (Property, Plant and Equipment), IAS 20 (Government Grants), and IAS 23 (Borrowing Costs).",
+      "topics": [
+        "Topic 1: IASB Framework for the Preparation and Presentation of Financial Statements",
+        "Topic 2: Introduction to IFRS 15 - Revenue",
+        "Topic 3: IAS 1 - Presentation of Financial Statements",
+        "Topic 4: IAS 2 - Accounting for Inventory",
+        "Topic 5: Introduction to IAS 8 - Accounting Policies, Changes in Estimates & Errors",
+        "Topic 6: IAS 16 - Property, Plant and Equipment",
+        "Topic 7: IAS 20 - Accounting for Government Grants",
+        "Topic 8: IAS 23 - Borrowing Costs"
+      ]
     },
     {
       "semester": "1st",
-      "code": "AMS 101",
-      "title": "Introduction to Management",
-      "units": 2,
-      "description": "Core management concepts: planning, organising, leading and controlling. Covers major management theories and organisational behaviour."
-    },
-    {
-      "semester": "1st",
-      "code": "SOC 101",
-      "title": "Introduction to Sociology I",
-      "units": 2,
-      "description": "Sociological concepts, culture, socialisation, social stratification and institutions."
-    },
-    {
-      "semester": "1st",
-      "code": "AMS 103",
-      "title": "Introduction to Computer Science",
-      "units": 2,
-      "description": "Basics of computing: hardware, software, operating systems, internet, spreadsheets, word processing and intro to programming logic."
-    },
-    {
-      "_note": "--- 2ND SEMESTER COURSES --- UPDATED TO MATCH CURRENT PORTAL",
-      "semester": "2nd",
-      "code": "ACC 102",
-      "title": "Introduction to Financial Accounting II",
+      "code": "ACC-CM 203",
+      "title": "Corporate Governance & Accounting Ethics (Core Modules)",
       "units": 3,
-      "description": "Continuation of ACC 101. Covers control accounts, bank reconciliation, partnership accounts, depreciation methods and incomplete records."
+      "description": "Covers the concepts, theory and practice of corporate governance, international and Nigerian codes of corporate governance, governance structure of companies, ethical codes for auditors and accountants, shareholder rights, board of directors roles, internal control, and FRCN/IFAC ethical standards.",
+      "topics": [
+        "Topic 1: Concepts, Theory and Practice of Corporate Governance",
+        "Topic 2: Codes of Corporate Governance (OECD, International & Sectoral Codes)",
+        "Topic 3: Governance Structure of a Company (Shareholders, Board & Management)",
+        "Topic 4: Ethical Codes of Internal and External Auditors",
+        "Topic 5: Roles, Types and Protection of Shareholders Rights",
+        "Topic 6: Role of Board of Directors and Board Committees",
+        "Topic 7: Internal Control and Internal Audit Procedures",
+        "Topic 8: FRCN Corporate Governance Code & IFAC Ethical Codes for Accountants"
+      ]
     },
     {
-      "semester": "2nd",
-      "code": "AMS 102",
-      "title": "Basic Mathematics",
+      "semester": "1st",
+      "code": "ECO 201",
+      "title": "Introduction to Microeconomics I",
       "units": 2,
-      "description": "Mathematical techniques for business: sets, matrices, linear equations, progressions, interest calculations and introductory statistics."
+      "description": "Microeconomic theory covering consumer behaviour (cardinal and ordinal utility), consumer surplus, demand and supply theory, market equilibrium, government intervention, elasticity of demand, and producer behaviour including production and cost analysis in both short-run and long-run.",
+      "topics": [
+        "Topic 1: Foundational Concepts of Microeconomics",
+        "Topic 2: Consumer Behaviour I (Cardinal Utility)",
+        "Topic 3: Consumer Behaviour II (Ordinal Utility)",
+        "Topic 4: Consumer Surplus Analysis (Hicks & Slutsky Model)",
+        "Topic 5: Demand Theory & Demand Schedules",
+        "Topic 6: Supply Theory & Law of Supply",
+        "Topic 7: Market Equilibrium & Price Adjustments",
+        "Topic 8: Market Dynamics & Government Intervention (Price Ceilings & Floors)",
+        "Topic 9: Elasticity of Demand (Price, Arc, Point, Income & Cross)",
+        "Topic 10: Producer Behaviour I (Short-Run Production Analysis)",
+        "Topic 11: Producer Behaviour II (Long-Run Production Analysis & Isoquants)",
+        "Topic 12: Costs of Production (Short-Run & Long-Run Cost Curves)"
+      ]
     },
     {
-      "semester": "2nd",
-      "code": "AMS 104",
-      "title": "Principles of Project Management",
+      "semester": "1st",
+      "code": "ENT 211",
+      "title": "Entrepreneurship and Innovation",
       "units": 2,
-      "description": "Project planning, scheduling, risk management, resource allocation and project evaluation techniques."
+      "description": "Covers the concept, scope and dimensions of entrepreneurship, entrepreneurial traits, innovation and change management (Kurt Lewin 3-Stage Model), enterprise formation, business plan components, business registration in Nigeria via CAC and iCRP portal, micro and small enterprises, and digital entrepreneurship.",
+      "topics": [
+        "Topic 1: Concept, Scope and Dimensions of Entrepreneurship",
+        "Topic 2: Entrepreneurial Traits and Profile Assessment",
+        "Topic 3: Innovation and Change Management (Kurt Lewin 3-Stage Model)",
+        "Topic 4: Enterprise Formation & Business Plan Components",
+        "Topic 5: Business Registration Process in Nigeria (CAC & iCRP Portal)",
+        "Topic 6: Importance & Characteristics of Micro and Small Enterprises (MSEs)",
+        "Topic 7: Digital Entrepreneurship & E-Commerce Strategies"
+      ]
     },
     {
-      "semester": "2nd",
-      "code": "ECO 102",
-      "title": "Principles of Economics II",
+      "semester": "1st",
+      "code": "FIN 101",
+      "title": "Introduction to Finance",
       "units": 2,
-      "description": "Microeconomics: demand, supply, market equilibrium, elasticity, consumer theory, production theory, costs and market structures."
+      "description": "Fundamentals of finance covering the overview and objectives of finance, business firm objectives, mathematics of finance, forms of business enterprise, risk analysis, financial markets, and financial statement analysis.",
+      "topics": [
+        "Topic 1: Overview of Finance",
+        "Topic 2: Objectives of a Business Firm",
+        "Topic 3: Mathematics of Finance",
+        "Topic 4: Forms of Business Enterprise",
+        "Topic 5: Analysis of Risk",
+        "Topic 6: Financial Markets",
+        "Topic 7: Financial Statement Analysis"
+      ]
     },
     {
-      "semester": "2nd",
-      "code": "GST 112",
-      "title": "Nigerian People and Culture",
+      "semester": "1st",
+      "code": "TX-CM 313",
+      "title": "Business Law",
       "units": 2,
-      "description": "Exploration of Nigerian culture, heritage, and societal values."
+      "description": "Introduction to the Nigerian legal system and sources of law. Covers law of contract, sale of goods, law of agency, and hire purchase legal framework.",
+      "topics": [
+        "Topic 1: Introduction to the Nigerian Legal System & Sources of Law",
+        "Topic 2: Law of Contract (Formation, Terms, Vitiating Elements & Remedies)",
+        "Topic 3: Sale of Goods (Implied Terms, Passing of Property & Remedies)",
+        "Topic 4: Law of Agency (Creation, Types, Rights & Duties)",
+        "Topic 5: Hire Purchase (Legal Framework, Formation & Remedies)"
+      ]
     },
     {
-      "semester": "2nd",
-      "code": "LAG-PSY 136",
-      "title": "Introduction to Psychology II",
-      "units": 3,
-      "description": "Fundamentals of human psychology: perception, learning, motivation, personality, development and social behaviour."
-    },
-    {
-      "semester": "2nd",
-      "code": "SOC 106",
-      "title": "Introduction to Sociology II",
+      "semester": "1st",
+      "code": "LAG-ACS 209",
+      "title": "Business Statistics I",
       "units": 2,
-      "description": "Continuation of SOC 101. Social change, deviance, social movements, globalisation and sociological research methods."
+      "description": "Introduction to statistical methods for business. Covers data collection and tabulation, graphical representation, descriptive statistics (measures of location, dispersion, skewness and kurtosis), introduction to probability, random variables, and probability distributions.",
+      "topics": [
+        "Topic 1: Introduction to Statistics, Data & Methods of Data Collection",
+        "Topic 2: Tabulation and Graphical Representation of Data",
+        "Topic 3: Descriptive Statistics (Location, Dispersion, Skewness & Kurtosis)",
+        "Topic 4: Introduction to Probability, Random Variables and Expectations",
+        "Topic 5: Discrete & Continuous Probability Distributions"
+      ]
     }
   ],
 
   "timetable": [
     {
-      "_note": "--- TIMETABLE --- 2ND SEMESTER CURRENT SCHEDULE",
+      "_note": "--- TIMETABLE --- 200 LEVEL 1ST SEMESTER 2025/2026 --- Update this when the new timetable drops",
       "day": "Monday",
       "time": "8:00 AM - 10:00 AM",
-      "course": "ACC 102",
+      "course": "ACC 201",
       "venue": "DLI",
       "room": "NB2 / Room 103"
     },
     {
       "day": "Monday",
       "time": "12:00 PM - 2:00 PM",
-      "course": "AMS 104",
+      "course": "ENT 211",
       "venue": "DLI",
       "room": "NB2 / Room 102"
     },
     {
       "day": "Tuesday",
       "time": "8:00 AM - 10:00 AM",
-      "course": "ECO 102",
+      "course": "ECO 201",
       "venue": "Staff School",
       "room": null
     },
     {
       "day": "Tuesday",
       "time": "10:00 AM - 12:00 PM",
-      "course": "AMS 104",
+      "course": "ENT 211",
       "venue": "DLI",
       "room": "NB2 / Room 103"
     },
     {
       "day": "Tuesday",
       "time": "12:00 PM - 2:00 PM",
-      "course": "AMS 102",
+      "course": "LAG-ACS 209",
       "venue": "DLI",
       "room": "NB2 / Room 103"
     },
     {
       "day": "Wednesday",
       "time": "10:00 AM - 12:00 PM",
-      "course": "SOC 106",
+      "course": "TX-CM 313",
       "venue": "Staff School",
       "room": null
     },
     {
       "day": "Thursday",
       "time": "4:00 PM - 6:00 PM",
-      "course": "LAG-PSY 136",
+      "course": "ACC-CM 203",
       "venue": "Online",
       "room": null
     }
