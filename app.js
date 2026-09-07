@@ -185,7 +185,7 @@ const studentDirectory = {
     "250201110": "Yusuf Abdul-azeez",
     "250201004": "Yusuph Aishat"
 };
-
+window.studentDirectory = studentDirectory;
 // Generate Class Dues Array
 const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({
     matric: matric,
@@ -578,56 +578,92 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // F. Profile Dropdown & Theme Settings
-    const profileDropdownBtn = document.getElementById("profileDropdownBtn");
-    const profileDropdownMenu = document.getElementById("profileDropdownMenu");
-    const profilePicInput = document.getElementById("profilePicInput");
-    const userAvatarImg = document.getElementById("userAvatarImg");
-    const userAvatarIcon = document.getElementById("userAvatarIcon");
-    const toggleThemeBtn = document.getElementById("toggleThemeBtn");
-    const themeIcon = document.getElementById("themeIcon");
-    const themeText = document.getElementById("themeText");
+  // F. Profile Dropdown, Preview Modal & Theme Settings
+const profileDropdownBtn = document.getElementById("profileDropdownBtn");
+const profileDropdownMenu = document.getElementById("profileDropdownMenu");
+const profilePicInput = document.getElementById("profilePicInput");
+const userAvatarImg = document.getElementById("userAvatarImg");
+const userAvatarIcon = document.getElementById("userAvatarIcon");
+const toggleThemeBtn = document.getElementById("toggleThemeBtn");
+const themeIcon = document.getElementById("themeIcon");
+const themeText = document.getElementById("themeText");
 
-    if (profileDropdownBtn && profileDropdownMenu) {
-        profileDropdownBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            profileDropdownMenu.classList.toggle("show");
-        });
+// Preview Modal Elements
+const avatarPreviewModal = document.getElementById("avatarPreviewModal");
+const fullsizeAvatarImg = document.getElementById("fullsizeAvatarImg");
+const closeAvatarModalBtn = document.getElementById("closeAvatarModalBtn");
 
-        document.addEventListener("click", function (e) {
-            if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
-                profileDropdownMenu.classList.remove("show");
-            }
-        });
-    }
+if (profileDropdownBtn && profileDropdownMenu) {
+    // Single-click: Toggle Dropdown Menu
+    profileDropdownBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        profileDropdownMenu.classList.toggle("show");
+    });
 
-    if (profilePicInput) {
-        profilePicInput.addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    userAvatarImg.src = event.target.result;
-                    userAvatarImg.style.display = "block";
-                    if (userAvatarIcon) userAvatarIcon.style.display = "none";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
+    // Double-click: Show Fullsize Picture Preview Modal
+    profileDropdownBtn.addEventListener("dblclick", function (e) {
+        e.stopPropagation();
+        
+        // Hide dropdown menu on double click
+        profileDropdownMenu.classList.remove("show");
 
-    if (toggleThemeBtn) {
-        toggleThemeBtn.addEventListener("click", function () {
-            document.body.classList.toggle("light-theme");
-            const isLight = document.body.classList.contains("light-theme");
-            if (themeIcon) {
-                themeIcon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
-            }
-            if (themeText) {
-                themeText.textContent = isLight ? "Light Mode" : "Dark Mode";
-            }
-        });
-    }
+        // Open modal if user has an uploaded avatar active
+        if (userAvatarImg && userAvatarImg.style.display !== "none" && userAvatarImg.src) {
+            fullsizeAvatarImg.src = userAvatarImg.src;
+            if (avatarPreviewModal) avatarPreviewModal.style.display = "flex";
+        }
+    });
+
+    // Close Dropdown Menu on Outside Click
+    document.addEventListener("click", function (e) {
+        if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
+            profileDropdownMenu.classList.remove("show");
+        }
+    });
+}
+
+// Close Modal Handlers
+if (closeAvatarModalBtn && avatarPreviewModal) {
+    closeAvatarModalBtn.addEventListener("click", function () {
+        avatarPreviewModal.style.display = "none";
+    });
+
+    avatarPreviewModal.addEventListener("click", function (e) {
+        if (e.target === avatarPreviewModal) {
+            avatarPreviewModal.style.display = "none";
+        }
+    });
+}
+
+// Profile Picture Upload Handler
+if (profilePicInput) {
+    profilePicInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                userAvatarImg.src = event.target.result;
+                userAvatarImg.style.display = "block";
+                if (userAvatarIcon) userAvatarIcon.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Theme Toggle Handler
+if (toggleThemeBtn) {
+    toggleThemeBtn.addEventListener("click", function () {
+        document.body.classList.toggle("light-theme");
+        const isLight = document.body.classList.contains("light-theme");
+        if (themeIcon) {
+            themeIcon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+        if (themeText) {
+            themeText.textContent = isLight ? "Light Mode" : "Dark Mode";
+        }
+    });
+}
 
 
 
