@@ -475,40 +475,6 @@ function subscribeToRealtimeAnnouncements() {
         .subscribe();
 }
 
-// Helper: Populate Course Scoresheet table dynamically
-function populateCourseScoresheet(courseCode, courseTitle) {
-    const tbody = document.getElementById('studentScoresTbody');
-    const titleHeader = document.getElementById('activeCourseTitle');
-    if (titleHeader) titleHeader.textContent = `${courseCode} - ${courseTitle}`;
-
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    const matrics = Object.keys(studentDirectory);
-    matrics.forEach((matric, idx) => {
-        // Generate illustrative score data
-        const ca = Math.floor(Math.random() * 11) + 20; // 20 - 30
-        const exam = Math.floor(Math.random() * 31) + 40; // 40 - 70
-        const total = ca + exam;
-        let grade = 'F';
-        if (total >= 70) grade = 'A';
-        else if (total >= 60) grade = 'B';
-        else if (total >= 50) grade = 'C';
-        else if (total >= 45) grade = 'D';
-        else if (total >= 40) grade = 'E';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${idx + 1}</td>
-            <td class="course-code-tag">${matric}</td>
-            <td>${ca}</td>
-            <td>${exam}</td>
-            <td><strong>${total}</strong></td>
-            <td><span class="grade-badge ${grade === 'A' ? 'grade-a' : 'grade-b'}">${grade}</span></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
 
 // --- 5. DOM CONTENT LOADED INITIALIZATIONS ---
 
@@ -592,27 +558,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // D. GPA Calculator Auto-Fill Lookup
-    const autoFillGradesBtn = document.getElementById('autoFillGradesBtn');
-    if (autoFillGradesBtn) {
-        autoFillGradesBtn.addEventListener('click', function () {
-            const input = document.getElementById('gpaMatricLookupInput');
-            const matric = input ? input.value.trim() : '';
-
-            if (!matric || !studentDirectory[matric]) {
-                alert("Please enter a valid student Matriculation Number from the directory.");
-                return;
-            }
-
-            document.querySelectorAll('.grade-select').forEach(select => {
-                select.value = "5"; // Auto-fill with Grade A for demonstration
-            });
-
-            const calcBtn = document.getElementById("calcGpaBtn");
-            if (calcBtn) calcBtn.click();
-            alert(`Grades automatically loaded for ${studentDirectory[matric]}!`);
-        });
-    }
 
     // E. Mobile Drawer Hamburger Toggle
     const menuToggleBtn = document.getElementById("menu-toggle-btn");
@@ -684,52 +629,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // G. GPA Calculator Filter & Calculation
-    const gpaToggleBtns = document.querySelectorAll(".gpa-toggle-btn");
-    const gpaRows = document.querySelectorAll("#gpaTableBody tr");
 
-    gpaToggleBtns.forEach(btn => {
-        btn.addEventListener("click", function () {
-            gpaToggleBtns.forEach(b => b.classList.remove("active"));
-            this.classList.add("active");
-
-            const filter = this.getAttribute("data-filter");
-
-            gpaRows.forEach(row => {
-                const semester = row.getAttribute("data-semester");
-                if (filter === "all" || semester === filter) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        });
-    });
-
-    const calcGpaBtn = document.getElementById("calcGpaBtn");
-    if (calcGpaBtn) {
-        calcGpaBtn.addEventListener("click", function () {
-            let totalPoints = 0;
-            let totalUnits = 0;
-
-            document.querySelectorAll("#gpaTableBody tr").forEach(row => {
-                if (row.style.display !== "none") {
-                    const select = row.querySelector(".grade-select");
-                    if (select && select.value !== "") {
-                        const gradeVal = parseFloat(select.value);
-                        const units = parseFloat(select.getAttribute("data-units") || "0");
-                        totalPoints += gradeVal * units;
-                        totalUnits += units;
-                    }
-                }
-            });
-
-            const gpaResultDisplay = document.getElementById("gpaResultDisplay");
-            if (gpaResultDisplay) {
-                gpaResultDisplay.textContent = totalUnits > 0 ? (totalPoints / totalUnits).toFixed(2) : "0.00";
-            }
-        });
-    }
 
     // H. Dynamic Calendar Handler
     let currentCalendarDate = new Date();
