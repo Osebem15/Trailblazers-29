@@ -193,35 +193,9 @@
                     <h2>Trailblazer <i class="fa-solid fa-circle-check verified-badge-icon"></i></h2>
                 </div>
                 <div class="top-nav-actions">
-                    <div class="profile-dropdown-container">
-                        <div class="user-avatar-circle" id="profileDropdownBtn">
-                            <img id="userAvatarImg" src="" alt="Profile" style="display: none;">
-                            <i id="userAvatarIcon" class="fa-solid fa-user"></i>
-                        </div>
-
-                        <!-- Dropdown Menu -->
-                        <div id="profileDropdownMenu" class="profile-dropdown-menu">
-                            <div class="dropdown-header">
-                                <strong id="dropdownUserName">Trailblazer</strong>
-                                <small>Accounting '29</small>
-                            </div>
-
-                            <label for="profilePicInput" class="dropdown-item-btn">
-                                <i class="fa-solid fa-camera"></i> Change Picture
-                            </label>
-                            <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
-
-                            <button id="toggleThemeBtn" class="dropdown-item-btn">
-                                <i class="fa-solid fa-moon" id="themeIcon"></i>
-                                <span id="themeText">Toggle Theme</span>
-                            </button>
-
-                            <div class="dropdown-divider">
-                                <button id="dropdownLogoutBtn" class="dropdown-item-btn danger">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
-                                </button>
-                            </div>
-                        </div>
+                    <div class="user-avatar-circle" id="profileDropdownBtn">
+                        <img id="userAvatarImg" src="" alt="Profile" style="display: none;">
+                        <i id="userAvatarIcon" class="fa-solid fa-user"></i>
                     </div>
                 </div>
             </div>
@@ -2020,5 +1994,37 @@
     <span class="tb-fab-logo">&#120139;&#120121;</span>
     <span class="tb-fab-sub">AI</span>
   </a>
+    <!-- ENLARGED PROFILE POPUP MODAL -->
+    <div id="profileModal" class="profile-modal-overlay" style="display: none;">
+        <div class="profile-modal-card">
+            <!-- Close / Cancel Button -->
+            <button type="button" class="profile-modal-close-btn" id="closeProfileModalBtn" title="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <!-- Enlarged Picture Preview -->
+            <div class="enlarged-avatar-box">
+                <img id="enlargedAvatarImg" src="" alt="Profile Picture" style="display: none;">
+                <i id="enlargedAvatarIcon" class="fa-solid fa-user"></i>
+            </div>
+            <div class="profile-modal-info">
+                <h3 id="modalUserName">Trailblazer</h3>
+                <p>Department of Accounting '29</p>
+            </div>
+            <!-- Action Buttons -->
+            <div class="profile-modal-actions">
+                <!-- Hidden file input triggered by label button -->
+                <label for="modalProfilePicInput" class="modal-action-btn">
+                    <i class="fa-solid fa-camera"></i> Change Picture
+                </label>
+                <input type="file" id="modalProfilePicInput" accept="image/*" style="display: none;">
+                <button type="button" id="modalToggleThemeBtn" class="modal-action-btn">
+                    <i class="fa-solid fa-moon" id="modalThemeIcon"></i> Toggle Theme
+                </button>
+                <button type="button" id="modalLogoutBtn" class="modal-action-btn danger">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

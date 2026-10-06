@@ -577,96 +577,119 @@ document.addEventListener("DOMContentLoaded", function () {
             sidebarOverlay.classList.remove("active");
         });
     }
-
-  // F. Profile Dropdown, Preview Modal & Theme Settings
-const profileDropdownBtn = document.getElementById("profileDropdownBtn");
-const profileDropdownMenu = document.getElementById("profileDropdownMenu");
-const profilePicInput = document.getElementById("profilePicInput");
-const userAvatarImg = document.getElementById("userAvatarImg");
-const userAvatarIcon = document.getElementById("userAvatarIcon");
-const toggleThemeBtn = document.getElementById("toggleThemeBtn");
-const themeIcon = document.getElementById("themeIcon");
-const themeText = document.getElementById("themeText");
-
-// Preview Modal Elements
-const avatarPreviewModal = document.getElementById("avatarPreviewModal");
-const fullsizeAvatarImg = document.getElementById("fullsizeAvatarImg");
-const closeAvatarModalBtn = document.getElementById("closeAvatarModalBtn");
-
-if (profileDropdownBtn && profileDropdownMenu) {
-    // Single-click: Toggle Dropdown Menu
-    profileDropdownBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        profileDropdownMenu.classList.toggle("show");
-    });
-
-    // Double-click: Show Fullsize Picture Preview Modal
-    profileDropdownBtn.addEventListener("dblclick", function (e) {
-        e.stopPropagation();
-        
-        // Hide dropdown menu on double click
-        profileDropdownMenu.classList.remove("show");
-
-        // Open modal if user has an uploaded avatar active
-        if (userAvatarImg && userAvatarImg.style.display !== "none" && userAvatarImg.src) {
-            fullsizeAvatarImg.src = userAvatarImg.src;
-            if (avatarPreviewModal) avatarPreviewModal.style.display = "flex";
+// ==========================================
+// USER-BOUND PROFILE PICTURE & MODAL MANAGER
+// ==========================================
+// Get elements
+const profileBtn = document.getElementById('profileDropdownBtn');
+const profileModal = document.getElementById('profileModal');
+const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
+const modalProfilePicInput = document.getElementById('modalProfilePicInput');
+const modalToggleThemeBtn = document.getElementById('modalToggleThemeBtn');
+const modalLogoutBtn = document.getElementById('modalLogoutBtn');
+// Header elements
+const headerImg = document.getElementById('userAvatarImg');
+const headerIcon = document.getElementById('userAvatarIcon');
+// Modal elements
+const modalImg = document.getElementById('enlargedAvatarImg');
+const modalIcon = document.getElementById('enlargedAvatarIcon');
+/**
+* Returns the current logged-in user's unique identifier (e.g., email or matric number)
+*/
+function getCurrentUserKey() {
+    // Replace 'currentUserEmail' with your session/auth state variable if different
+    const userEmail = localStorage.getItem('logged_in_user_email') || 'default_user';
+    return `avatar_${userEmail}`;
+}
+/**
+* Loads the user's specific profile picture from LocalStorage
+*/
+function loadUserProfilePicture() {
+    const storageKey = getCurrentUserKey();
+    const savedAvatar = localStorage.getItem(storageKey);
+    if (savedAvatar) {
+        // Display Image in Header
+        if (headerImg) {
+            headerImg.src = savedAvatar;
+            headerImg.style.display = 'block';
         }
+        if (headerIcon) headerIcon.style.display = 'none';
+        // Display Image in Modal
+        if (modalImg) {
+            modalImg.src = savedAvatar;
+            modalImg.style.display = 'block';
+        }
+        if (modalIcon) modalIcon.style.display = 'none';
+    } else {
+        // Fallback to Icon if user has no saved image
+        if (headerImg) headerImg.style.display = 'none';
+        if (headerIcon) headerIcon.style.display = 'block';
+        if (modalImg) modalImg.style.display = 'none';
+        if (modalIcon) modalIcon.style.display = 'block';
+    }
+}
+// Open Modal when clicking header profile picture/icon
+if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+        loadUserProfilePicture();
+        if (profileModal) profileModal.style.display = 'flex';
     });
-
-    // Close Dropdown Menu on Outside Click
-    document.addEventListener("click", function (e) {
-        if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
-            profileDropdownMenu.classList.remove("show");
+}
+// Close Modal via Cancel (X) button
+if (closeProfileModalBtn) {
+    closeProfileModalBtn.addEventListener('click', () => {
+        if (profileModal) profileModal.style.display = 'none';
+    });
+}
+// Close Modal when clicking outside the card
+if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+        if (e.target === profileModal) {
+            profileModal.style.display = 'none';
         }
     });
 }
-
-// Close Modal Handlers
-if (closeAvatarModalBtn && avatarPreviewModal) {
-    closeAvatarModalBtn.addEventListener("click", function () {
-        avatarPreviewModal.style.display = "none";
+// Change Picture Handler
+if (modalProfilePicInput) {
+    modalProfilePicInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const base64Image = e.target.result;
+            const storageKey = getCurrentUserKey();
+            // Save uniquely for current logged-in user
+            localStorage.setItem(storageKey, base64Image);
+            // Update UI instantly
+            loadUserProfilePicture();
+        };
+        reader.readAsDataURL(file);
     });
-
-    avatarPreviewModal.addEventListener("click", function (e) {
-        if (e.target === avatarPreviewModal) {
-            avatarPreviewModal.style.display = "none";
+}
+// Toggle Theme from Modal
+if (modalToggleThemeBtn) {
+    modalToggleThemeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+}
+// Logout from Modal
+if (modalLogoutBtn) {
+    modalLogoutBtn.addEventListener('click', () => {
+        // Trigger standard logout action
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.click();
+        } else {
+            location.reload();
         }
     });
 }
-
-// Profile Picture Upload Handler
-if (profilePicInput) {
-    profilePicInput.addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                userAvatarImg.src = event.target.result;
-                userAvatarImg.style.display = "block";
-                if (userAvatarIcon) userAvatarIcon.style.display = "none";
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-}
-
-// Theme Toggle Handler
-if (toggleThemeBtn) {
-    toggleThemeBtn.addEventListener("click", function () {
-        document.body.classList.toggle("light-theme");
-        const isLight = document.body.classList.contains("light-theme");
-        if (themeIcon) {
-            themeIcon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
-        }
-        if (themeText) {
-            themeText.textContent = isLight ? "Light Mode" : "Dark Mode";
-        }
-    });
-}
-
-
-
+// Auto-load user profile picture when signed in or refreshed
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfilePicture();
+});
     // H. Dynamic Calendar Handler
     let currentCalendarDate = new Date();
     const prevMonthBtn = document.getElementById("prevMonthBtn");
