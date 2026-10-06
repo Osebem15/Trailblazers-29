@@ -1,13 +1,13 @@
 const CACHE_NAME = 'unilag-acc-pwa-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/auth.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './auth.js',
+  './manifest.json',
+  './icon-192.jpg',
+  './icon-512.jpg'
 ];
 self.addEventListener('install', (event) => {
   event.waitUntil(
