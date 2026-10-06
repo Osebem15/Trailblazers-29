@@ -2302,3 +2302,44 @@ body.light-theme [class*="quick"] a:hover {
     border-radius: 50%;
     box-shadow: 0 0 10px rgba(29, 155, 240, 0.6);
 }
+/* ==========================================
+   PWA INSTALL BUTTON PILL OVERRIDE
+   ========================================== */
+.hero-status-pills .status-pill:has(#pwaInstallBtn) {
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+#pwaInstallBtn {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 10px 16px !important;
+    background: rgba(212, 175, 55, 0.15) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    color: var(--gold-glow) !important;
+    border-radius: 12px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+#pwaInstallBtn:hover {
+    background: rgba(212, 175, 55, 0.3) !important;
+    border-color: var(--gold-glow) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+/* Light Theme Overrides */
+body.light-theme #pwaInstallBtn {
+    background: rgba(29, 155, 240, 0.12) !important;
+    border: 1px solid rgba(29, 155, 240, 0.4) !important;
+    color: #1d9bf0 !important;
+}
+body.light-theme #pwaInstallBtn:hover {
+    background: rgba(29, 155, 240, 0.25) !important;
+    color: #0f172a !important;
+}
