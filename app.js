@@ -950,13 +950,222 @@ window.renderAdminDuesTable(e.target.value.toLowerCase().trim());
         }); 
     } 
  
-    const downloadDuesReceiptBtn = 
+    // --- DUES RECEIPT GENERATOR --- 
+window.generateDuesReceipt = function () { 
+    // Retrieve logged-in student info or default fallback 
+    const currentMatric = window.currentLoggedInMatric || 
+localStorage.getItem('logged_in_user_matric') || '250201324'; 
+    const studentName = (window.studentDirectory && 
+window.studentDirectory[currentMatric])  
+        ? window.studentDirectory[currentMatric]  
+        : 'Emmanuel Osebeyo'; 
+ 
+    const student = (window.studentDuesRegistry)  
+        ? window.studentDuesRegistry.find(s => s.matric === 
+currentMatric)  
+        : null; 
+     
+    const isPaid = student ? student.paid : true; // Default to paid if verified 
+    const receiptRef = 'REC-' + Math.floor(100000 + Math.random() * 900000); 
+    const currentDate = new Date().toLocaleDateString('en-GB', {  
+        day: 'numeric',  
+        month: 'long',  
+        year: 'numeric'  
+    }); 
+ 
+    // Open clean print window 
+    const printWindow = window.open('', '_blank', 
+'width=800,height=900'); 
+ 
+    const receiptHTML = ` 
+      <!DOCTYPE html> 
+      <html> 
+      <head> 
+        <title>Receipt_${currentMatric}_ACC29</title> 
+        <style> 
+          body {  
+            font-family: 'Segoe UI', Arial, sans-serif;  
+            background: #f8fafc;  
+            color: #0f172a;  
+            padding: 40px;  
+            margin: 0;  
+          } 
+          .receipt-box {  
+            max-width: 650px;  
+            margin: 0 auto;  
+            background: #ffffff;  
+            border: 2px solid #cbd5e1;  
+            border-radius: 12px;  
+            padding: 36px;  
+            position: relative;  
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);  
+          } 
+          .header {  
+            text-align: center;  
+            border-bottom: 2px double #0f172a;  
+            padding-bottom: 16px;  
+            margin-bottom: 24px;  
+          } 
+          .header h2 {  
+            margin: 0;  
+            font-size: 22px;  
+            text-transform: uppercase;  
+            letter-spacing: 1px;  
+            color: #000b18;  
+          } 
+          .header h3 {  
+            margin: 6px 0 0;  
+            font-size: 15px;  
+            color: #1d9bf0;  
+            font-weight: 600;  
+          } 
+          .header p {  
+            margin: 4px 0 0;  
+            font-size: 12px;  
+            color: #64748b;  
+          } 
+          .meta-bar {  
+            display: flex;  
+            justify-content: space-between;  
+            font-size: 13px;  
+            color: #475569;  
+            margin-bottom: 24px;  
+            padding: 10px 14px;  
+            background: #f1f5f9;  
+            border-radius: 6px;  
+          } 
+          .details-table {  
+            width: 100%;  
+            border-collapse: collapse;  
+            margin-bottom: 28px;  
+          } 
+          .details-table th, .details-table td {  
+            padding: 12px 14px;  
+            text-align: left;  
+            border-bottom: 1px solid #e2e8f0;  
+            font-size: 14px;  
+          } 
+          .details-table th {  
+            background: #f8fafc;  
+            color: #64748b;  
+            text-transform: uppercase;  
+            font-size: 11px;  
+            letter-spacing: 0.5px;  
+            width: 38%;  
+          } 
+          .total-row {  
+            font-size: 16px;  
+            font-weight: bold;  
+            background: rgba(29, 155, 240, 0.08);  
+          } 
+          .total-row td {  
+            color: #1d9bf0;  
+            font-size: 18px;  
+            font-weight: 800;  
+          } 
+          .status-stamp {  
+            position: absolute;  
+            right: 40px;  
+            bottom: 90px;  
+            border: 3px double ${isPaid ? '#16a34a' : '#dc2626'};  
+            color: ${isPaid ? '#16a34a' : '#dc2626'};  
+            padding: 8px 18px;  
+            border-radius: 8px;  
+            font-weight: 900;  
+            font-size: 16px;  
+            transform: rotate(-12deg);  
+            opacity: 0.85;  
+            text-transform: uppercase;  
+            letter-spacing: 2px;  
+          } 
+          .footer {  
+            text-align: center;  
+            font-size: 11px;  
+            color: #94a3b8;  
+            border-top: 1px solid #e2e8f0;  
+            padding-top: 18px;  
+            margin-top: 20px;  
+          } 
+          @media print {  
+            body { background: none; padding: 0; }  
+            .receipt-box { border: none; box-shadow: none; }  
+          } 
+        </style> 
+      </head> 
+      <body> 
+        <div class="receipt-box"> 
+          <div class="status-stamp">${isPaid ? 'VERIFIED PAID' : 
+'PENDING'}</div> 
+           
+          <div class="header"> 
+            <h2>University of Lagos</h2> 
+            <h3>Department of Accounting — ACC '29</h3> 
+            <p>Official Departmental Dues Clearance Receipt</p> 
+          </div> 
+ 
+          <div class="meta-bar"> 
+            <span><strong>Receipt Ref:</strong> ${receiptRef}</span> 
+            <span><strong>Date Issued:</strong> ${currentDate}</span> 
+          </div> 
+ 
+          <table class="details-table"> 
+            <tr> 
+              <th>Student Name</th> 
+              <td><strong>${studentName}</strong></td> 
+            </tr> 
+            <tr> 
+              <th>Matriculation No</th> 
+              <td><code>${currentMatric}</code></td> 
+            </tr> 
+            <tr> 
+              <th>Class / Level</th> 
+              <td>Accounting (200 Level — Trailblazers '29)</td> 
+            </tr> 
+            <tr> 
+              <th>Academic Session</th> 
+              <td>2026/2027 Session</td> 
+            </tr> 
+            <tr> 
+              <th>Fee Description</th> 
+              <td>ACC '29 Departmental & Class Package Dues</td> 
+            </tr> 
+            <tr> 
+              <th>Payment Status</th> 
+              <td><strong style="color: ${isPaid ? '#16a34a' : '#dc2626'};">${isPaid ? 'Verified Paid' : 'Pending Payment'}</strong></td> 
+            </tr> 
+            <tr class="total-row"> 
+              <th>Amount Paid</th> 
+              <td>₦ 500.00</td> 
+            </tr> 
+          </table> 
+ 
+          <div class="footer"> 
+            <p>This is an official computer-generated receipt issued 
+by the Department of Accounting, UNILAG.</p> 
+            <p><em>Integrity, Excellence and Service</em></p> 
+          </div> 
+        </div> 
+ 
+        <script> 
+          window.onload = function() { 
+            window.print(); 
+          }; 
+        </script> 
+      </body> 
+      </html> 
+    `; 
+ 
+    printWindow.document.write(receiptHTML); 
+    printWindow.document.close(); 
+}; 
+ 
+// Wire up button event listener 
+const downloadDuesReceiptBtn = 
 document.getElementById('downloadDuesReceiptBtn'); 
-    if (downloadDuesReceiptBtn) { 
-        downloadDuesReceiptBtn.addEventListener('click', () => { 
-            alert("Downloading official ACC '29 Class Dues payment receipt..."); 
-        }); 
-    } 
+if (downloadDuesReceiptBtn) { 
+    downloadDuesReceiptBtn.addEventListener('click', 
+window.generateDuesReceipt); 
+} 
 }); 
  
 if ('serviceWorker' in navigator) { 
