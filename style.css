@@ -2508,3 +2508,43 @@ body.light-theme .modal-action-btn {
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
+/* --- PRINT RECEIPT BUTTON BLENDED STYLING --- */ 
+.btn-receipt-action { 
+    background: rgba(197, 160, 89, 0.12) !important; 
+    border: 1px solid rgba(197, 160, 89, 0.4) !important; 
+    color: var(--gold-glow) !important; 
+    padding: 8px 16px !important; 
+    border-radius: 8px !important; 
+    font-weight: 600 !important; 
+    font-size: 0.82rem !important; 
+    cursor: pointer !important; 
+    display: inline-flex !important; 
+    align-items: center !important; 
+    gap: 8px !important; 
+    transition: all 0.25s ease !important; 
+} 
+ 
+.btn-receipt-action:hover { 
+    background: var(--gold-accent) !important; 
+    color: #000b18 !important; 
+    border-color: var(--gold-accent) !important; 
+    box-shadow: 0 0 14px rgba(197, 160, 89, 0.45) !important; 
+    transform: translateY(-1px); 
+} 
+ 
+.btn-receipt-action i { 
+    font-size: 0.9rem; 
+} 
+ 
+/* Light Theme Support */ 
+body.light-theme .btn-receipt-action { 
+    background: rgba(29, 155, 240, 0.1) !important; 
+    border-color: rgba(29, 155, 240, 0.4) !important; 
+    color: #1d9bf0 !important; 
+} 
+ 
+body.light-theme .btn-receipt-action:hover { 
+    background: #1d9bf0 !important; 
+    color: #ffffff !important; 
+    box-shadow: 0 2px 10px rgba(29, 155, 240, 0.3) !important; 
+}

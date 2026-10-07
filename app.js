@@ -363,44 +363,33 @@ Summary</option>
     } 
 }; 
  
-window.updateStudentDuesUI = function(matricNumber) { 
-    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, 
-'').trim(); 
-    const student = studentDuesRegistry.find(s => s.matric === 
-cleanMatric); 
- 
-    const statusText = 
-document.getElementById('studentDuesStatusText'); 
-    const statusBadge = document.getElementById('duesStatusBadge'); 
-    const isPaid = student ? student.paid : false; 
- 
-    if (statusText) { 
-        if (isPaid) { 
-            statusText.className = "gpa-status status-success"; 
-            statusText.innerHTML = `<i class="fa-solid 
-fa-circle-check"></i> Status: Verified Paid`; 
-        } else { 
-            statusText.className = "gpa-status status-pending"; 
-            statusText.style.color = "#ff4d4d"; 
-            statusText.innerHTML = `<i class="fa-solid 
-fa-circle-xmark"></i> Status: Pending Payment`; 
-        } 
-    } 
- 
-    if (statusBadge) { 
-        if (isPaid) { 
-            statusBadge.className = "grade-badge grade-a"; 
-            statusBadge.textContent = "Paid"; 
-            statusBadge.style.background = ""; 
-            statusBadge.style.color = ""; 
-        } else { 
-            statusBadge.className = "grade-badge grade-b"; 
-            statusBadge.style.background = "rgba(255, 77, 77, 0.2)"; 
-            statusBadge.style.color = "#ff4d4d"; 
-            statusBadge.textContent = "Pending"; 
-        } 
-    } 
-}; 
+window.generateDuesReceipt = function () {
+    const currentMatric = window.currentLoggedInMatric || localStorage.getItem('logged_in_user_matric');
+    if (!currentMatric) {
+        alert("Please log in to access your receipt.");
+        return;
+    }
+    const cleanMatric = String(currentMatric).replace(/[^0-9]/g, '').trim();
+    const student = (window.studentDuesRegistry)
+        ? window.studentDuesRegistry.find(s => s.matric === cleanMatric)
+        : null;
+   
+    // Default to false if student data is not found or payment is unverified
+    const isPaid = student ? student.paid : false;
+    // --- ACCESS CONTROL GUARD ---
+    if (!isPaid) {
+        alert("Access Denied: Payment clearance required. You cannot generate or print a receipt until your payment status is verified by an admin.");
+        return; // Immediately block print window generation
+    }
+    const receiptRef = 'REC-' + Math.floor(100000 + Math.random() * 900000);
+    const currentDate = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    // ... receipt HTML and print window logic ...
+};
  
 window.renderAdminDuesTable = function(filterQuery = '') { 
     const adminDuesTbody = document.getElementById('adminDuesTbody'); 
@@ -950,32 +939,32 @@ window.renderAdminDuesTable(e.target.value.toLowerCase().trim());
         }); 
     } 
  
-    // --- DUES RECEIPT GENERATOR --- 
-window.generateDuesReceipt = function () { 
-    // Retrieve logged-in student info or default fallback 
-    const currentMatric = window.currentLoggedInMatric || 
-localStorage.getItem('logged_in_user_matric') || '250201324'; 
-    const studentName = (window.studentDirectory && 
-window.studentDirectory[currentMatric])  
-        ? window.studentDirectory[currentMatric]  
-        : 'Emmanuel Osebeyo'; 
+    window.generateDuesReceipt = function () {
+    const currentMatric = window.currentLoggedInMatric || localStorage.getItem('logged_in_user_matric');
+    if (!currentMatric) {
+        alert("Please log in to access your receipt.");
+        return;
+    }
+    const cleanMatric = String(currentMatric).replace(/[^0-9]/g, '').trim();
+    const student = (window.studentDuesRegistry)
+        ? window.studentDuesRegistry.find(s => s.matric === cleanMatric)
+        : null;
+   
+    // Default to false if student data is not found or payment is unverified
+    const isPaid = student ? student.paid : false;
+    // --- ACCESS CONTROL GUARD ---
+    if (!isPaid) {
+        alert("Access Denied: Payment clearance required. You cannot generate or print a receipt until your payment status is verified by an admin.");
+        return; // Immediately block print window generation
+    }
+    const receiptRef = 'REC-' + Math.floor(100000 + Math.random() * 900000);
+    const currentDate = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
  
-    const student = (window.studentDuesRegistry)  
-        ? window.studentDuesRegistry.find(s => s.matric === 
-currentMatric)  
-        : null; 
-     
-    const isPaid = student ? student.paid : true; // Default to paid if verified 
-    const receiptRef = 'REC-' + Math.floor(100000 + Math.random() * 900000); 
-    const currentDate = new Date().toLocaleDateString('en-GB', {  
-        day: 'numeric',  
-        month: 'long',  
-        year: 'numeric'  
-    }); 
- 
-    // Open clean print window 
-    const printWindow = window.open('', '_blank', 
-'width=800,height=900'); 
  
     const receiptHTML = ` 
       <!DOCTYPE html> 
