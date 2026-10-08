@@ -59,7 +59,7 @@ const ALLOWED_GOOGLE_EMAILS = [
 ];
 // Course Topics Map for Upload Modal Dropdowns
 const courseTopicsMap = {
-    'ACC 201': [
+    'ACC 210': [
         'Topic 1: IASB Framework for the Preparation and Presentation of Financial Statements',
         'Topic 2: Introduction to IFRS 15 - Revenue',
         'Topic 3: IAS 1 - Presentation of Financial Statements',
@@ -349,30 +349,30 @@ if (dbError) throw dbError;
 onAuthStateChanged(auth, (user) => {
   if (user) {
     const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
-
     if (isGoogleUser && !ALLOWED_GOOGLE_EMAILS.includes(user.email)) {
       displayError("This Google account does not have access to this portal.");
       signOut(auth);
       return;
     }
-
     let cleanMatric = user.email ? user.email.replace(MATRIC_SUFFIX, '').replace('@gmail.com', '').replace(/[^0-9]/g, '').trim() : '';
+    window.currentLoggedInMatric = cleanMatric;
+   
+    // Save to LocalStorage for Profile & Receipt modules
+    localStorage.setItem('logged_in_user_email', user.email || '');
+    localStorage.setItem('logged_in_user_matric', cleanMatric);
     let displayName = (window.studentDirectory && window.studentDirectory[cleanMatric]) || user.displayName || 'Trailblazer';
-    
+   
     const greetingHeader = document.querySelector('.welcome-greeting h2');
     if (greetingHeader) {
       greetingHeader.innerHTML = `${displayName} <i class="fa-solid fa-circle-check verified-badge-icon" style="color: #1d9bf0;"></i>`;
     }
-
     const dropdownNameLabel = document.getElementById("dropdownUserName");
     if (dropdownNameLabel) {
       dropdownNameLabel.textContent = displayName;
     }
-
     if (typeof window.updateStudentDuesUI === 'function') {
       window.updateStudentDuesUI(cleanMatric);
     }
-
     const adminPanel = document.getElementById('adminFeesControl');
     if (adminPanel) {
       if (user.email && ALLOWED_GOOGLE_EMAILS.includes(user.email)) {
@@ -384,9 +384,8 @@ onAuthStateChanged(auth, (user) => {
         adminPanel.style.display = 'none';
       }
     }
-
     if (loggedOutView) loggedOutView.style.display = "none";
-    if (loggedInView) loggedInView.style.display = "flex"; 
+    if (loggedInView) loggedInView.style.display = "flex";
     if (loginForm) loginForm.reset();
     authError.style.display = "none";
   } else {
@@ -394,7 +393,6 @@ onAuthStateChanged(auth, (user) => {
     if (loggedInView) loggedInView.style.display = "none";
   }
 });
-
 // 3A. EMAIL / MATRICULATION LOGIN FORM
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
@@ -447,57 +445,6 @@ if (loginForm) {
 // =======================================================
 // 3. LOGIN & LOGOUT FLOWS
 // =======================================================
-
-// 3A. EMAIL / MATRICULATION LOGIN FORM
-if (loginForm) {
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authError.style.display = 'none'; 
-
-    const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.getElementById('email-input');
-    const passwordInput = loginForm.querySelector('input[name="password"]');
-
-    let rawMatric = matricInput ? matricInput.value.trim().toLowerCase() : "";
-    const password = passwordInput ? passwordInput.value : "";
-
-    if (!rawMatric || !password) {
-      displayError("Please enter your matriculation number and password.");
-      return;
-    }
-
-    // Extract digits for student lookup
-    const extractedMatric = rawMatric.replace(/[^0-9]/g, '');
-    if (typeof setStudentDisplayName === 'function') {
-      setStudentDisplayName(extractedMatric);
-    }
-
-    if (!rawMatric.includes('@')) rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
-try {
-      await signInWithEmailAndPassword(auth, rawMatric, password);
-    } catch (error) {
-      console.error("Firebase Auth Sign-In Error:", error.code, error.message);
-
-      if (error.code === 'auth/user-not-found') {
-        try {
-          await createUserWithEmailAndPassword(auth, rawMatric, password);
-        } catch (createErr) {
-          if (createErr.code === 'auth/weak-password') {
-            displayError("Password must be at least 6 characters long.");
-          } else if (createErr.code === 'auth/email-already-in-use') {
-            displayError("Incorrect password for this account. Please try again.");
-          } else {
-            displayError("Account creation failed. Please verify your details.");
-          }
-        }
-      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        displayError("Invalid matriculation number/email or password.");
-      } else {
-        displayError(`Authentication failed: ${error.message}`);
-      }
-    }
-  });
-}
-
 // 3B. GOOGLE SIGN-IN BUTTON
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', async () => {
@@ -2308,14 +2255,3 @@ document.addEventListener("DOMContentLoaded", () => {
         calcBtn.addEventListener("click", calculateGPA);
     }
 });
-
-// 1. Open Upload Modal & pre-fill Course Code
-function openUploadModal(courseCode) {
-    document.getElementById('uploadTargetCourse').value = courseCode;
-    const modal = document.getElementById('uploadNotesModal');
-    if (modal.showModal) {
-        modal.showModal();
-    } else {
-        modal.style.display = 'block';
-    }
-}
