@@ -767,23 +767,44 @@ document.addEventListener("DOMContentLoaded", function () {
         });   
     }   
    
-    const menuToggleBtn = document.getElementById("menu-toggle-btn");   
-    const sidebarOverlay = document.getElementById("sidebar-overlay");   
-    const dashboardSidebar = document.querySelector(".dashboard-sidebar");   
-   
-    if (menuToggleBtn && dashboardSidebar) {   
-        menuToggleBtn.addEventListener("click", function () {   
-            dashboardSidebar.classList.toggle("mobile-open");   
-            if (sidebarOverlay) sidebarOverlay.classList.toggle("active");   
-        });   
-    }   
-   
-    if (sidebarOverlay && dashboardSidebar) {   
-        sidebarOverlay.addEventListener("click", function () {   
-            dashboardSidebar.classList.remove("mobile-open");   
-            sidebarOverlay.classList.remove("active");   
-        });   
-    }   
+    // Mobile Sidebar & Overlay Controller
+const menuToggleBtn = document.getElementById('menu-toggle-btn');
+const sidebar = document.querySelector('.dashboard-sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+// 1. Open / Toggle Mobile Menu
+function openMobileMenu() {
+    if (sidebar) sidebar.classList.add('mobile-open');
+    if (sidebarOverlay) sidebarOverlay.classList.add('active');
+}
+// 2. Close Mobile Menu
+function closeMobileMenu() {
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+}
+// 3. Bind Hamburger Button
+if (menuToggleBtn) {
+    menuToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+            closeMobileMenu();
+        } else {
+            openMobileMenu();
+        }
+    });
+}
+// 4. Close menu when tapping anywhere on the dark backdrop outside
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeMobileMenu);
+}
+// 5. Automatically close menu when any sidebar item is clicked
+menuItems.forEach((item) => {
+    item.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) {
+            closeMobileMenu();
+        }
+    });
+});   
    
     const profileBtn = document.getElementById('profileDropdownBtn');   
     const profileModal = document.getElementById('profileModal');   

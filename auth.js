@@ -467,6 +467,26 @@ if (logoutBtn) {
     }
   });
 }
+// Function to handle full user logout
+function performLogout() {
+    // 1. Hide profile popup modal immediately
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+        profileModal.style.display = 'none';
+    }
+    // 2. Hide dashboard and display login screen
+    const loggedInView = document.getElementById('LoggedInView');
+    const loggedOutView = document.getElementById('loggedOutView');
+   
+    if (loggedInView) loggedInView.style.display = 'none';
+    if (loggedOutView) loggedOutView.style.display = 'block';
+    // 3. Clear session storage
+    localStorage.removeItem('trailblazers_user');
+    sessionStorage.clear();
+}
+// Bind both logout buttons
+document.getElementById('modalLogoutBtn')?.addEventListener('click', performLogout);
+document.getElementById('logoutBtn')?.addEventListener('click', performLogout);
 
 // =======================================================
 // 4. MOBILE SIDEBAR DRAWER TOGGLE
@@ -2255,3 +2275,21 @@ document.addEventListener("DOMContentLoaded", () => {
         calcBtn.addEventListener("click", calculateGPA);
     }
 });
+// Listen to real-time dues table updates from Supabase
+function listenToDuesRealtime() {
+    supabase
+        .channel('dues_live_channel')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'dues_payments' },
+            (payload) => {
+                console.log('[Supabase Realtime] Payment updated:', payload);
+                // Re-render student dues status & admin table instantly
+                if (typeof loadStudentDuesStatus === 'function') loadStudentDuesStatus();
+                if (typeof loadAdminDuesList === 'function') loadAdminDuesList();
+            }
+        )
+        .subscribe();
+}
+// Initialize on app load
+listenToDuesRealtime();
