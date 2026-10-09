@@ -551,7 +551,7 @@ window.updateStudentDuesUI === 'function') {
 // =======================================================
 window.requestNotificationPermission = async function() {
     if (!('Notification' in window)) {
-        alert("This browser does not support desktop push notifications.");
+        alert("This browser does not support push notifications.");
         return;
     }
     const permission = await Notification.requestPermission();
@@ -561,15 +561,89 @@ window.requestNotificationPermission = async function() {
             btn.innerHTML = `<i class="fa-solid fa-check"></i> Notifications Enabled`;
             btn.style.background = '#22c55e';
         }
-        new Notification("Trailblazers '29 Portal", {
-            body: "Push notifications are successfully enabled! You will be notified instantly of departmental updates.",
-            icon: "./icon-192.jpg"
-        });
+       
+        // Mobile Chrome / Android Service Worker Push
+        if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            reg.showNotification("Trailblazers '29 Portal", {
+                body: "Push notifications enabled! You will receive live announcement updates.",
+                icon: "./icon-192.jpg",
+                badge: "./favicon-32.jpg"
+            });
+        } else {
+            new Notification("Trailblazers '29 Portal", {
+                body: "Push notifications enabled! You will receive live announcement updates.",
+                icon: "./icon-192.jpg"
+            });
+        }
     } else {
-        alert("Notification permission was denied. You can enable it anytime in browser settings.");
+        alert("Notification permission was denied. You can enable it in your browser settings.");
     }
 };
-
+function showNotificationToast(notice) {
+    const container = document.getElementById('toastContainer');
+    if (container) {
+        const isImportant = (notice.category || '').toUpperCase() === 'IMPORTANT';
+        const toast = document.createElement('div');
+        toast.className = `toast-card ${isImportant ? 'toast-important' : ''}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fa-solid ${isImportant ? 'fa-triangle-exclamation' : 'fa-bell'}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${notice.title || 'New Announcement'}</div>
+                <div class="toast-text">${notice.content || ''}</div>
+            </div>
+            <button class="toast-close-btn" onclick="this.parentElement.remove()">×</button>
+        `;
+        toast.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('toast-close-btn')) {
+                if (typeof window.switchToView === 'function') {
+                    window.switchToView('noticesView');
+                }
+            }
+        });
+        container.appendChild(toast);
+       
+        setTimeout(() => {
+            toast.classList.add('toast-hide');
+            setTimeout(() => toast.remove(), 300);
+        }, 6000);
+    }
+    // Trigger Mobile Web Push via Service Worker Registration
+    if (Notification.permission === 'granted') {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(notice.title || "New Departmental Announcement", {
+                    body: notice.content || "Click to view the new announcement on your portal.",
+                    icon: "./icon-192.jpg",
+                    badge: "./favicon-32.jpg",
+                    vibrate: [200, 100, 200],
+                    tag: "announcement-" + Date.now()
+                });
+            });
+        } else if ('Notification' in window) {
+            new Notification(notice.title || "New Departmental Announcement", {
+                body: notice.content || "Click to view the new announcement on your portal.",
+                icon: "./icon-192.jpg"
+            });
+        }
+    }
+    
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    } catch (e) {}
+}
 function formatDateString(dateStr) {   
     if (!dateStr) return '';   
     const dateObj = new Date(dateStr);   
