@@ -804,6 +804,16 @@ document.addEventListener("DOMContentLoaded", function () {
             });   
         });   
     }   
+    // Check existing notification permission on app load 
+if ('Notification' in window && Notification.permission === 'granted') 
+{ 
+    const btn = document.getElementById('enableNotifBtn'); 
+    if (btn) { 
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> 
+Notifications Enabled`; 
+        btn.style.background = '#22c55e'; 
+    } 
+} 
    
     // Mobile Sidebar & Overlay Controller
 const menuToggleBtn = document.getElementById('menu-toggle-btn');
@@ -1154,22 +1164,25 @@ if ('serviceWorker' in navigator) {
   });   
 }   
    
-let deferredPrompt;   
-const installBtn = document.getElementById('pwaInstallBtn');   
-window.addEventListener('beforeinstallprompt', (e) => {   
-  e.preventDefault();   
-  deferredPrompt = e;   
-  if (installBtn) installBtn.style.display = 'inline-flex';   
-});   
-   
-if (installBtn) {   
-  installBtn.addEventListener('click', async () => {   
-    if (!deferredPrompt) return;   
-    deferredPrompt.prompt();   
-    const { outcome } = await deferredPrompt.userChoice;   
-    if (outcome === 'accepted') {   
-      installBtn.style.display = 'none';   
-    }   
-    deferredPrompt = null;   
-  });   
+let deferredPrompt; 
+const installBtn = document.getElementById('pwaInstallBtn'); 
+const installPill = document.getElementById('pwaInstallPill'); 
+ 
+window.addEventListener('beforeinstallprompt', (e) => { 
+  e.preventDefault(); 
+  deferredPrompt = e; 
+  if (installPill) installPill.style.display = 'flex'; 
+  if (installBtn) installBtn.style.display = 'inline-flex'; 
+}); 
+ 
+if (installBtn) { 
+  installBtn.addEventListener('click', async () => { 
+    if (!deferredPrompt) return; 
+    deferredPrompt.prompt(); 
+    const { outcome } = await deferredPrompt.userChoice; 
+    if (outcome === 'accepted') { 
+      if (installPill) installPill.style.display = 'none'; 
+    } 
+    deferredPrompt = null; 
+  }); 
 } 

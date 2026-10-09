@@ -687,7 +687,6 @@ window.switchSemester = function(semester) {
   activeSemester = semester;
   const btn1st = document.getElementById('btnFirstSemester');
   const btn2nd = document.getElementById('btnSecondSemester');
-
   if (semester === '1st') {
     if (btn1st) { btn1st.style.background = '#1d9bf0'; btn1st.style.color = '#fff'; }
     if (btn2nd) { btn2nd.style.background = 'transparent'; btn2nd.style.color = '#8fa5c3'; }
@@ -695,16 +694,9 @@ window.switchSemester = function(semester) {
     if (btn2nd) { btn2nd.style.background = '#1d9bf0'; btn2nd.style.color = '#fff'; }
     if (btn1st) { btn1st.style.background = 'transparent'; btn1st.style.color = '#8fa5c3'; }
   }
-
   document.querySelectorAll('.results-course-card').forEach(card => {
-    // Force ANY card marked as '2nd' semester to remain hidden
-    if (card.dataset.semester === '2nd') {
-      card.style.display = 'none';
-    } else {
-      card.style.display = (semester === '1st' && card.dataset.semester === '1st') ? 'block' : 'none';
-    }
+    card.style.display = (card.dataset.semester === semester) ? 'block' : 'none';
   });
-
   if (courseScoresDetailView) courseScoresDetailView.style.display = 'none';
   if (resultsCourseListView) resultsCourseListView.style.display = 'block';
 };
@@ -758,38 +750,31 @@ function renderScoresTable(dataList) {
 }
 
 // Bind click events with strict view-switching prevention for 2nd semester
-document.querySelectorAll('.course-score-trigger').forEach(card => { 
-    card.addEventListener('click', async (e) => { 
-        e.preventDefault(); 
-        e.stopPropagation(); 
- 
-        if (card.dataset.semester === '2nd' || activeSemester === '2nd') { 
-            alert("Second Semester results are not yet available."); 
-            return; 
-        } 
- 
-        const code = card.dataset.code; 
-        const title = card.dataset.title; 
- 
-        // Show loading state 
-        if (studentScoresTbody) { 
-            studentScoresTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; 
-padding: 20px; color: #8fa5c3;">Loading scores from database...</td></tr>`; 
-        } 
- 
-        // Fetch live results from Supabase 
-        currentActiveCourseScores = await fetchCourseResultsFromSupabase(activeSemester, 
-code); 
-         
-        if (activeCourseTitle) { 
-            activeCourseTitle.textContent = `${code} - ${title} (${activeSemester} Semester)`; 
-        } 
- 
-        renderScoresTable(currentActiveCourseScores); 
- 
-        if (resultsCourseListView) resultsCourseListView.style.display = 'none'; 
-        if (courseScoresDetailView) courseScoresDetailView.style.display = 'block'; 
-    }); 
+document.querySelectorAll('.course-score-trigger').forEach(card => {
+    card.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const code = card.dataset.code;
+        const title = card.dataset.title;
+        const semester = card.dataset.semester || activeSemester;
+
+        if (studentScoresTbody) {
+            studentScoresTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #8fa5c3;">Loading scores from database...</td></tr>`;
+        }
+
+        // Fetch live results from Supabase for the selected course and semester
+        currentActiveCourseScores = await fetchCourseResultsFromSupabase(semester, code);
+        
+        if (activeCourseTitle) {
+            activeCourseTitle.textContent = `${code} - ${title} (${semester === '1st' ? '1st' : '2nd'} Semester)`;
+        }
+
+        renderScoresTable(currentActiveCourseScores);
+
+        if (resultsCourseListView) resultsCourseListView.style.display = 'none';
+        if (courseScoresDetailView) courseScoresDetailView.style.display = 'block';
+    });
 });
 
 const backToCoursesBtn = document.getElementById('backToCoursesBtn');
@@ -927,61 +912,45 @@ if (calculateGpaBtn) {
   calculateGpaBtn.addEventListener('click', computeGPA);
 }
 document.addEventListener("DOMContentLoaded", () => {
-    // Force-hide all 2nd semester elements on page load
-    document.querySelectorAll('[data-semester="2nd"]').forEach(el => {
-        el.style.display = 'none';
-    });
-
     const toggleButtons = document.querySelectorAll(".gpa-toggle-btn");
     const tableRows = document.querySelectorAll("#gpaTableBody tr");
     const gpaLabel = document.getElementById("gpaLabel");
     const gpaDisplay = document.getElementById("gpaResultDisplay");
     const calcBtn = document.getElementById("calcGpaBtn");
-
     let currentFilter = "1st";
-
     toggleButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             toggleButtons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-
             currentFilter = btn.dataset.filter;
-
-            // Filter row visibility: Never display 2nd semester rows
+            // Filter row visibility based on active tab selection
             tableRows.forEach(row => {
                 const semester = row.dataset.semester;
-                if (semester === "2nd") {
-                    row.style.display = "none";
-                } else if (currentFilter === "1st" || currentFilter === "all") {
-                    row.style.display = semester === "1st" ? "" : "none";
+                if (currentFilter === "all") {
+                    row.style.display = "";
                 } else {
-                    row.style.display = "none";
+                    row.style.display = (semester === currentFilter) ? "" : "none";
                 }
             });
-
             if (currentFilter === "1st") {
                 if (gpaLabel) gpaLabel.textContent = "1st Semester GPA:";
             } else if (currentFilter === "2nd") {
-                if (gpaLabel) gpaLabel.textContent = "2nd Semester GPA (Not Released):";
+                if (gpaLabel) gpaLabel.textContent = "2nd Semester GPA:";
             } else {
-                if (gpaLabel) gpaLabel.textContent = "Cumulative GPA (1st Semester Only):";
+                if (gpaLabel) gpaLabel.textContent = "Cumulative GPA:";
             }
-
             calculateGPA();
         });
     });
-
     function calculateGPA() {
         let totalQualityPoints = 0;
         let totalUnits = 0;
-
         tableRows.forEach(row => {
             if (row.style.display !== "none") {
                 const select = row.querySelector(".grade-select");
                 if (!select) return;
                 const gradeValue = select.value;
                 const units = parseFloat(select.dataset.units);
-
                 if (gradeValue !== "" && !isNaN(gradeValue)) {
                     const gradePoint = parseFloat(gradeValue);
                     totalQualityPoints += gradePoint * units;
@@ -989,18 +958,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         });
-
         if (gpaDisplay) {
-            gpaDisplay.textContent = totalUnits > 0 
-              ? (totalQualityPoints / totalUnits).toFixed(2) 
+            gpaDisplay.textContent = totalUnits > 0
+              ? (totalQualityPoints / totalUnits).toFixed(2)
               : "0.00";
         }
     }
-
     document.querySelectorAll(".grade-select").forEach(select => {
         select.addEventListener("change", calculateGPA);
     });
-
     if (calcBtn) {
         calcBtn.addEventListener("click", calculateGPA);
     }

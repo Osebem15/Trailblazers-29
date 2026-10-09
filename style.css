@@ -2049,3 +2049,9 @@ body.light-theme .calendar-grid-days .day-num.today-highlight {
     box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4) !important;
 }
 body.light-theme .calendar-grid-days .day-num.selected-day { outline: 2px solid #0284c7 !important; }
+/* Automatically collapse empty pills or pills containing hidden 
+buttons */ 
+.status-pill:empty, 
+.status-pill:has(#pwaInstallBtn[style*="display: none"]) { 
+    display: none !important; 
+}
