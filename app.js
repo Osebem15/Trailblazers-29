@@ -300,7 +300,8 @@ window.switchToView = function(viewId) {
             "resultsView": "results",   
             "feesView": "fees",   
             "noticesView": "notices",   
-            "documentsView": "documents"   
+            "documentsView": "documents",
+            "galleryView": "gallery"   
         };   
    
         if (viewToLabel[viewId] && label === viewToLabel[viewId]) {   
@@ -761,7 +762,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "results": "resultsView",   
         "fees": "feesView",   
         "notices": "noticesView",   
-        "documents": "documentsView"   
+        "documents": "documentsView",
+        "gallery": "galleryView"   
     };   
    
     document.querySelectorAll(".sidebar-grid-menu .menu-item").forEach(item => {   
@@ -1185,4 +1187,103 @@ if (installBtn) {
     } 
     deferredPrompt = null; 
   }); 
-} 
+}
+
+// =======================================================
+// 7. GALLERY & LIGHTBOX
+// =======================================================
+document.addEventListener("DOMContentLoaded", function () {
+    const cards = Array.from(document.querySelectorAll('.gallery-card'));
+    const pills = document.querySelectorAll('.gallery-pill');
+    const modal = document.getElementById('lightboxModal');
+    if (!modal) return;
+    const img = document.getElementById('lightboxImage');
+    const captionEl = document.getElementById('lightboxCaption');
+    const timeEl = document.getElementById('lightboxTime');
+    const dlBtn = document.getElementById('lightboxDownloadBtn');
+    const shareBtn = document.getElementById('lightboxShareBtn');
+    const emptyMsg = document.getElementById('galleryEmpty');
+
+    let visible = [...cards];
+    let index = 0;
+
+    const isOpen = () => modal.style.display !== 'none';
+    const close = () => { modal.style.display = 'none'; img.removeAttribute('src'); };
+
+    function show(i) {
+        if (!visible.length) return;
+        index = (i + visible.length) % visible.length;
+        const d = visible[index].dataset;
+        img.src = d.src;
+        img.alt = d.caption;
+        captionEl.textContent = d.caption;
+        timeEl.textContent = d.time;
+        dlBtn.href = d.src;
+        dlBtn.setAttribute('download', d.src.split('/').pop());
+        modal.style.display = 'flex';
+    }
+
+    pills.forEach(pill => pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const cat = pill.dataset.category;
+        visible = cards.filter(card => {
+            const match = cat === 'all' || card.dataset.category === cat;
+            card.style.display = match ? '' : 'none';
+            return match;
+        });
+        if (emptyMsg) emptyMsg.style.display = visible.length ? 'none' : 'block';
+    }));
+
+    cards.forEach(card => card.addEventListener('click', () => {
+        const i = visible.indexOf(card);
+        if (i !== -1) show(i);
+    }));
+
+    document.getElementById('closeLightboxBtn').addEventListener('click', close);
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    document.getElementById('lightboxPrevBtn').addEventListener('click', () => show(index - 1));
+    document.getElementById('lightboxNextBtn').addEventListener('click', () => show(index + 1));
+
+    document.addEventListener('keydown', e => {
+        if (!isOpen()) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') show(index - 1);
+        else if (e.key === 'ArrowRight') show(index + 1);
+    });
+
+    // Swipe left/right on the image (mobile)
+    let startX = null;
+    const box = document.querySelector('.lightbox-img-container');
+    box.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    box.addEventListener('touchend', e => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        startX = null;
+        if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+    });
+
+    // Share the image file when supported, otherwise its link
+    shareBtn.addEventListener('click', async () => {
+        const d = visible[index] && visible[index].dataset;
+        if (!d) return;
+        const url = new URL(d.src, window.location.href).href;
+        const text = "Check out this photo on Trailblazers '29: " + d.caption;
+        try {
+            if (navigator.share) {
+                try {
+                    const blob = await (await fetch(url)).blob();
+                    const file = new File([blob], d.src.split('/').pop(), { type: blob.type });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: d.caption, text });
+                        return;
+                    }
+                } catch (_) { /* fall through to link share */ }
+                await navigator.share({ title: d.caption, text, url });
+            } else {
+                await navigator.clipboard.writeText(url);
+                alert('Image link copied to clipboard!');
+            }
+        } catch (err) { /* user cancelled */ }
+    });
+});

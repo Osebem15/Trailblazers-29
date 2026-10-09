@@ -64,7 +64,6 @@
             </div>
             <nav>
                 <ul class="nav-menu">
-                    <li><a href="#gallery">Gallery</a></li>
                 </ul>
             </nav>
         </header>
@@ -170,6 +169,7 @@
                 <div class="menu-item"><i class="fa-solid fa-naira-sign"></i><span>Fees</span></div>
                 <div class="menu-item"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
                 <div class="menu-item"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
+                <div class="menu-item"><i class="fa-solid fa-images"></i><span>Gallery</span></div>
             </nav>
 
             <button id="logoutBtn" class="logout-action-btn">
@@ -246,6 +246,7 @@ none;">
                                     <div class="access-box"><i class="fa-solid fa-naira-sign"></i><span>Fees</span></div>
                                     <div class="access-box"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
                                     <div class="access-box"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
+                                    <div class="access-box"><i class="fa-solid fa-images"></i><span>Gallery</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1146,6 +1147,41 @@ none;">
                     </div>
                 </div>
 
+                <!-- GALLERY VIEW -->
+                <div id="galleryView" class="view-panel" style="display: none;">
+                    <div class="matrix-card">
+                        <div class="table-header-row">
+                            <div>
+                                <h3 class="gallery-title">ACC '29 GALLERY</h3>
+                                <p class="card-description">Official departmental photo archives and event moments.</p>
+                            </div>
+                        </div>
+                        <div class="gallery-filter-pills">
+                            <button type="button" class="gallery-pill active" data-category="all">All</button>
+                            <button type="button" class="gallery-pill" data-category="events">Events</button>
+                            <button type="button" class="gallery-pill" data-category="sports">Sports</button>
+                            <button type="button" class="gallery-pill" data-category="induction">Induction</button>
+                            <button type="button" class="gallery-pill" data-category="team">Team</button>
+                        </div>
+                        <!-- PLACEHOLDER PHOTOS: replace data-src, <img src>, caption and time with real ones -->
+                        <div class="gallery-grid" id="galleryGrid">
+                            <div class="gallery-card" data-category="induction" data-src="./icon-192.jpg" data-caption="Departmental Induction Ceremony '26" data-time="2 days ago">
+                                <div class="gallery-img-wrapper"><img src="./icon-192.jpg" alt="Induction Ceremony" loading="lazy"></div>
+                                <div class="gallery-card-info"><h4>Induction Ceremony</h4><small>2 days ago</small></div>
+                            </div>
+                            <div class="gallery-card" data-category="events" data-src="unilag front gate pic.avif" data-caption="UNILAG Campus Tour &amp; Welcome Gathering" data-time="5 days ago">
+                                <div class="gallery-img-wrapper"><img src="unilag front gate pic.avif" alt="Campus Gathering" loading="lazy"></div>
+                                <div class="gallery-card-info"><h4>Campus Gathering</h4><small>5 days ago</small></div>
+                            </div>
+                            <div class="gallery-card" data-category="team" data-src="Unilag logo.jfif" data-caption="Executive Team Planning Session" data-time="1 week ago">
+                                <div class="gallery-img-wrapper"><img src="Unilag logo.jfif" alt="Exco Planning" loading="lazy"></div>
+                                <div class="gallery-card-info"><h4>Exco Planning</h4><small>1 week ago</small></div>
+                            </div>
+                        </div>
+                        <p id="galleryEmpty" class="card-description" style="display:none; text-align:center; padding:24px 0;">No photos in this category yet.</p>
+                    </div>
+                </div>
+
                 <!-- DOCUMENTS & COURSE MATERIALS VIEW -->
                 <div id="documentsView" class="view-panel" style="display: none;">
                     <div class="matrix-card">
@@ -1179,11 +1215,11 @@ none;">
                                     <!-- Topic 1 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 1: IASB Framework for the Preparation and Presentation of Financial Statements <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Adebunmi)[cite: 9, 16]</span>
+                                            Topic 1: IASB Framework for the Preparation and Presentation of Financial Statements <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Adebunmi)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> 1.THE IASB FRAMEWORK - Google Slides.pdf[cite: 9]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> 1.THE IASB FRAMEWORK - Google Slides.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/1.THE%20IASB%20FRAMEWORK%20-%20Google%20Slides.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/1.THE%20IASB%20FRAMEWORK%20-%20Google%20Slides.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1195,11 +1231,11 @@ none;">
                                     <!-- Topic 2 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 2: Introduction to IFRS 15 - Revenue <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oyewumi)[cite: 15, 16]</span>
+                                            Topic 2: Introduction to IFRS 15 - Revenue <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oyewumi)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> INTRODUCTION TO IFRS 15.pdf[cite: 15]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> INTRODUCTION TO IFRS 15.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/INTRODUCTION%20TO%20IFRS%2015.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/INTRODUCTION%20TO%20IFRS%2015.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1210,11 +1246,11 @@ none;">
                                     <!-- Topic 3 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 3: IAS 1 - Presentation of Financial Statements <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mrs. Salawu)[cite: 10, 16]</span>
+                                            Topic 3: IAS 1 - Presentation of Financial Statements <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mrs. Salawu)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 1 Presentation of Financial Statements.pdf[cite: 10]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 1 Presentation of Financial Statements.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/3.IAS%201..pptx" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/3.IAS%201..pptx" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1226,11 +1262,11 @@ none;">
                                     <!-- Topic 4 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 4: IAS 2 - Accounting for Inventory <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mr. Ayinla)[cite: 11, 16]</span>
+                                            Topic 4: IAS 2 - Accounting for Inventory <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mr. Ayinla)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 2.pdf[cite: 11]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 2.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%202.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%202.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1241,11 +1277,11 @@ none;">
                                     <!-- Topic 5 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 5: Introduction to IAS 8 - Accounting Policies and Estimates <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Udofia)[cite: 12, 16]</span>
+                                            Topic 5: Introduction to IAS 8 - Accounting Policies and Estimates <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Udofia)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 8.pdf[cite: 12]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 8.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%208.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%208.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1256,11 +1292,11 @@ none;">
                                     <!-- Topic 6 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 6: IAS 16 - Property, Plant and Equipment <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Adebunmi)[cite: 13, 16]</span>
+                                            Topic 6: IAS 16 - Property, Plant and Equipment <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Adebunmi)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 16.pdf[cite: 13]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 16.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%2016.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%2016.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1271,11 +1307,11 @@ none;">
                                     <!-- Topic 7 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 7: IAS 20 - Government Grants <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oyewumi)[cite: 14, 16]</span>
+                                            Topic 7: IAS 20 - Government Grants <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oyewumi)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 20.pdf[cite: 14]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> IAS 20.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%2020.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20210/IAS%2020.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1287,7 +1323,7 @@ none;">
                                     <!-- Topic 8 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 8: IAS 23 - Borrowing Costs <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mr. Ayinla)[cite: 16]</span>
+                                            Topic 8: IAS 23 - Borrowing Costs <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Mr. Ayinla)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <p style="color: #8fa5c3; font-size: 0.8rem;">No user notes uploaded yet. Be the first to upload!</p>
@@ -1316,11 +1352,11 @@ none;">
                                     <!-- Topic 1 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 1: Concepts, Theory and Practice of Corporate Governance <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Prof. Otusanya)[cite: 21, 23]</span>
+                                            Topic 1: Concepts, Theory and Practice of Corporate Governance <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Prof. Otusanya)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> CONCEPT, THEORY AND PRACTICE OF COPORATE GOVERNANCE.pdf[cite: 21]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> CONCEPT, THEORY AND PRACTICE OF COPORATE GOVERNANCE.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/CONCEPT,%20THEORY%20AND%20PRACTICE%20OF%20COPORATE%20GOVERNANCE.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/CONCEPT,%20THEORY%20AND%20PRACTICE%20OF%20COPORATE%20GOVERNANCE.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1332,11 +1368,11 @@ none;">
                                     <!-- Topic 2 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 2: Codes of Corporate Governance (OECD, International & Sectoral Codes) <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Prof. Otusanya)[cite: 19, 23]</span>
+                                            Topic 2: Codes of Corporate Governance (OECD, International & Sectoral Codes) <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Prof. Otusanya)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> CODE OF COPORATE GOVERNANCE.pdf[cite: 20]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> CODE OF COPORATE GOVERNANCE.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/CODE%20OF%20COPORATE%20GOVERNANCE.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/CODE%20OF%20COPORATE%20GOVERNANCE.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1348,11 +1384,11 @@ none;">
                                     <!-- Topic 3 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 3: Governance Structure of a Company (Shareholders, Board of Directors & Management) <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)[cite: 18, 23]</span>
+                                            Topic 3: Governance Structure of a Company (Shareholders, Board of Directors & Management) <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> COURSE OUTLINE.pdf[cite: 23]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> COURSE OUTLINE.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/2.Week%202.pptx" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/2.Week%202.pptx" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1364,11 +1400,11 @@ none;">
                                     <!-- Topic 4 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 4: Ethical Codes of Internal and External Auditors <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)[cite: 23, 24]</span>
+                                            Topic 4: Ethical Codes of Internal and External Auditors <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> ETHICAL CODE FOR INTERNAL AND EXTERNAL AUDITORS.pdf[cite: 24]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> ETHICAL CODE FOR INTERNAL AND EXTERNAL AUDITORS.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/ETHICAL%20CODE%20FOR%20INTERNAL%20AND%20EXTERNAL%20AUDITORS.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/ETHICAL%20CODE%20FOR%20INTERNAL%20AND%20EXTERNAL%20AUDITORS.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1380,7 +1416,7 @@ none;">
                                     <!-- Topic 5 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 5: Roles, Protection & Rights of Shareholders & General Meetings <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Odugeru)[cite: 23]</span>
+                                            Topic 5: Roles, Protection & Rights of Shareholders & General Meetings <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Odugeru)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <p style="color: #8fa5c3; font-size: 0.8rem;">No user notes uploaded yet. Be the first to upload!</p>
@@ -1390,11 +1426,11 @@ none;">
                                     <!-- Topic 6 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 6: Role, Composition & Responsibilities of Board of Directors & Committees <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)[cite: 18, 20, 23]</span>
+                                            Topic 6: Role, Composition & Responsibilities of Board of Directors & Committees <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> POCKET NOTES.pdf[cite: 25]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> POCKET NOTES.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/POCKET%20NOTES.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/POCKET%20NOTES.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1406,11 +1442,11 @@ none;">
                                     <!-- Topic 7 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; margin-bottom: 8px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 7: Internal Control and Internal Audit Procedures <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)[cite: 23, 25]</span>
+                                            Topic 7: Internal Control and Internal Audit Procedures <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> POCKET NOTES.pdf[cite: 25]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> POCKET NOTES.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20203/POCKET%20NOTES.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC%20203/POCKET%20NOTES.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -1422,11 +1458,11 @@ none;">
                                     <!-- Topic 8 -->
                                     <details class="topic-expandable" style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px;">
                                         <summary style="color: #ffffff; font-weight: 600; cursor: pointer;">
-                                            Topic 8: FRCN Corporate Governance Code & IFAC Ethical Codes for Accountants <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)[cite: 20, 22, 23]</span>
+                                            Topic 8: FRCN Corporate Governance Code & IFAC Ethical Codes for Accountants <span style="font-size: 0.75rem; color: #8fa5c3; font-weight: normal;">(Dr. Oboh)</span>
                                         </summary>
                                         <div class="materials-list" style="margin-top: 10px; padding-left: 10px;">
                                             <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> COPORATE GOVERNANCE AMD ETHICS FRCN AND IFAC.pdf[cite: 22]</span>
+                                                <span style="color: #8fa5c3; font-size: 0.85rem;"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d; margin-right: 6px;"></i> COPORATE GOVERNANCE AMD ETHICS FRCN AND IFAC.pdf</span>
                                                 <div>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/COPORATE%20GOVERNANCE%20AMD%20ETHICS%20FRCN%20AND%20IFAC.pdf" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
                                                     <a href="https://yuebmlmamkclsfizurkp.supabase.co/storage/v1/object/public/course_materials/ACC-CM%20203/COPORATE%20GOVERNANCE%20AMD%20ETHICS%20FRCN%20AND%20IFAC.pdf" download class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
@@ -2035,6 +2071,27 @@ none;">
             <button type="button" class="dropdown-btn logout-btn" id="modalLogoutBtn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
+        </div>
+    </div>
+</div>
+<!-- GALLERY LIGHTBOX -->
+<div id="lightboxModal" class="lightbox-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <div class="lightbox-modal-card">
+        <button type="button" class="lightbox-close-btn" id="closeLightboxBtn" title="Close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        <div class="lightbox-img-container">
+            <button type="button" class="lightbox-nav-btn prev-btn" id="lightboxPrevBtn" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>
+            <img id="lightboxImage" src="" alt="Expanded view">
+            <button type="button" class="lightbox-nav-btn next-btn" id="lightboxNextBtn" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="lightbox-meta">
+            <div class="lightbox-text">
+                <h4 id="lightboxCaption">Photo Caption</h4>
+                <p id="lightboxTime">Timestamp</p>
+            </div>
+            <div class="lightbox-actions">
+                <a id="lightboxDownloadBtn" href="#" download class="btn-primary lightbox-action-btn"><i class="fa-solid fa-download"></i> Download Image</a>
+                <button id="lightboxShareBtn" type="button" class="btn-outline lightbox-action-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+            </div>
         </div>
     </div>
 </div>
