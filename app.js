@@ -710,33 +710,34 @@ async function fetchInitialAnnouncements() {
     }   
 }   
  
-function subscribeToRealtimeAnnouncements() { 
-    if (typeof supabase === 'undefined') return; 
-    supabase 
-        .channel('public:announcements') 
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, 
-payload => { 
-            const notice = payload.new; 
-            if (!notice) return; 
-            renderNoticeCard(notice); 
-            showNotificationToast(notice); 
-             
-            const today = new Date(); 
-            const year = today.getFullYear(); 
-            const month = String(today.getMonth() + 1).padStart(2, '0'); 
-            const day = String(today.getDate()).padStart(2, '0'); 
-            const todayStr = `${year}-${month}-${day}`; 
-            if (notice.date === todayStr) { 
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", 
-"August", "September", "October", "November", "December"]; 
-                const displayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${year}`; 
-                if (typeof window.updateFocusedEventCard === 'function') { 
-                    window.updateFocusedEventCard(notice.title, displayDate, notice.content); 
-                } 
-            } 
-        }) 
-        .subscribe(); 
-}  
+function subscribeToRealtimeAnnouncements() {
+    if (typeof supabase === 'undefined') return;
+   
+    supabase
+        .channel('public:announcements')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
+            const notice = payload.new;
+            if (!notice) return;
+            renderNoticeCard(notice);
+            showNotificationToast(notice);
+            
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+            if (notice.date === todayStr) {
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const displayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${year}`;
+                if (typeof window.updateFocusedEventCard === 'function') {
+                    window.updateFocusedEventCard(notice.title, displayDate, notice.content);
+                }
+            }
+        })
+        .subscribe((status) => {
+            console.log("Supabase Realtime Channel Status:", status);
+        });
+}
    
 // ======================================================= 
 // 6. DOM CONTENT LOADED INITIALIZATIONS 
