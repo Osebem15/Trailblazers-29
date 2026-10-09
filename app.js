@@ -610,7 +610,7 @@ function showNotificationToast(notice) {
             setTimeout(() => toast.remove(), 300);
         }, 6000);
     }
-    // Trigger Mobile Web Push via Service Worker Registration
+    // Trigger Mobile & Desktop Push via Service Worker Registration
     if (Notification.permission === 'granted') {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
@@ -709,62 +709,6 @@ async function fetchInitialAnnouncements() {
         data.forEach(notice => renderNoticeCard(notice));   
     }   
 }   
- 
-function showNotificationToast(notice) { 
-    const container = document.getElementById('toastContainer'); 
-    if (!container) return; 
-    const isImportant = (notice.category || '').toUpperCase() === 'IMPORTANT'; 
-    const toast = document.createElement('div'); 
-    toast.className = `toast-card ${isImportant ? 'toast-important' : ''}`; 
-    toast.innerHTML = ` 
-        <div class="toast-icon"> 
-            <i class="fa-solid ${isImportant ? 'fa-triangle-exclamation' : 'fa-bell'}"></i> 
-        </div> 
-        <div class="toast-content"> 
-            <div class="toast-title">${notice.title || 'New Announcement'}</div> 
-            <div class="toast-text">${notice.content || ''}</div> 
-        </div> 
-        <button class="toast-close-btn" onclick="this.parentElement.remove()">×</button> 
-    `; 
-    toast.addEventListener('click', (e) => { 
-        if (!e.target.classList.contains('toast-close-btn')) { 
-            if (typeof window.switchToView === 'function') { 
-                window.switchToView('noticesView'); 
-            } 
-        } 
-    }); 
-    container.appendChild(toast);
-
-    // Native Browser Push Notification (fires only when permission granted)
-    if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-            new Notification(notice.title || "New Departmental Announcement", {
-                body: notice.content || "Click to view the full announcement on your portal.",
-                icon: "./icon-192.jpg"
-            });
-        } catch (e) {}
-    }
- 
-     
-    try { 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-        const osc = audioCtx.createOscillator(); 
-        const gain = audioCtx.createGain(); 
-        osc.type = 'sine'; 
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);  
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4); 
-        osc.connect(gain); 
-        gain.connect(audioCtx.destination); 
-        osc.start(); 
-        osc.stop(audioCtx.currentTime + 0.4); 
-    } catch (e) {} 
- 
-    setTimeout(() => { 
-        toast.classList.add('toast-hide'); 
-        setTimeout(() => toast.remove(), 300); 
-    }, 6000); 
-} 
  
 function subscribeToRealtimeAnnouncements() { 
     if (typeof supabase === 'undefined') return; 
