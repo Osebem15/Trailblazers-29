@@ -1,4 +1,4 @@
-const CACHE_NAME = 'unilag-acc-pwa-v6';
+const CACHE_NAME = 'unilag-acc-pwa-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

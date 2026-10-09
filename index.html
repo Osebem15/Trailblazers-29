@@ -269,7 +269,7 @@
                                 <div class="calendar-focused-event-card" id="calendarFocusedEventCard">
                                     <div class="focused-event-title-row">
                                         <h4 id="focusedEventTitle"><span class="blue-indicator-dot"></span></h4>
-                                        <span class="focused-event-date"></span>
+                                        <span class="focused-event-date" id="focusedEventDate"></span>
                                     </div>
                                     <p id="focusedEventText">All students are advised to check the timetable for updates on lecture schedules.</p>
                                     <a href="#noticesView" class="view-all-events-btn">View all events <i class="fa-solid fa-arrow-right"></i></a>
@@ -1108,9 +1108,14 @@
                 <!-- NOTICES VIEW -->
                 <div id="noticesView" class="view-panel" style="display: none;">
                     <div class="matrix-card">
-                        <div class="table-header-row">
+                        <div class="table-header-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                             <h3><i class="fa-solid fa-bell section-header-icon"></i> Departmental Bulletins & Notices</h3>
-                            <span class="total-units-badge" id="activeNoticeCount">2 Active Announcements</span>
+                            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                                <button id="enableNotifBtn" class="btn-primary" onclick="requestNotificationPermission()" style="width:auto;padding:8px 16px;margin:0;">
+                                    <i class="fa-solid fa-bell"></i> Enable Browser Notifications
+                                </button>
+                                <span class="total-units-badge" id="activeNoticeCount">2 Active Announcements</span>
+                            </div>
                         </div>
 
                         <div class="notices-grid" id="noticesContainer">

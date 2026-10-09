@@ -546,6 +546,30 @@ window.updateStudentDuesUI === 'function') {
 // ======================================================= 
 // 5. ANNOUNCEMENTS & NOTIFICATIONS LOGIC 
 // ======================================================= 
+// =======================================================
+// BROWSER NOTIFICATION PERMISSION & NATIVE PUSH
+// =======================================================
+window.requestNotificationPermission = async function() {
+    if (!('Notification' in window)) {
+        alert("This browser does not support desktop push notifications.");
+        return;
+    }
+    const permission = await Notification.requestPermission();
+    const btn = document.getElementById('enableNotifBtn');
+    if (permission === 'granted') {
+        if (btn) {
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> Notifications Enabled`;
+            btn.style.background = '#22c55e';
+        }
+        new Notification("Trailblazers '29 Portal", {
+            body: "Push notifications are successfully enabled! You will be notified instantly of departmental updates.",
+            icon: "./icon-192.jpg"
+        });
+    } else {
+        alert("Notification permission was denied. You can enable it anytime in browser settings.");
+    }
+};
+
 function formatDateString(dateStr) {   
     if (!dateStr) return '';   
     const dateObj = new Date(dateStr);   
@@ -635,7 +659,18 @@ function showNotificationToast(notice) {
             } 
         } 
     }); 
-    container.appendChild(toast); 
+    container.appendChild(toast);
+
+    // Native Browser Push Notification (fires only when permission granted)
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            new Notification(notice.title || "New Departmental Announcement", {
+                body: notice.content || "Click to view the full announcement on your portal.",
+                icon: "./icon-192.jpg"
+            });
+        } catch (e) {}
+    }
+ 
      
     try { 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
@@ -727,22 +762,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (targetViewId) {   
                 window.switchToView(targetViewId);   
             }   
-        });   
-    });   
-   
-    document.querySelectorAll('.course-score-trigger').forEach(card => {   
-        card.addEventListener('click', function () {   
-            const code = this.getAttribute('data-code') || 'ACC 101';   
-            const title = this.getAttribute('data-title') || 'Course Title';   
-   
-            if (typeof populateCourseScoresheet === 'function') {   
-                populateCourseScoresheet(code, title);   
-            }   
-   
-            const listView = document.getElementById('resultsCourseListView');   
-            const detailView = document.getElementById('courseScoresDetailView');   
-            if (listView) listView.style.display = 'none';   
-            if (detailView) detailView.style.display = 'block';   
         });   
     });   
    
