@@ -578,36 +578,311 @@ document.querySelectorAll('.access-box').forEach(box => {
 // =======================================================
 const localCourseResultsFallback = {
     "AMS 103": [
-        { matric: "250201001", name: "Olaosun Isaac", ca: 24, exam: 52, grade: "A" },
-        { matric: "250201002", name: "Quadri Oluwaseni", ca: 22, exam: 48, grade: "A" },
-        { matric: "250201003", name: "Okunubi Mujeeb", ca: 28, exam: 58, grade: "A" },
-        { matric: "250201004", name: "Yusuph Aishat", ca: 20, exam: 45, grade: "B" },
-        { matric: "250201005", name: "Anene Deborah", ca: 25, exam: 50, grade: "A" },
-        { matric: "250201007", name: "Adukanle Precious", ca: 18, exam: 42, grade: "B" },
-        { matric: "250201008", name: "Ambelly Aleeyah", ca: 21, exam: 44, grade: "B" },
-        { matric: "250201009", name: "Dike Joy", ca: 19, exam: 38, grade: "C" },
-        { matric: "250201010", name: "Kelani Victor", ca: 26, exam: 54, grade: "A" },
-        { matric: "250201011", name: "Ajibade Adeola", ca: 23, exam: 47, grade: "A" },
-        { matric: "250201012", name: "Bode-Adams Ireoluwa", ca: 22, exam: 49, grade: "A" },
-        { matric: "250201013", name: "Abidekun Elizabeth", ca: 20, exam: 40, grade: "B" },
-        { matric: "250201014", name: "Chiegwu Wilson", ca: 27, exam: 51, grade: "A" },
-        { matric: "250201015", name: "Fakorede Aliyah", ca: 25, exam: 46, grade: "A" },
-        { matric: "250201016", name: "Nnadi Francis", ca: 29, exam: 59, grade: "A" },
-        { matric: "250201017", name: "Borokinni Precious", ca: 18, exam: 41, grade: "C" },
-        { matric: "250201018", name: "Akande Olamide", ca: 24, exam: 50, grade: "A" },
-        { matric: "250201019", name: "Omeje Somfe", ca: 22, exam: 43, grade: "B" },
-        { matric: "250201020", name: "Ogunbayo Anuoluwapo", ca: 21, exam: 45, grade: "B" },
-        { matric: "250201021", name: "Adefalujo Oluwafunmilayo", ca: 26, exam: 52, grade: "A" },
-        { matric: "250201022", name: "Ilori Oluwatofunmi", ca: 23, exam: 48, grade: "A" },
-        { matric: "250201023", name: "Folorunsho Mosunmola", ca: 19, exam: 39, grade: "C" },
-        { matric: "250201024", name: "Ogunkoya Oluwademilade", ca: 25, exam: 53, grade: "A" },
-        { matric: "250201025", name: "Kayode Adebakin", ca: 22, exam: 46, grade: "B" },
-        { matric: "250201026", name: "Shittu Olamiposi", ca: 20, exam: 42, grade: "B" },
-        { matric: "250201027", name: "Sani Mubarak", ca: 24, exam: 49, grade: "A" },
-        { matric: "250201028", name: "Agbalaya Hiqmat", ca: 21, exam: 44, grade: "B" },
-        { matric: "250201029", name: "Adio Oluwanifemi", ca: 23, exam: 47, grade: "A" },
-        { matric: "250201030", name: "Kalu Glory", ca: 19, exam: 37, grade: "C" },
-        { matric: "250201324", name: "Osebeyo Emmanuel", ca: 29, exam: 61, grade: "A" }
+         { matric: "250201001", name: "OLAOSUN, Isaac Ayoola", grade: "B" }, 
+  { matric: "250201002", name: "QUADRI, Oluwaseni Adekunle", grade: 
+"B" }, 
+  { matric: "250201003", name: "OKUNUBI, Mujeeb Oyindamola", grade: 
+"A" }, 
+  { matric: "250201004", name: "YUSUPH, Aishat Tunmise", grade: "B" }, 
+  { matric: "250201005", name: "ANENE, Deborah Ndubuisi", grade: "A" 
+}, 
+  { matric: "250201006", name: "AYANTOLA, Daniella Oluwapelumi", 
+grade: "A" }, 
+  { matric: "250201007", name: "ADUKANLE, Precious Oluwanifemi", 
+grade: "B" }, 
+  { matric: "250201008", name: "AMBELLY, Aleeyah Ochuware", grade: "A" 
+}, 
+  { matric: "250201009", name: "DIKE, Joy Nkemjika", grade: "B" }, 
+  { matric: "250201010", name: "KELANI, Victor Abiola", grade: "A" }, 
+  { matric: "250201011", name: "AJIBADE, Adeola Victoria", grade: "A" 
+}, 
+  { matric: "250201012", name: "BODE-ADAMS, Ireoluwa Olusola", grade: 
+"A" }, 
+  { matric: "250201013", name: "ABIDEKUN, Elizabeth Opeyemi", grade: 
+"B" }, 
+  { matric: "250201014", name: "CHIEGWU, Wilson Kenechukwu", grade: 
+"A" }, 
+  { matric: "250201015", name: "FAKOREDE, Aliyah Abike", grade: "C" }, 
+  { matric: "250201016", name: "NNADI, Francis Ikem", grade: "B" }, 
+  { matric: "250201017", name: "BOROKINNI, Precious Oyinkansola", 
+grade: "B" }, 
+  { matric: "250201019", name: "OMEJE, Somfe Benedicta", grade: "A" }, 
+  { matric: "250201020", name: "OGUNBAYO, Anuoluwapo Ayomikun", grade: 
+"A" }, 
+  { matric: "250201021", name: "ADEFALUJO, Oluwafunmilayo Hannah", 
+grade: "B" }, 
+  { matric: "250201022", name: "ILORI, Oluwatofunmi Olamide", grade: 
+"A" }, 
+  { matric: "250201023", name: "FOLORUNSHO, Mosunmola Elizabeth", 
+grade: "B" }, 
+  { matric: "250201024", name: "OGUNKOYA, Oluwademilade Opeyemi", 
+grade: "A" }, 
+  { matric: "250201025", name: "ADEBAKIN, Yusuf Kayode", grade: "A" }, 
+  { matric: "250201026", name: "SHITTU, Olamiposi Emmanuel", grade: 
+"A" }, 
+  { matric: "250201027", name: "SANI, Mubarak Yakubu", grade: "A" }, 
+  { matric: "250201028", name: "AGBALAYA, Hiqmat Olamide", grade: "B" 
+}, 
+  { matric: "250201029", name: "ADIO, Oluwanifemi Favour", grade: "C" 
+}, 
+  { matric: "250201030", name: "KALU, Glory Virginia", grade: "B" }, 
+  { matric: "250201031", name: "JOHN, Chisom Gift", grade: "B" }, 
+  { matric: "250201032", name: "BANKOLE, Ibukun Victor", grade: "C" }, 
+  { matric: "250201033", name: "NWOFIA, Jedidah Eziaha", grade: "A" }, 
+  { matric: "250201035", name: "ALAWODE, Praise Abimbola", grade: "B" 
+}, 
+  { matric: "250201038", name: "DA-SILVA, Precious Oluwatayo", grade: 
+"A" }, 
+  { matric: "250201042", name: "AKINTAN, Jamal Olanrewaju", grade: "A" 
+}, 
+  { matric: "250201043", name: "OLUWALAJIKI, Deborah Taiwo", grade: 
+"B" }, 
+  { matric: "250201044", name: "HASSAN, Eniola Oluwadamilola", grade: 
+"C" }, 
+  { matric: "250201045", name: "OLANREWAJU, Daniel Success", grade: 
+"B" }, 
+  { matric: "250201046", name: "AKINOLA, Olusolape Vivian", grade: "C" 
+}, 
+  { matric: "250201047", name: "BAKARE, Gold Moriseninuola", grade: 
+"B" }, 
+  { matric: "250201048", name: "UZOECHI, Chika Michal", grade: "A" }, 
+  { matric: "250201049", name: "AKINREFON, Eniola Priscilla", grade: 
+"A" }, 
+  { matric: "250201050", name: "AJISEGIRI, Eniola Samuel", grade: "A" 
+}, 
+  { matric: "250201051", name: "OMEKE, Precious Anuoluwapo", grade: 
+"B" }, 
+  { matric: "250201052", name: "ADEMOLA, Elijah Ayomide", grade: "A" 
+}, 
+  { matric: "250201053", name: "BAKARE, Sulhaa Temilola", grade: "A" 
+}, 
+  { matric: "250201054", name: "FAKAYODE, Samuel Oluwasemilore", 
+grade: "C" }, 
+  { matric: "250201055", name: "FADARE, Fadeshola Joyce", grade: "A" 
+}, 
+  { matric: "250201063", name: "FASHINA, Ifeoluwa Elizabeth", grade: 
+"B" }, 
+  { matric: "250201064", name: "OLADIRAN, Praise Opemipo", grade: "B" 
+}, 
+  { matric: "250201065", name: "OLUFADE, Oluwaseyi Olaitan", grade: 
+"C" }, 
+  { matric: "250201066", name: "AKINBODE, Precious Ifeoluwa", grade: 
+"C" }, 
+  { matric: "250201067", name: "PRINCEWILL, Joy-Abasi Idara", grade: 
+"A" }, 
+  { matric: "250201068", name: "KAZEEM, Abdullateef Opeyemi", grade: 
+"B" }, 
+  { matric: "250201069", name: "AFOLABIOZUA, Ebubechukwu Melchizedek", 
+grade: "A" }, 
+  { matric: "250201070", name: "AJAYI, Isaac Aduragbemi", grade: "B" 
+}, 
+  { matric: "250201071", name: "KILA, Khadijah Titilope", grade: "B" 
+}, 
+  { matric: "250201079", name: "ASAOLU, Babatope Christopher", grade: 
+"B" }, 
+  { matric: "250201081", name: "EMMANUEL, Okon Emmanuella Atinmma Ayomide", grade: "B" }, 
+  { matric: "250201105", name: "OLASUNMIBOYE, Adedamola Faith", grade: 
+"B" }, 
+  { matric: "250201106", name: "IBITOYE, Olawumi Peace", grade: "B" }, 
+  { matric: "250201107", name: "AFOLABI, Daniel Olanrewaju", grade: 
+"B" }, 
+  { matric: "250201108", name: "OLABAMERUN, Inioluwa Mercy", grade: 
+"B" }, 
+  { matric: "250201109", name: "CHUKWUDI, Okeh-Chidera Gift", grade: 
+"C" }, 
+  { matric: "250201110", name: "YUSUF, Abdul-Azeez Ajadi", grade: "A" 
+}, 
+  { matric: "250201111", name: "AMOLE, Abdulsamad Kolade", grade: "B" 
+}, 
+  { matric: "250201112", name: "HAMZAH, Fareedah Damilola", grade: "A" 
+}, 
+  { matric: "250201113", name: "ODUSOLA, Moyinoluwa Dorcas", grade: 
+"B" }, 
+  { matric: "250201114", name: "SALAU, Mistura Eniola", grade: "A" }, 
+  { matric: "250201115", name: "MARTINS, Adefunke Dorcas", grade: "B" 
+}, 
+  { matric: "250201117", name: "BADEWOLE, Prosper Oluwatoorese", 
+grade: "A" }, 
+  { matric: "250201288", name: "HUTHMAN, Sheriffdeen Omogbolahan", 
+grade: "B" }, 
+  { matric: "250201289", name: "OLADUNJOYE, Opemipo Dorcas", grade: 
+"B" }, 
+  { matric: "250201290", name: "BANKOLE, Jason Oluwafayokunmi", grade: 
+"A" }, 
+  { matric: "250201291", name: "ODUGHU, Gift Oseremien", grade: "B" }, 
+  { matric: "250201292", name: "ADEWOLE, Habeeb Gbolahan", grade: "B" 
+}, 
+  { matric: "250201293", name: "AJAYI, Ifeoluwa Uziezi", grade: "A" }, 
+  { matric: "250201294", name: "AJAYI, Motunrayo Eloho", grade: "B" }, 
+  { matric: "250201295", name: "LAMIDI, Emmanuel Olaoluwa", grade: "A" 
+}, 
+  { matric: "250201296", name: "OLADUNTOYE, Oluwatimilehin Lydia", 
+grade: "B" }, 
+  { matric: "250201297", name: "KOTUN, Sobur Olamiji", grade: "C" }, 
+  { matric: "250201299", name: "OLALEYE, Mopelola Grace", grade: "A" 
+}, 
+  { matric: "250201300", name: "EKEOPARA, Chibuike Francis", grade: 
+"C" }, 
+  { matric: "250201301", name: "AFOLABI, Hezekiah Tope", grade: "B" }, 
+  { matric: "250201302", name: "ADARAMOLA, Bisola Favour", grade: "B" 
+}, 
+  { matric: "250201303", name: "OLANREWAJU, Juliet Oluwadamilola", 
+grade: "B" }, 
+  { matric: "250201304", name: "ENIAFE, Abdulwahab Alabi", grade: "B" 
+}, 
+  { matric: "250201305", name: "BAKARE, Idris Abayomi", grade: "B" }, 
+  { matric: "250201306", name: "ADEBAYO, Ife Kassium", grade: "A" }, 
+  { matric: "250201308", name: "ADESANYA, Adetutu Adebimpe", grade: 
+"A" }, 
+  { matric: "250201316", name: "SHOBAYO, Malik Ramadan", grade: "B" }, 
+  { matric: "250201317", name: "OVIAWE, Faith Orobosa", grade: "B" }, 
+  { matric: "250201318", name: "ONI, Victoria Oluwaseyi", grade: "B" 
+}, 
+  { matric: "250201319", name: "MUSTAPHA, Amirat Temilade", grade: "A" 
+}, 
+  { matric: "250201320", name: "OBASESAN-YUSUF, Jafar Akanbi", grade: 
+"A" }, 
+  { matric: "250201321", name: "OGBEIDE, Serena Orobosa", grade: "B" 
+}, 
+  { matric: "250201322", name: "AKINYEMI, Faith Oluwadamilola", grade: 
+"C" }, 
+  { matric: "250201323", name: "OJORA, Roheem Adeola", grade: "D" }, 
+  { matric: "250201324", name: "OSEBEYO, Emmanuel Ayomide", grade: "B" 
+}, 
+  { matric: "250201325", name: "ADENIRAN, Oluwadamilola Mercy", grade: 
+"B" }, 
+  { matric: "250201328", name: "COKER, Omogbemisola Adedoyin", grade: 
+"C" }, 
+  { matric: "250201330", name: "ONI, Daniel Oluwadamilare", grade: "A" 
+}, 
+  { matric: "250201331", name: "OLOMO, Adeshina Emmanuel", grade: "B" 
+}, 
+  { matric: "250201332", name: "SHIYANBADE, Faderera Oluwanifemi", 
+grade: "B" }, 
+  { matric: "250201333", name: "NWANKWO, Favour Uchechi", grade: "C" 
+}, 
+  { matric: "250201334", name: "MONSURU, Abdul-Quadri Gbolahan", 
+grade: "B" }, 
+  { matric: "250201335", name: "OLADIMEJI, Isaac Ayomikun", grade: "D" 
+}, 
+  { matric: "250201336", name: "OYENIRAN, Olamide Jeremiah", grade: 
+"B" }, 
+  { matric: "250201337", name: "AGBASI, Chimamanda Valerie", grade: 
+"B" }, 
+  { matric: "250201338", name: "AJIBOLA, Peace Oluwanifemi Oluwatobi", 
+grade: "B" }, 
+  { matric: "250201339", name: "IBRAHIM, Aleeyat Kofoworola", grade: 
+"C" }, 
+  { matric: "250201340", name: "BATULA, Oluwaranti Janet", grade: "B" 
+}, 
+  { matric: "250201341", name: "AJADI, Fathia Arike", grade: "B" }, 
+  { matric: "250201342", name: "OYEBADEJO, Tobiloba Peter", grade: "B" 
+}, 
+  { matric: "250201343", name: "AGBOOLA, Olabisi Anthonia", grade: "A" 
+}, 
+  { matric: "250201344", name: "NJOKU, Francis Ikechukwu", grade: "B" 
+}, 
+  { matric: "250201345", name: "ALABI, Emmanuel Oladimeji", grade: "A" 
+}, 
+  { matric: "250201346", name: "UGO, Onyekachi Tobiloba", grade: "B" 
+}, 
+  { matric: "250201347", name: "OLUWOLE, Oluwakayode John", grade: "A" 
+}, 
+  { matric: "250201348", name: "OLAITAN, Oluwanifemi Elizabeth", 
+grade: "B" }, 
+  { matric: "250201349", name: "EJIKE, Esther Chisom.", grade: "B" }, 
+  { matric: "250201353", name: "AMOSUN, Daniella Oluwatofarati", 
+grade: "C" }, 
+  { matric: "250201354", name: "OMEREME, Ifeanyi", grade: "C" }, 
+  { matric: "250201356", name: "AYESORO, Eniola Ajoke", grade: "D" }, 
+  { matric: "250201357", name: "SALAMADE, Adesola Abosede", grade: "A" 
+}, 
+  { matric: "250201358", name: "AJENIFUJA, Anuoluwapo Temilola", 
+grade: "C" }, 
+  { matric: "250201359", name: "BUSARI, Abdullah Adesola", grade: "C" 
+}, 
+  { matric: "250201360", name: "OPEYEMI, Faithful Opemipo", grade: "B" 
+}, 
+  { matric: "250201361", name: "ISOGUN, Oluwasegun Moses", grade: "A" 
+}, 
+  { matric: "250201362", name: "ODIO, Esther Ogbedafe", grade: "B" }, 
+  { matric: "250201363", name: "OYENIYI-OKEDUN, Christiana Oluwanifemi", grade: "A" }, 
+  { matric: "250201364", name: "OLASUNKANMI, Mariam Abiola", grade: 
+"B" }, 
+  { matric: "250201365", name: "AKINBODE, Hameedat Morenikeji", grade: 
+"C" }, 
+  { matric: "250201366", name: "EHIREMEN, Mercy Elomeseh", grade: "B" 
+}, 
+  { matric: "250201367", name: "AKAPO, David Toluwalase", grade: "B" 
+}, 
+  { matric: "250201368", name: "ABUBAKAR, Kehinde Fatimah", grade: "B" 
+}, 
+  { matric: "250201369", name: "AYINLA, Abosede Morayo", grade: "D" }, 
+  { matric: "250201371", name: "OYEBULU, Olayiwola Damilare", grade: 
+"C" }, 
+  { matric: "250201372", name: "SAJOWA, Kehinde Oluwatosin", grade: 
+"A" }, 
+  { matric: "250201373", name: "CHUKWU, Esther Chidinma", grade: "B" 
+}, 
+  { matric: "250201374", name: "BENA, Elizabeth Teniola", grade: "B" 
+}, 
+  { matric: "250201375", name: "OLAJIRE, Quam Akinola", grade: "B" }, 
+  { matric: "250201376", name: "BASSEY, Favour Temiloluwa", grade: "B" 
+}, 
+  { matric: "250201378", name: "ADENIYI, Temitope Victoria", grade: 
+"D" }, 
+  { matric: "250201379", name: "ADEBOWALE-DAVID, Oluwaranolasimi Joshua", grade: "B" }, 
+  { matric: "250201380", name: "OLATOYE, Emmanuel Chukwuebuka", grade: 
+"C" }, 
+  { matric: "250201381", name: "HUSSEIN, Mutmainnah Damilola", grade: 
+"C" }, 
+  { matric: "250201382", name: "GARUBA, Aishat Eniola-Olubukola", 
+grade: "A" }, 
+  { matric: "250201383", name: "MOBOLADE, Zainab Morenikeji", grade: 
+"B" }, 
+  { matric: "250201384", name: "FADAIRO, Oluwaferanmi Elizabeth", 
+grade: "B" }, 
+  { matric: "250201385", name: "KUDEHINBU, Lateef Aremu", grade: "C" 
+}, 
+  { matric: "250201386", name: "SAMUEL, Eniola Omotoyosi", grade: "A" 
+}, 
+  { matric: "250201387", name: "BELLO, Mohammed Oladokun", grade: "B" 
+}, 
+  { matric: "250201389", name: "IMRAN, Al-Ameen Ayomide", grade: "A" 
+}, 
+  { matric: "250201390", name: "ODUWAYE, Toluwalase Isaac", grade: "C" 
+}, 
+  { matric: "250201391", name: "ADEDEJI, Tosin Christianah", grade: 
+"C" }, 
+  { matric: "250201393", name: "ADIGUN, Mosopefoluwa Anjolaoluwa", 
+grade: "B" }, 
+  { matric: "250201394", name: "OLA, Selimot Tolani", grade: "A" }, 
+  { matric: "250201395", name: "OLULANA, Ibukunoluwa Bukola", grade: 
+"B" }, 
+  { matric: "250201396", name: "AJIBADE, Fathia Olamide", grade: "D" 
+}, 
+  { matric: "250201397", name: "MAKANJUOLA, Halleluyah Israel", grade: 
+"A" }, 
+{ matric: "250201398", name: "COLLINS, Victoria Vobi", grade: "A" }, 
+{ matric: "250201399", name: "MUSTAPHA, Abdulbasit Olaide", grade: 
+"C" }, 
+{ matric: "250201400", name: "ADELEKE, Ayodeji Emmanuel", grade: "C" 
+}, 
+{ matric: "250201401", name: "OGUNFOWOKAN, Oluwatetisimi Ajoke", 
+grade: "B" }, 
+{ matric: "250201402", name: "ADENIRAN, Abdullahi Adedamola", grade: 
+"C" }, 
+{ matric: "250201404", name: "ADEYANJU, Mulikat Kehinde", grade: "B" 
+}, 
+{ matric: "250201405", name: "UTHMAN, Omonifemi Daniella", grade: 
+"A" }, 
+{ matric: "250201406", name: "FARAYIBI, Daniel Obaloluwa", grade: 
+"C" }, 
+{ matric: "250201407", name: "ADEKUNLE, Enoch Fiadeshola", grade: 
+"C" }, 
+{ matric: "250201408", name: "ADEBAYO, Oluwatofunmi Lydia", grade: 
+"C" } 
+
     ]
 };
 
