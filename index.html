@@ -170,6 +170,7 @@
                 <div class="menu-item"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
                 <div class="menu-item"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
                 <div class="menu-item"><i class="fa-solid fa-images"></i><span>Gallery</span></div>
+                <div class="menu-item"><i class="fa-solid fa-comments"></i><span>Forum</span></div>
             </nav>
 
             <button id="logoutBtn" class="logout-action-btn">
@@ -247,6 +248,7 @@ none;">
                                     <div class="access-box"><i class="fa-solid fa-bell"></i><span>Notices</span></div>
                                     <div class="access-box"><i class="fa-solid fa-folder-closed"></i><span>Documents</span></div>
                                     <div class="access-box"><i class="fa-solid fa-images"></i><span>Gallery</span></div>
+                                    <div class="access-box"><i class="fa-solid fa-comments"></i><span>Forum</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1144,6 +1146,43 @@ none;">
                                 </p>
                             </article>
                         </div>
+                    </div>
+                </div>
+
+                <!-- FORUM VIEW -->
+                <div id="forumView" class="view-panel" style="display: none;">
+                    <div class="matrix-card">
+                        <div class="table-header-row">
+                            <div>
+                                <h3 class="gallery-title">Daily Forum</h3>
+                                <p class="card-description">Posts show a random handle, not your name. Admins can trace posts that break the rules.</p>
+                            </div>
+                        </div>
+                        <details id="forumAdmin" class="forum-admin" style="display: none;">
+                            <summary>Admin: topics and suggestions</summary>
+                            <form id="forumTopicForm" class="forum-admin-form">
+                                <input type="text" id="forumTopicTitle" maxlength="200" placeholder="Topic title" required>
+                                <input type="date" id="forumTopicDate" required>
+                                <button type="submit" class="btn-primary">Add topic</button>
+                            </form>
+                            <div id="forumAdminLists"></div>
+                        </details>
+                        <div class="forum-topic" id="forumTopic">Loading today's topic...</div>
+                        <form id="forumForm" class="forum-form" style="display: none;">
+                            <textarea id="forumInput" maxlength="500" rows="3" placeholder="Share your thoughts..." required></textarea>
+                            <div class="forum-form-row">
+                                <small id="forumCount">0/500</small>
+                                <button type="submit" class="btn-primary" id="forumSubmit">Post</button>
+                            </div>
+                        </form>
+                        <details id="forumSuggestBox" class="forum-suggest">
+                            <summary>Suggest a topic</summary>
+                            <form id="forumSuggestForm">
+                                <input type="text" id="forumSuggestInput" maxlength="200" placeholder="What should we talk about?" required>
+                                <button type="submit" class="btn-outline">Send</button>
+                            </form>
+                        </details>
+                        <div id="forumPosts" class="forum-posts"></div>
                     </div>
                 </div>
 

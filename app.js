@@ -285,7 +285,8 @@ window.switchToView = function(viewId) {
         panel.style.display = 'none';   
     });   
    
-    const targetView = document.getElementById(viewId);   
+    const targetView = document.getElementById(viewId);
+    if (viewId === 'forumView' && typeof window.loadForum === 'function') window.loadForum();   
     if (targetView) {   
         targetView.style.display = 'block';   
     }   
@@ -301,7 +302,8 @@ window.switchToView = function(viewId) {
             "feesView": "fees",   
             "noticesView": "notices",   
             "documentsView": "documents",
-            "galleryView": "gallery"   
+            "galleryView": "gallery",
+            "forumView": "forum"   
         };   
    
         if (viewToLabel[viewId] && label === viewToLabel[viewId]) {   
@@ -763,7 +765,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "fees": "feesView",   
         "notices": "noticesView",   
         "documents": "documentsView",
-        "gallery": "galleryView"   
+        "gallery": "galleryView",
+        "forum": "forumView"   
     };   
    
     document.querySelectorAll(".sidebar-grid-menu .menu-item").forEach(item => {   
@@ -1287,3 +1290,218 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (err) { /* user cancelled */ }
     });
 });
+
+// =======================================================
+// DAILY FORUM (Supabase tables + post-comment Edge Function)
+// =======================================================
+(function () {
+    const FN_URL = "https://yuebmlmamkclsfizurkp.supabase.co/functions/v1/post-comment";
+    const $ = id => document.getElementById(id);
+    let topic = null;
+
+    window.forumCall = async function (payload) {
+        const token = await window.tbGetIdToken();
+        if (!token) throw new Error("Please log in again.");
+        const res = await fetch(FN_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(payload)
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(out.error || "Something went wrong. Try again.");
+        return out;
+    };
+
+    function timeAgo(iso) {
+        const m = Math.floor((Date.now() - new Date(iso)) / 60000);
+        if (m < 1) return "just now";
+        if (m < 60) return m + "m ago";
+        if (m < 1440) return Math.floor(m / 60) + "h ago";
+        return Math.floor(m / 1440) + "d ago";
+    }
+
+    function note(text) {
+        const p = document.createElement("p");
+        p.className = "forum-note";
+        p.textContent = text;
+        return p;
+    }
+
+    async function loadPosts() {
+        const list = $("forumPosts");
+        const { data, error } = await window.tbSupabase.from("posts")
+            .select("id, handle, body, created_at").eq("topic_id", topic.id)
+            .order("created_at", { ascending: false }).limit(100);
+        list.replaceChildren();
+        if (error) { list.appendChild(note("Could not load posts. Try again.")); return; }
+        if (!data.length) { list.appendChild(note("No replies yet. Start the conversation.")); return; }
+        data.forEach(p => {
+            const el = document.createElement("div");
+            el.className = "forum-post";
+            const head = document.createElement("div");
+            head.className = "forum-post-head";
+            const who = document.createElement("strong");
+            who.textContent = p.handle;
+            const when = document.createElement("span");
+            when.textContent = timeAgo(p.created_at);
+            head.append(who, when);
+            if (window.forumIsAdmin) {
+                const rm = document.createElement("button");
+                rm.type = "button";
+                rm.className = "forum-remove";
+                rm.textContent = "Remove";
+                rm.addEventListener("click", async () => {
+                    if (!confirm("Remove this post?")) return;
+                    try {
+                        await window.forumCall({ action: "admin_delete_post", id: p.id });
+                        loadPosts();
+                    } catch (err) { alert(err.message); }
+                });
+                head.appendChild(rm);
+            }
+            const body = document.createElement("p");
+            body.textContent = p.body;
+            el.append(head, body);
+            list.appendChild(el);
+        });
+    }
+
+    window.loadForum = async function () {
+        if (!window.tbSupabase) return;
+        const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
+        const { data } = await window.tbSupabase.from("topics").select("*")
+            .eq("release_date", today).eq("approved", true).maybeSingle();
+        topic = data;
+        if (!topic) {
+            $("forumTopic").textContent = "No topic yet today. Check back soon.";
+            $("forumForm").style.display = "none";
+            $("forumPosts").replaceChildren();
+            return;
+        }
+        const open = new Date(topic.closes_at) > new Date();
+        $("forumTopic").textContent = topic.title + (open ? "" : " (comments closed)");
+        $("forumForm").style.display = open ? "" : "none";
+        await loadPosts();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = $("forumForm"), input = $("forumInput"), btn = $("forumSubmit");
+        if (!form) return;
+        input.addEventListener("input", () => { $("forumCount").textContent = input.value.length + "/500"; });
+        form.addEventListener("submit", async e => {
+            e.preventDefault();
+            const body = input.value.trim();
+            if (!body || !topic) return;
+            btn.disabled = true;
+            try {
+                const token = await window.tbGetIdToken();
+                if (!token) throw new Error("Please log in again.");
+                const res = await fetch(FN_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                    body: JSON.stringify({ action: "post", topic_id: topic.id, body })
+                });
+                const out = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(out.error || "Could not post. Try again.");
+                input.value = "";
+                $("forumCount").textContent = "0/500";
+                await loadPosts();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+})();
+
+
+// =======================================================
+// FORUM: STUDENT SUGGESTIONS + ADMIN PANEL
+// =======================================================
+(function () {
+    const $ = id => document.getElementById(id);
+    const el = (tag, cls, text) => {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text;
+        return e;
+    };
+    const baseLoad = window.loadForum;
+
+    async function loadAdmin() {
+        const box = $("forumAdminLists");
+        try {
+            const { suggestions, topics } = await window.forumCall({ action: "admin_list" });
+            const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
+            box.replaceChildren(el("h4", "forum-admin-title", "Suggestions (" + suggestions.length + ")"));
+            if (!suggestions.length) box.appendChild(el("p", "forum-note", "No suggestions waiting."));
+            suggestions.forEach(s => {
+                const row = el("div", "forum-admin-row");
+                const date = el("input");
+                date.type = "date";
+                date.min = today;
+                const add = el("button", "btn-primary", "Schedule");
+                add.type = "button";
+                const del = el("button", "btn-outline", "Remove");
+                del.type = "button";
+                add.addEventListener("click", async () => {
+                    if (!date.value) { alert("Pick a date first."); return; }
+                    try {
+                        await window.forumCall({ action: "admin_add_topic", text: s.suggestion, date: date.value, id: s.id });
+                        await window.loadForum();
+                    } catch (e) { alert(e.message); }
+                });
+                del.addEventListener("click", async () => {
+                    try {
+                        await window.forumCall({ action: "admin_delete_suggestion", id: s.id });
+                        loadAdmin();
+                    } catch (e) { alert(e.message); }
+                });
+                const actions = el("div", "forum-admin-actions");
+                actions.append(date, add, del);
+                row.append(el("p", "", s.suggestion), actions);
+                box.appendChild(row);
+            });
+            box.appendChild(el("h4", "forum-admin-title", "Queued topics"));
+            if (!topics.length) box.appendChild(el("p", "forum-note", "Nothing queued."));
+            topics.forEach(t => box.appendChild(el("p", "forum-queued", t.release_date + ": " + t.title)));
+        } catch (e) {
+            box.replaceChildren(el("p", "forum-note", e.message));
+        }
+    }
+
+    window.loadForum = async function () {
+        if (window.forumIsAdmin === undefined) {
+            try {
+                window.forumIsAdmin = (await window.forumCall({ action: "whoami" })).admin === true;
+                $("forumAdmin").style.display = window.forumIsAdmin ? "" : "none";
+            } catch (e) { /* not signed in yet: treat as a student for now */ }
+        }
+        await baseLoad();
+        if (window.forumIsAdmin) loadAdmin();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const sForm = $("forumSuggestForm");
+        if (sForm) sForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            const input = $("forumSuggestInput");
+            try {
+                await window.forumCall({ action: "suggest", text: input.value });
+                input.value = "";
+                $("forumSuggestBox").open = false;
+                alert("Thanks! An admin will review your topic.");
+            } catch (err) { alert(err.message); }
+        });
+        const tForm = $("forumTopicForm");
+        if (tForm) tForm.addEventListener("submit", async e => {
+            e.preventDefault();
+            try {
+                await window.forumCall({ action: "admin_add_topic", text: $("forumTopicTitle").value, date: $("forumTopicDate").value });
+                tForm.reset();
+                await window.loadForum();
+            } catch (err) { alert(err.message); }
+        });
+    });
+})();

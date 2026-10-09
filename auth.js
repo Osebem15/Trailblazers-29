@@ -41,6 +41,8 @@ const db = getFirestore(app);
 
 // SUPABASE STORAGE INITIALIZATION
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.tbSupabase = supabase;
+window.tbGetIdToken = async () => (auth.currentUser ? auth.currentUser.getIdToken() : null);
 
 const MATRIC_SUFFIX = "@student.local"; 
 

@@ -2061,7 +2061,7 @@ buttons */
    Tokens are scoped (--g-*) so they don't
    override the site-wide --text-muted etc.
    ========================================== */
-#galleryView, #lightboxModal {
+#galleryView, #forumView, #lightboxModal {
     --g-surface-card: #1E293B;
     --g-surface-border: #334155;
     --g-text-primary: #F8FAFC;
@@ -2069,7 +2069,7 @@ buttons */
     --g-brand-accent: #0EA5E9;
     --g-overlay-bg: rgba(11, 19, 43, 0.85);
 }
-body.light-theme #galleryView, body.light-theme #lightboxModal {
+body.light-theme #galleryView, body.light-theme #forumView, body.light-theme #lightboxModal {
     --g-surface-card: #FFFFFF;
     --g-surface-border: #E2E8F0;
     --g-text-primary: #0F172A;
@@ -2108,3 +2108,27 @@ body.light-theme #galleryView, body.light-theme #lightboxModal {
 .lightbox-text p { font-size: 0.8rem; color: var(--g-text-muted); }
 .lightbox-actions { display: flex; gap: 10px; }
 .lightbox-action-btn { flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; text-decoration: none; cursor: pointer; }
+
+/* ---- Daily forum (uses the gallery token scope above) ---- */
+.forum-topic { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--g-surface-border); background: var(--g-surface-card); color: var(--g-text-primary); font-weight: 700; margin-bottom: 14px; }
+.forum-form textarea { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 12px; border: 1px solid var(--g-surface-border); background: var(--g-surface-card); color: var(--g-text-primary); font-family: inherit; font-size: 0.92rem; resize: vertical; }
+.forum-form-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 16px; }
+.forum-form-row small { color: var(--g-text-muted); }
+.forum-form-row .btn-primary { width: auto; min-height: 44px; padding: 10px 24px; }
+.forum-post { padding: 12px 14px; border: 1px solid var(--g-surface-border); border-radius: 16px; background: var(--g-surface-card); margin-bottom: 10px; }
+.forum-post-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 0.8rem; color: var(--g-text-muted); }
+.forum-post-head strong { color: var(--g-brand-accent); }
+.forum-post p { margin: 0; color: var(--g-text-primary); font-size: 0.92rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.forum-note { text-align: center; color: var(--g-text-muted); font-size: 0.9rem; padding: 8px 0; }
+
+.forum-suggest, .forum-admin { margin-bottom: 14px; border: 1px solid var(--g-surface-border); border-radius: 16px; background: var(--g-surface-card); padding: 12px 14px; }
+.forum-suggest summary, .forum-admin summary { cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--g-text-primary); }
+.forum-suggest form, .forum-admin-form { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.forum-suggest input, .forum-admin input { flex: 1 1 160px; min-height: 44px; box-sizing: border-box; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--g-surface-border); background: rgba(127, 127, 127, 0.12); color: var(--g-text-primary); font-family: inherit; }
+.forum-suggest button, .forum-admin button.btn-primary, .forum-admin button.btn-outline { width: auto; min-height: 44px; padding: 8px 18px; border-radius: 12px; }
+.forum-admin-title { margin: 16px 0 8px; color: var(--g-text-primary); font-size: 0.9rem; }
+.forum-admin-row { padding: 10px 0; border-top: 1px solid var(--g-surface-border); }
+.forum-admin-row p { margin: 0 0 8px; color: var(--g-text-primary); font-size: 0.9rem; }
+.forum-admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.forum-queued { margin: 4px 0; color: var(--g-text-muted); font-size: 0.85rem; }
+.forum-remove { margin-left: 12px; background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; }
