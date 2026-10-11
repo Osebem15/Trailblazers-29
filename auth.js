@@ -548,6 +548,8 @@ onAuthStateChanged(auth, (user) => {
 
     if (typeof window.refreshStudentDues === 'function') window.refreshStudentDues();
     else if (typeof window.updateStudentDuesUI === 'function') window.updateStudentDuesUI(cleanMatric);
+    // Re-register this device for push (keeps it current if the browser renewed it).
+    if (typeof window.syncPushSubscription === 'function') window.syncPushSubscription();
 
     const adminPanel = document.getElementById('adminFeesControl');
     if (adminPanel) {
@@ -635,6 +637,10 @@ if (googleLoginBtn) {
 
 // 3C. LOGOUT (one handler for the header button and the profile-modal button)
 async function doLogout() {
+  // Stop alerts on this phone for the account that is leaving (shared phones).
+  if (typeof window.tbPushUnsubscribe === 'function') {
+    try { await window.tbPushUnsubscribe(); } catch (_) { /* best effort */ }
+  }
   try {
     await signOut(auth);
   } catch (error) {

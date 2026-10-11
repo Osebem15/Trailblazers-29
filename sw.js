@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tb29-portal-v9';
+const CACHE_NAME = 'tb29-portal-v10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -81,6 +81,27 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
 });
 
+// Web Push: show the announcement even when the app is closed.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (_) {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  const title = data.title || "Trailblazers '29 Portal";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || 'You have a new announcement.',
+      icon: './icon-192.jpg',
+      badge: './favicon-32.jpg',
+      vibrate: [200, 100, 200],
+      // Same tag as the in-app alert, so one announcement never shows twice.
+      tag: data.tag || 'tb29-announcement'
+    })
+  );
+});
+
 // Mobile push notification tap action
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
@@ -96,7 +117,7 @@ self.addEventListener('notificationclick', (event) => {
         }
         return client.focus();
       }
-      return clients.openWindow('/');
+      return clients.openWindow(self.registration.scope);
     })
   );
 });

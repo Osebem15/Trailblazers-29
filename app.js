@@ -602,9 +602,73 @@ window.renderAdminDuesTable = function(filterQuery = '') {
 // =======================================================
 // BROWSER NOTIFICATION PERMISSION & NATIVE PUSH
 // =======================================================
+// ---- Web Push: alerts that arrive even when the app is closed ----
+// Paste your PUBLIC VAPID key between the quotes. Left empty, push stays off and nothing else changes.
+const VAPID_PUBLIC_KEY = "BBusOtigU6hJi4igIF3OThkOcHmO-CZ_kJXKOQDCs7zle_PchTdJF9cGQAcTuZ5yPXJotbhN1_PwA21cO4gOdAI";
+const PUSH_FN_URL = "https://yuebmlmamkclsfizurkp.supabase.co/functions/v1/push-subscribe";
+
+function urlBase64ToUint8Array(b64) {
+    const padded = (b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(padded);
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+async function pushCall(payload) {
+    const token = await window.tbGetIdToken();
+    if (!token) throw new Error("Please log in again.");
+    const res = await fetch(PUSH_FN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Push setup failed (" + res.status + ")");
+}
+
+// Registers this device for push. Returns true when it is registered.
+async function ensurePushSubscription() {
+    if (!VAPID_PUBLIC_KEY) return false;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+    if (!window.tbUid) return false;
+    try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+        }
+        await pushCall({ action: 'subscribe', subscription: sub.toJSON() });
+        return true;
+    } catch (err) {
+        console.warn('Push subscription failed:', err);
+        return false;
+    }
+}
+window.syncPushSubscription = ensurePushSubscription; // auth.js calls this after login
+
+// Called on logout so a shared phone stops receiving the previous student's alerts.
+window.tbPushUnsubscribe = async function () {
+    try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (!sub) return;
+        await pushCall({ action: 'unsubscribe', endpoint: sub.endpoint });
+        await sub.unsubscribe();
+    } catch (err) {
+        console.warn('Push unsubscribe failed:', err);
+    }
+};
+
 window.requestNotificationPermission = async function() {
     if (!('Notification' in window)) {
-        alert("This browser does not support push notifications.");
+        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        alert(isIos
+            ? "On iPhone, tap Share, then Add to Home Screen. Open the portal from your Home Screen, then enable notifications there."
+            : "This browser does not support notifications.");
         return;
     }
     const permission = await Notification.requestPermission();
@@ -614,20 +678,22 @@ window.requestNotificationPermission = async function() {
             btn.innerHTML = `<i class="fa-solid fa-check"></i> Notifications Enabled`;
             btn.style.background = '#22c55e';
         }
-       
-        // Mobile Chrome / Android Service Worker Push
+
+        // Register for push so alerts also arrive when the app is closed.
+        const pushOn = await ensurePushSubscription();
+        const body = pushOn
+            ? "Notifications are on. You'll be alerted about new announcements, even when the app is closed."
+            : "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.";
+
         if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.ready;
             reg.showNotification("Trailblazers '29 Portal", {
-                body: "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.",
+                body,
                 icon: "./icon-192.jpg",
                 badge: "./favicon-32.jpg"
             });
         } else {
-            new Notification("Trailblazers '29 Portal", {
-                body: "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.",
-                icon: "./icon-192.jpg"
-            });
+            new Notification("Trailblazers '29 Portal", { body, icon: "./icon-192.jpg" });
         }
     } else {
         alert("Notification permission was denied. You can enable it in your browser settings.");
@@ -696,7 +762,7 @@ function showNotificationToast(notice) {
                     icon: "./icon-192.jpg",
                     badge: "./favicon-32.jpg",
                     vibrate: [200, 100, 200],
-                    tag: "announcement-" + Date.now()
+                    tag: ('notice-' + (notice.title || '') + '-' + (notice.date || '')).slice(0, 100)
                 })).catch(() => {});
             } else {
                 new Notification(title, { body, icon: "./icon-192.jpg" });
