@@ -63,7 +63,8 @@ const ALLOWED_GOOGLE_EMAILS = [
   "lamidiemmanuel08@gmail.com",
   "okunubimujeeb@gmail.com",
   "yusuphaishat14@gmail.com",
-  "nnafrancis5@gmail.com" 
+  "nnafrancis5@gmail.com",
+  "debbynene25@gmail.com"
 ];
 
 const onReady = (fn) => (document.readyState === 'loading'
