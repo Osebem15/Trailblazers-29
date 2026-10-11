@@ -157,6 +157,28 @@ const courseTopicsMap = {
     ]
 };
 
+// Course -> id of its accordion container in index.html (used to refresh the list after an upload).
+const courseContainerIds = {
+  'ACC 210': 'acc210-topics',
+  'ACC-CM 203': 'acc-cm203-topics',
+  'ECO 201': 'eco-201-topics',
+  'ENT 211': 'ent-211-topics',
+  'FIN 101': 'fin-101-topics',
+  'TX-CM 313': 'tx-cm-313-topics',
+  'LAG-ACS 209': 'lag-acs-209-topics'
+};
+
+// Client-side upload limits. Set the same limits on the Supabase bucket (file size limit + allowed
+// MIME types): anything checked only in the browser can be bypassed.
+const MAX_UPLOAD_MB = 25;
+const ALLOWED_UPLOAD_TYPES = {
+  pdf: 'application/pdf',
+  mp4: 'video/mp4',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg'
+};
+
 let authError = document.createElement('div');
 authError.style.cssText = "color: #ff4d4d; margin-bottom: 15px; font-size: 14px; display: none; font-family: 'Montserrat', sans-serif; font-weight: 600; text-align: center; width: 100%;";
 if (loginForm) {
@@ -255,6 +277,17 @@ function buildMaterialRow(file) {
   return row;
 }
 
+const normText = (v) => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+// The topic headings actually on the page for a course, in order.
+function topicHeadings(courseCode) {
+  const container = document.getElementById(courseContainerIds[courseCode]);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('.topic-expandable summary'))
+    .map((el) => el.textContent.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
 async function fetchTopicMaterials(courseCode, topicContainerId) {
   const topicContainer = document.getElementById(topicContainerId);
   if (!topicContainer) return;
@@ -270,22 +303,21 @@ async function fetchTopicMaterials(courseCode, topicContainerId) {
       return;
     }
 
-    const topicMap = {};
-    (materials || []).forEach((data) => {
-      if (!topicMap[data.topicName]) topicMap[data.topicName] = [];
-      topicMap[data.topicName].push(data);
-    });
+    const all = materials || [];
+    const placed = new Set();
 
     topicContainer.querySelectorAll('.topic-expandable').forEach((topicEl) => {
-      const summaryText = topicEl.querySelector('summary')?.textContent.trim() || '';
+      const summaryText = normText(topicEl.querySelector('summary')?.textContent);
       const materialsList = topicEl.querySelector('.materials-list');
       if (!materialsList) return;
 
-      const matchingTopicKey = Object.keys(topicMap).find((key) =>
-        summaryText.toLowerCase().includes(String(key).toLowerCase())
-      );
-      const rows = (matchingTopicKey ? topicMap[matchingTopicKey] : [])
-        .map(buildMaterialRow).filter(Boolean);
+      const rows = all
+        .filter((m) => {
+          const key = normText(m.topicName);
+          return key && summaryText.includes(key);
+        })
+        .map((m) => { placed.add(m); return buildMaterialRow(m); })
+        .filter(Boolean);
 
       if (rows.length === 0) {
         const p = document.createElement('p');
@@ -296,6 +328,20 @@ async function fetchTopicMaterials(courseCode, topicContainerId) {
       }
       materialsList.replaceChildren(...rows);
     });
+
+    // Anything whose saved topic name matches no heading (older uploads) is listed here instead of vanishing.
+    topicContainer.querySelector('.materials-other')?.remove();
+    const orphans = all.filter((m) => !placed.has(m)).map(buildMaterialRow).filter(Boolean);
+    if (orphans.length) {
+      const box = document.createElement('div');
+      box.className = 'materials-other';
+      box.style.cssText = 'margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);';
+      const title = document.createElement('p');
+      title.style.cssText = 'color: #8fa5c3; font-size: 0.8rem; margin: 0 0 6px;';
+      title.textContent = 'Other uploads';
+      box.append(title, ...orphans);
+      topicContainer.appendChild(box);
+    }
   } catch (error) {
     console.error('Error fetching materials:', error);
   }
@@ -335,10 +381,12 @@ window.openUploadModal = function(courseCode) {
 
   if (topicSelect) {
     topicSelect.innerHTML = '';
-    const topics = courseTopicsMap[courseCode] || [
+    // Use the headings that are really on the page, so an upload always lands under a heading that exists.
+    const pageTopics = topicHeadings(courseCode);
+    const topics = pageTopics.length ? pageTopics : (courseTopicsMap[courseCode] || [
       'Topic 1: Introduction & Fundamentals',
       'Topic 2: Core Principles & Practice'
-    ];
+    ]);
     topics.forEach(topic => {
       const option = document.createElement('option');
       option.value = topic;
@@ -374,6 +422,16 @@ if (uploadMaterialForm) {
       alert('Please log in before uploading.');
       return;
     }
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!ALLOWED_UPLOAD_TYPES[ext]) {
+      alert('Only PDF, MP4, PNG and JPG files can be uploaded.');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      alert(`That file is too large. The limit is ${MAX_UPLOAD_MB} MB.`);
+      return;
+    }
+    const mimeType = file.type || ALLOWED_UPLOAD_TYPES[ext];
 
     const submitBtn = uploadMaterialForm.querySelector('button[type="submit"]');
     if (submitBtn) {
@@ -389,6 +447,7 @@ if (uploadMaterialForm) {
         .from('course_materials')
         .upload(filePath, file, {
           cacheControl: '3600',
+          contentType: mimeType,
           upsert: false
         });
 
@@ -407,7 +466,7 @@ if (uploadMaterialForm) {
       courseCode: course,
       topicName: topic,
       fileName: file.name,
-      fileType: file.type,
+      fileType: mimeType,
       fileUrl: downloadURL,
       uploadedAt: new Date().toISOString(),
       uploaderEmail: auth.currentUser ? auth.currentUser.email : 'anonymous'
@@ -424,8 +483,8 @@ if (dbError) throw dbError;
       }
       uploadMaterialForm.reset();
 
-      const targetAccordionId = `${course.toLowerCase().replace(/\s+/g, '')}-topics`;
-      fetchTopicMaterials(course, targetAccordionId);
+      const targetAccordionId = courseContainerIds[course];
+      if (targetAccordionId) fetchTopicMaterials(course, targetAccordionId);
     } catch (error) {
       console.error('Upload error:', error);
       alert(`Upload failed: ${error.message}`);
@@ -551,7 +610,7 @@ if (loginForm) {
             else displayError("Authentication failed. Please verify your details.");
           }
         } else {
-          displayError("Incorrect matriculation number or password. First time here? Ask the class admin to activate your account.");
+          displayError("Incorrect matriculation number or password. First time here, or forgot your password? Ask the class admin to activate or reset your account.");
         }
       } else if (code === 'auth/too-many-requests') {
         displayError("Too many attempts. Please wait a few minutes and try again.");

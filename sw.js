@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tb29-portal-v8';
+const CACHE_NAME = 'tb29-portal-v9';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   './icon-512.jpg',
   './Unilag logo.jfif'
 ];
+
 // Resilient install listener: caches each asset individually
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -26,6 +27,7 @@ self.addEventListener('install', (event) => {
   );
   self.skipWaiting();
 });
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -40,17 +42,45 @@ self.addEventListener('activate', (event) => {
   );
   self.clients.claim();
 });
+
 self.addEventListener('fetch', (event) => {
-  // Pass network requests through directly for live APIs and non-GET requests
-  if (event.request.method !== 'GET' || event.request.url.includes('supabase.co') || event.request.url.includes('googleapis.com')) {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+
+  // Live APIs (Supabase, Google) and third-party scripts go straight to the network.
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  const isCode = req.mode === 'navigate' ||
+    ['document', 'script', 'style', 'manifest'].includes(req.destination);
+
+  if (isCode) {
+    // Network first: a new deploy shows up right away. The cache is only the offline fallback.
+    // (A navigation request cannot be rebuilt with options, so only sub-resources force revalidation.)
+    const netReq = req.mode === 'navigate' ? req : new Request(req, { cache: 'no-cache' });
+    event.respondWith(
+      fetch(netReq)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(async () => {
+          const hit = await caches.match(req);
+          if (hit) return hit;
+          if (req.mode === 'navigate') return caches.match('./index.html');
+          return Response.error();
+        })
+    );
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
-    })
-  );
+
+  // Images and fonts rarely change: cache first.
+  event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
 });
+
 // Mobile push notification tap action
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

@@ -4,6 +4,11 @@
 // The Supabase client is created once in auth.js (window.tbSupabase). auth.js is an ES module, so it
 // runs AFTER this classic script: never read the client at load time. Use window.tbSupabase inside
 // functions, or wrap start-up work in onSupabaseReady().
+// Re-apply the saved theme on load (the toggle saved it, but nothing ever read it back).
+try {
+    if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
+} catch (_) { /* storage blocked: stay on the default theme */ }
+
 function onSupabaseReady(callback, tries = 50) {
     if (window.tbSupabase) return callback();
     if (tries <= 0) {
@@ -229,6 +234,10 @@ const studentDirectory = {
 };   
 window.studentDirectory = studentDirectory;   
    
+// Change these once per session: the receipt reads them.
+const DUES_AMOUNT = 500;            // naira
+const DUES_SESSION = '2026/2027';
+
 const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({   
     matric: matric,   
     name: studentDirectory[matric],   
@@ -412,12 +421,14 @@ window.printDuesReceipt = async function(matricNumber) {
     }
 
     let paid = false;
+    let paidAt = null;
     const supabase = window.tbSupabase;
     if (supabase) {
         try {
             const { data, error } = await supabase
-                .from('student_dues').select('paid').eq('matric', cleanMatric).maybeSingle();
+                .from('student_dues').select('*').eq('matric', cleanMatric).maybeSingle();
             paid = !error && !!(data && data.paid);
+            paidAt = (paid && (data.paid_at || data.updated_at)) || null;
         } catch (err) {
             console.error('Receipt verification failed:', err);
         }
@@ -427,6 +438,14 @@ window.printDuesReceipt = async function(matricNumber) {
         alert("Receipt unavailable. Class dues are Pending, or payment could not be verified.");
         return;
     }
+
+    const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const issuedDate = fmtDate(new Date());
+    const paidDateObj = paidAt ? new Date(paidAt) : null;
+    const paymentDateRow = paidDateObj && !isNaN(paidDateObj.getTime())
+        ? `<tr><td class="label">Payment Date:</td><td class="value">${fmtDate(paidDateObj)}</td></tr>`
+        : '';
+    const receiptNo = `TB29-${DUES_SESSION.replace('/', '')}-${cleanMatric}`;
 
     const receiptHtml = `   
         <!DOCTYPE html>   
@@ -459,20 +478,19 @@ border-top: 1px solid #f0f0f0; padding-top: 15px; }
                     <h4>DEPARTMENT OF ACCOUNTING (ACC '29)</h4>   
                     <small>OFFICIAL CLASS DUES PAYMENT RECEIPT</small>   
                 </div>   
-                <table class="receipt-table">   
+                <table class="receipt-table">
+                    <tr><td class="label">Receipt No:</td><td class="value">${receiptNo}</td></tr>   
                     <tr><td class="label">Student Name:</td><td 
 class="value">${studentName}</td></tr>   
                     <tr><td class="label">Matriculation No:</td><td 
 class="value">${cleanMatric}</td></tr>   
                     <tr><td class="label">Fee Description:</td><td class="value">ACC '29 
 Departmental & Class Package Dues</td></tr>   
-                    <tr><td class="label">Academic Session:</td><td class="value">2026/2027 
-Session</td></tr>   
-                    <tr><td class="label">Amount Paid:</td><td class="value">₦ 500.00</td></tr>   
+                    <tr><td class="label">Academic Session:</td><td class="value">${DUES_SESSION} Session</td></tr>   
+                    <tr><td class="label">Amount Paid:</td><td class="value">₦ ${DUES_AMOUNT.toFixed(2)}</td></tr>   
                     <tr><td class="label">Verification Status:</td><td class="value"><span 
 class="paid-stamp">VERIFIED PAID</span></td></tr>   
-                    <tr><td class="label">Date Issued:</td><td class="value">${new 
-Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td></tr>   
+                    ${paymentDateRow}<tr><td class="label">Date Issued:</td><td class="value">${issuedDate}</td></tr>   
                 </table>   
                 <div class="receipt-footer">   
                     <p>Generated officially via Trailblazers '29 Student Departmental Portal.</p>   
@@ -601,13 +619,13 @@ window.requestNotificationPermission = async function() {
         if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.ready;
             reg.showNotification("Trailblazers '29 Portal", {
-                body: "Push notifications enabled! You will receive live announcement updates.",
+                body: "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.",
                 icon: "./icon-192.jpg",
                 badge: "./favicon-32.jpg"
             });
         } else {
             new Notification("Trailblazers '29 Portal", {
-                body: "Push notifications enabled! You will receive live announcement updates.",
+                body: "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.",
                 icon: "./icon-192.jpg"
             });
         }
@@ -691,7 +709,9 @@ function showNotificationToast(notice) {
 
 function formatDateString(dateStr) {
     if (!dateStr) return '';
-    const dateObj = new Date(dateStr);
+    // "2026-06-15" alone is read as UTC midnight, which shows as the previous day west of UTC.
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr).trim());
+    const dateObj = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : new Date(dateStr);
     if (isNaN(dateObj.getTime())) return dateStr;
     return dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
@@ -777,6 +797,26 @@ function subscribeToRealtimeAnnouncements() {
             console.log("Supabase Realtime Channel Status:", status);
         });
 }
+
+// Phones suspend the live connection while the app is in the background, so anything posted in the
+// meantime never arrives. Re-sync when the student comes back or the network returns.
+let lastResync = Date.now();
+function resyncLiveData() {
+    if (!window.tbSupabase) return;
+    if (Date.now() - lastResync < 10000) return;
+    lastResync = Date.now();
+    fetchInitialAnnouncements().catch(() => {});
+    if (window.tbUid) fetchInitialStudentDues().catch(() => {});
+}
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    resyncLiveData();
+    // An installed app resumes without a page load, so ask for a newer service worker explicitly.
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).catch(() => {});
+    }
+});
+window.addEventListener('online', resyncLiveData);
 
 // ======================================================= 
 // 6. DOM CONTENT LOADED INITIALIZATIONS 
@@ -925,26 +965,47 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         });   
     }   
    
-    if (modalProfilePicInput) {   
-        modalProfilePicInput.addEventListener('change', (event) => {   
-            const file = event.target.files[0];   
-            if (!file) return;   
-            const reader = new FileReader();   
-            reader.onload = function (e) {   
-                const base64Image = e.target.result;   
-                const storageKey = getCurrentUserKey();   
-                localStorage.setItem(storageKey, base64Image);   
-                loadUserProfilePicture();   
-            };   
-            reader.readAsDataURL(file);   
-        });   
-    }   
-   
+    if (modalProfilePicInput) {
+        modalProfilePicInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onerror = () => alert("Couldn't read that photo. Please try another one.");
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onerror = () => alert("That file couldn't be opened as an image. Please try a JPG or PNG.");
+                img.onload = () => {
+                    // Shrink to a small centred square: a raw phone photo is several MB and overflows localStorage.
+                    const SIZE = 256;
+                    const side = Math.min(img.width, img.height);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = SIZE;
+                    canvas.height = SIZE;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, SIZE, SIZE);
+                    ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
+                    try {
+                        localStorage.setItem(getCurrentUserKey(), canvas.toDataURL('image/jpeg', 0.85));
+                    } catch (err) {
+                        console.warn('Could not save profile photo:', err);
+                        alert("Couldn't save your photo on this device (storage is full or blocked).");
+                        return;
+                    }
+                    loadUserProfilePicture();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     if (modalToggleThemeBtn) {   
         modalToggleThemeBtn.addEventListener('click', () => {   
             document.body.classList.toggle('light-theme');   
             const isLight = document.body.classList.contains('light-theme');   
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');   
+            try { localStorage.setItem('theme', isLight ? 'light' : 'dark'); } catch (_) { /* storage blocked */ }   
         });   
     }   
    
@@ -1146,6 +1207,17 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
 // ======================================================= 
 // 7. PWA SERVICE WORKER REGISTRATION 
 // ======================================================= 
+// When a new service worker takes over (after a deploy), reload once so the page runs the new code.
+if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
 if ('serviceWorker' in navigator) {   
   window.addEventListener('load', () => {   
     navigator.serviceWorker.register('./sw.js')   
