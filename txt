@@ -1,0 +1,55 @@
+EDITS TO EXISTING FILES (checked against your latest GitHub code, after your git pull)
+
+Files to copy into the project folder:
+  ai.html        replaces the old one
+  tb-data.json   replaces the old one
+  features.js    new file
+  features.css   new file
+Then run assignments_polls.sql once in Supabase (SQL Editor).
+
+--------------------------------------------------
+1) index.html   (logout text)
+FIND:
+                    <span>LOGOUT</span>
+                    <small>Return to login screen</small>
+REPLACE WITH:
+                    <span>Logout</span>
+
+--------------------------------------------------
+2) index.html   (in the head)
+FIND:
+    <link rel="stylesheet" href="style.css">
+REPLACE WITH:
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="features.css">
+
+--------------------------------------------------
+3) index.html   (bottom of the file)
+FIND:
+</body>
+REPLACE WITH:
+    <script src="features.js"></script>
+</body>
+
+--------------------------------------------------
+4) sw.js   (two edits)
+FIND:
+const CACHE_NAME = 'tb29-portal-v11';
+REPLACE WITH:
+const CACHE_NAME = 'tb29-portal-v12';
+
+FIND:
+  './auth.js',
+REPLACE WITH:
+  './auth.js',
+  './features.js',
+  './features.css',
+
+--------------------------------------------------
+5) auth.js
+FIND:
+function getLoggedInMatric() {
+REPLACE WITH:
+window.tbIsAdmin = isCurrentUserAdmin;
+
+function getLoggedInMatric() {

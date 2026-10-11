@@ -1,10 +1,12 @@
-const CACHE_NAME = 'tb29-portal-v11';
+const CACHE_NAME = 'tb29-portal-v12';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './auth.js',
+  './features.js',
+  './features.css',
   './manifest.json',
   './favicon-32.jpg',
   './icon-192.jpg',

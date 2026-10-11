@@ -64,7 +64,8 @@ const ALLOWED_GOOGLE_EMAILS = [
   "okunubimujeeb@gmail.com",
   "yusuphaishat14@gmail.com",
   "nnafrancis5@gmail.com",
-  "debbynene25@gmail.com"
+  "debbynene25@gmail.com",
+  "isaacajayi411@gmail.com"
 ];
 
 const onReady = (fn) => (document.readyState === 'loading'
@@ -580,7 +581,7 @@ if (loginForm) {
 
     const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.getElementById('email-input');
     const passwordInput = loginForm.querySelector('input[name="password"]');
-    const matric = (matricInput ? matricInput.value : '').replace(/\s+/g, '');
+    const matric = (matricInput ? matricInput.value : '').replace(/\s+/g, '').replace(/@student\.local$/i, '');
     const password = passwordInput ? passwordInput.value : '';
 
     if (!matric || !password) {
@@ -833,6 +834,8 @@ function isCurrentUserAdmin() {
   return isAdminUser(auth.currentUser);
 }
 
+window.tbIsAdmin = isCurrentUserAdmin;
+ 
 function getLoggedInMatric() {
   return matricFromUser(auth.currentUser);
 }

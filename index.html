@@ -11,6 +11,7 @@
     
     <!-- Internal Styles -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="features.css">
     <!-- Favicon & Google Search Icon Setup -->
     <link rel="icon" type="image/jpg" sizes="32x32" href="./favicon-32.jpg">
     <link rel="icon" type="image/jpg" sizes="48x48" href="./favicon-48.jpg">
@@ -99,8 +100,8 @@
                     <p>Welcome to the Student Portal. Please log in to access your courses, resources, and other important information.</p>
                     <form id="login-form">
                         <div class="input-group">
-                            <label for="email-input">Matric Number / Email</label>
-                            <input type="email" id="email-input" name="matriculation-number" required placeholder="250200000@student.local">
+                            <label for="email-input">Matric Number</label>
+                            <input type="text" id="email-input" name="matriculation-number" inputmode="numeric" autocomplete="username" required placeholder="250200000">
                         </div>
 
                         <div class="input-group">
@@ -176,8 +177,8 @@
             <button id="logoutBtn" class="logout-action-btn">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <div class="logout-text-box">
-                    <span>LOGOUT</span>
-                    <small>Return to login screen</small>
+                    <span>Logout</span>
+
                 </div>
             </button>
         </aside>
@@ -2134,5 +2135,6 @@ none;">
         </div>
     </div>
 </div>
+    <script src="features.js"></script>
 </body>
 </html>
