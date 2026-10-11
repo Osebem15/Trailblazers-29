@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tb29-portal-v7';
+const CACHE_NAME = 'tb29-portal-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

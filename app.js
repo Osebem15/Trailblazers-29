@@ -1,15 +1,50 @@
-// ======================================================= 
-// 1. SUPABASE INITIALIZATION 
-// ======================================================= 
-if (typeof supabase === 'undefined' && typeof window.supabaseClient !== 'undefined') {   
-    var supabase = window.supabaseClient;   
-} else if (typeof supabase === 'undefined' && typeof window.supabase !== 'undefined' && 
-window.supabase.createClient) {   
-    const SUPABASE_URL = 'https://yuebmlmamkclsfizurkp.supabase.co';   
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI';   
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);   
-}   
- 
+// =======================================================
+// 1. SHARED HELPERS & SUPABASE ACCESS
+// =======================================================
+// The Supabase client is created once in auth.js (window.tbSupabase). auth.js is an ES module, so it
+// runs AFTER this classic script: never read the client at load time. Use window.tbSupabase inside
+// functions, or wrap start-up work in onSupabaseReady().
+function onSupabaseReady(callback, tries = 50) {
+    if (window.tbSupabase) return callback();
+    if (tries <= 0) {
+        console.error('Supabase client was not initialised by auth.js');
+        return callback();
+    }
+    setTimeout(() => onSupabaseReady(callback, tries - 1), 100);
+}
+
+function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function mk(tag, cls, text) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+    return node;
+}
+
+const isAdminNow = () => typeof window.tbIsAdmin === 'function' && window.tbIsAdmin();
+
+// Admin writes go through the admin-actions Edge function (verifies the admin, writes with the
+// service key). The browser's public key is not allowed to write dues or announcements.
+const ADMIN_FN_URL = "https://yuebmlmamkclsfizurkp.supabase.co/functions/v1/admin-actions";
+window.adminCall = async function (payload) {
+    const token = await window.tbGetIdToken();
+    if (!token) throw new Error("Please log in again.");
+    const res = await fetch(ADMIN_FN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify(payload)
+    });
+    const raw = await res.text();
+    let out = {};
+    try { out = JSON.parse(raw); } catch (e) { out = { error: raw.slice(0, 120) }; }
+    if (!res.ok) throw new Error(out.error || ("Error " + res.status));
+    return out;
+};
+
 // ======================================================= 
 // 2. STUDENT DIRECTORY MAPPING & DUES REGISTRY 
 // ======================================================= 
@@ -53,7 +88,6 @@ const studentDirectory = {
     "250201338": "Ajibola Peace",   
     "250201050": "Ajisegiri Eniola",   
     "250201018": "Akande Olamide",   
-    "250301018": "Akande Olamide",   
     "250201367": "Akapo David",   
     "250201365": "Akinbode Hameedat",   
     "250201066": "Akinbode Precious",   
@@ -188,7 +222,10 @@ const studentDirectory = {
     "250201405": "Uthman Omonifemi",   
     "250201048": "Uzoechi Chika",   
     "250201110": "Yusuf Abdul-azeez",   
-    "250201004": "Yusuph Aishat"   
+    "250201004": "Yusuph Aishat",
+    "250201006": "Ayantola Daniella",
+    "250201115": "Martins Adefunke",
+    "250201385": "Kudehinbu Lateef"   
 };   
 window.studentDirectory = studentDirectory;   
    
@@ -199,85 +236,75 @@ const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({
 }));   
 window.studentDuesRegistry = studentDuesRegistry;  
  
-// Fetch payment statuses from Supabase database   
-async function fetchInitialStudentDues() {    
-    if (typeof window.renderAdminDuesTable === 'function') {   
-        window.renderAdminDuesTable();    
-    }  
-  
-    if (typeof supabase === 'undefined') return;    
-      
-    try {  
-        const { data, error } = await supabase    
-            .from('student_dues')    
-            .select('*');    
-          
-        if (data && data.length > 0) {    
-            data.forEach(item => {    
-                const student = studentDuesRegistry.find(s => s.matric === item.matric);    
-                if (student) {    
-                    student.paid = item.paid;    
-                }    
-            });    
-        }    
-        if (window.currentLoggedInMatric && typeof window.updateStudentDuesUI === 'function') {    
-            window.updateStudentDuesUI(window.currentLoggedInMatric);    
-        }    
-        const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');    
-        const currentSearch = duesAdminSearchInput ? 
-duesAdminSearchInput.value.toLowerCase().trim() : '';    
-        if (typeof window.renderAdminDuesTable === 'function') {   
-            window.renderAdminDuesTable(currentSearch);    
-        }   
-    } catch (err) {  
-        console.error('Error fetching student dues:', err);  
-    }  
-}  
-   
-function subscribeToRealtimeDues() {   
-    if (typeof supabase === 'undefined') return;   
-    supabase   
-        .channel('public:student_dues')   
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'student_dues' }, payload => {   
-            const updated = payload.new;   
-            if (!updated || !updated.matric) return;  
-            const student = studentDuesRegistry.find(s => s.matric === updated.matric);   
-            if (student) {   
-                student.paid = updated.paid;   
-            }   
-            if (window.currentLoggedInMatric === updated.matric && typeof 
-window.updateStudentDuesUI === 'function') {   
-                window.updateStudentDuesUI(updated.matric);   
-            }   
-            const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');   
-            const currentSearch = duesAdminSearchInput ? 
-duesAdminSearchInput.value.toLowerCase().trim() : '';   
-            if (typeof window.renderAdminDuesTable === 'function') {  
-                window.renderAdminDuesTable(currentSearch);   
-            }  
-        })   
-        .subscribe();   
-}   
-   
+// Fetch payment statuses from Supabase database
+async function fetchInitialStudentDues() {
+    if (typeof window.renderAdminDuesTable === 'function') window.renderAdminDuesTable();
+
+    const supabase = window.tbSupabase;
+    if (!supabase) return;
+
+    try {
+        const { data, error } = await supabase.from('student_dues').select('*');
+        if (error) {
+            console.error('Error fetching student dues:', error);
+        } else if (data) {
+            data.forEach(item => {
+                const student = studentDuesRegistry.find(s => s.matric === item.matric);
+                if (student) student.paid = item.paid;
+            });
+        }
+    } catch (err) {
+        console.error('Error fetching student dues:', err);
+    }
+
+    if (window.currentLoggedInMatric && typeof window.updateStudentDuesUI === 'function') {
+        window.updateStudentDuesUI(window.currentLoggedInMatric);
+    }
+    const searchInput = document.getElementById('duesAdminSearchInput');
+    if (typeof window.renderAdminDuesTable === 'function') {
+        window.renderAdminDuesTable(searchInput ? searchInput.value.toLowerCase().trim() : '');
+    }
+}
+// auth.js calls this after login so the registry is (re)loaded for the signed-in user.
+window.refreshStudentDues = fetchInitialStudentDues;
+
+function subscribeToRealtimeDues() {
+    const supabase = window.tbSupabase;
+    if (!supabase) return;
+    supabase
+        .channel('public:student_dues')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'student_dues' }, payload => {
+            const updated = payload.new;
+            if (!updated || !updated.matric) return;
+            const student = studentDuesRegistry.find(s => s.matric === updated.matric);
+            if (student) student.paid = updated.paid;
+            if (window.currentLoggedInMatric === updated.matric && typeof window.updateStudentDuesUI === 'function') {
+                window.updateStudentDuesUI(updated.matric);
+            }
+            const searchInput = document.getElementById('duesAdminSearchInput');
+            if (typeof window.renderAdminDuesTable === 'function') {
+                window.renderAdminDuesTable(searchInput ? searchInput.value.toLowerCase().trim() : '');
+            }
+        })
+        .subscribe();
+}
+
 // ======================================================= 
 // 3. GLOBAL UI NAVIGATION FUNCTIONS 
 // ======================================================= 
-window.setStudentDisplayName = function(matricNumber) {   
-    const cleanMatric = String(matricNumber).trim();   
-    const displayName = studentDirectory[cleanMatric] || "Trailblazer";   
-   
-    const greetingHeader = document.querySelector(".welcome-greeting h2");   
-    if (greetingHeader) {   
-        greetingHeader.innerHTML = `${displayName} <i class="fa-solid fa-circle-check 
-verified-badge-icon"></i>`;   
-    }   
-   
-    const dropdownNameLabel = document.getElementById("dropdownUserName");   
-    if (dropdownNameLabel) {   
-        dropdownNameLabel.textContent = displayName;   
-    }   
-};   
-   
+window.setStudentDisplayName = function(matricNumber) {
+    const displayName = studentDirectory[String(matricNumber).trim()] || "Trailblazer";
+
+    const greetingHeader = document.querySelector(".welcome-greeting h2");
+    if (greetingHeader) {
+        greetingHeader.textContent = displayName + ' ';
+        greetingHeader.appendChild(mk('i', 'fa-solid fa-circle-check verified-badge-icon'));
+    }
+
+    const dropdownNameLabel = document.getElementById("dropdownUserName");
+    if (dropdownNameLabel) dropdownNameLabel.textContent = displayName;
+};
+
 window.switchToView = function(viewId) {   
     if (!viewId) return;   
    
@@ -316,28 +343,8 @@ window.switchToView = function(viewId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });   
 };   
    
-window.switchSemester = function(semester) {   
-    const btn1st = document.getElementById('btnFirstSemester');   
-    const btn2nd = document.getElementById('btnSecondSemester');   
-    const courseCards = document.querySelectorAll('.results-course-card');   
-   
-    if (semester === '1st') {   
-        if (btn1st) { btn1st.style.background = '#1d9bf0'; btn1st.style.color = '#fff'; }   
-        if (btn2nd) { btn2nd.style.background = 'transparent'; btn2nd.style.color = '#8fa5c3'; }   
-    } else {   
-        if (btn2nd) { btn2nd.style.background = '#1d9bf0'; btn2nd.style.color = '#fff'; }   
-        if (btn1st) { btn1st.style.background = 'transparent'; btn1st.style.color = '#8fa5c3'; }   
-    }   
-   
-    courseCards.forEach(card => {   
-        if (card.getAttribute('data-semester') === semester) {   
-            card.style.display = 'block';   
-        } else {   
-            card.style.display = 'none';   
-        }   
-    });   
-};   
- 
+// switchSemester lives in auth.js (it also resets the scores detail view).
+
 window.updateStudentDuesUI = function(matricNumber) {    
     if (!matricNumber) return;   
     const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();    
@@ -388,22 +395,39 @@ Payment`;
     }   
 };    
    
-window.printDuesReceipt = function(matricNumber) {   
-    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();   
-    const studentName = studentDirectory[cleanMatric] || "Trailblazer Student";   
-    const student = studentDuesRegistry.find(s => s.matric === cleanMatric);   
-   
-    if (!student || !student.paid) {   
-        alert("Receipt unavailable. Class dues status is currently Pending.");   
-        return;   
-    }   
-   
-    const printWindow = window.open('', '_blank', 'width=800,height=750');   
-    if (!printWindow) {   
-        alert("Please allow popups to generate and print your receipt.");   
-        return;   
-    }   
-   
+window.printDuesReceipt = async function(matricNumber) {
+    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();
+    if (!isAdminNow() && cleanMatric !== window.currentLoggedInMatric) {
+        alert("You can only print your own receipt.");
+        return;
+    }
+    const studentName = esc(studentDirectory[cleanMatric] || "Trailblazer Student");
+
+    // Open synchronously (popup blockers), then confirm payment with the database instead of
+    // trusting the client-side flag, which anyone can flip in DevTools.
+    const printWindow = window.open('', '_blank', 'width=800,height=750');
+    if (!printWindow) {
+        alert("Please allow popups to generate and print your receipt.");
+        return;
+    }
+
+    let paid = false;
+    const supabase = window.tbSupabase;
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('student_dues').select('paid').eq('matric', cleanMatric).maybeSingle();
+            paid = !error && !!(data && data.paid);
+        } catch (err) {
+            console.error('Receipt verification failed:', err);
+        }
+    }
+    if (!paid) {
+        printWindow.close();
+        alert("Receipt unavailable. Class dues are Pending, or payment could not be verified.");
+        return;
+    }
+
     const receiptHtml = `   
         <!DOCTYPE html>   
         <html>   
@@ -466,8 +490,7 @@ Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numer
 };   
  
 window.generateDuesReceipt = function () {  
-    const currentMatric = window.currentLoggedInMatric || 
-localStorage.getItem('logged_in_user_matric');  
+    const currentMatric = window.currentLoggedInMatric;  
     if (!currentMatric) {  
         alert("Please log in to access your receipt.");  
         return;  
@@ -478,74 +501,83 @@ localStorage.getItem('logged_in_user_matric');
 // ======================================================= 
 // 4. ADMIN DUES TABLE RENDERING 
 // ======================================================= 
-window.renderAdminDuesTable = function(filterQuery = '') {    
-    const adminDuesTbody = document.getElementById('adminDuesTbody');    
-    if (!adminDuesTbody) return;    
-    
-    adminDuesTbody.innerHTML = '';    
-    const filtered = studentDuesRegistry.filter(s =>     
-        s.name.toLowerCase().includes(filterQuery) || s.matric.toLowerCase().includes(filterQuery)    
-    );    
-    
-    if (filtered.length === 0) {    
-        adminDuesTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; 
-color:#8fa5c3;">No students found.</td></tr>`;    
-        return;    
-    }    
-    
-    filtered.forEach((student, index) => {    
-        const row = document.createElement('tr');    
-        row.innerHTML = `    
-            <td>${index + 1}</td>    
-            <td class="course-code-tag">${student.matric}</td>    
-            <td><strong>${student.name}</strong></td>    
-            <td>    
-                <span class="grade-badge ${student.paid ? 'grade-a' : 'grade-b'}" 
-style="${!student.paid ? 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;' : ''}">    
-                    ${student.paid ? 'Paid' : 'Pending'}    
-                </span>    
-            </td>    
-            <td>    
-                <label class="status-toggle-label">    
-                    <input type="checkbox" class="dues-toggle-checkbox" 
-data-matric="${student.matric}" ${student.paid ? 'checked' : ''}>    
-                    <span class="toggle-slider"></span>    
-                </label>    
-            </td>    
-        `;    
-        adminDuesTbody.appendChild(row);    
-    });    
-    
-    document.querySelectorAll('.dues-toggle-checkbox').forEach(chk => {    
-        chk.addEventListener('change', async (e) => {    
-            const targetMatric = e.target.dataset.matric;    
-            const isChecked = e.target.checked;    
-    
-            const targetStudent = studentDuesRegistry.find(s => s.matric === targetMatric);    
-            if (targetStudent) {    
-                targetStudent.paid = isChecked;    
-            }    
-   
-            if (window.currentLoggedInMatric === targetMatric && typeof 
-window.updateStudentDuesUI === 'function') {   
-                window.updateStudentDuesUI(targetMatric);   
-            }   
-    
-            if (typeof supabase !== 'undefined') {    
-                try {  
-                    const { error } = await supabase    
-                        .from('student_dues')    
-                        .upsert({ matric: targetMatric, paid: isChecked }, { onConflict: 'matric' });    
-        
-                    if (error) console.error('Error updating status in Supabase:', error);    
-                } catch (err) {  
-                    console.error('Supabase update exception:', err);  
-                }  
-            }    
-        });    
-    });    
-};     
- 
+window.renderAdminDuesTable = function(filterQuery = '') {
+    const tbody = document.getElementById('adminDuesTbody');
+    if (!tbody) return;
+
+    tbody.replaceChildren();
+    const q = String(filterQuery || '').toLowerCase();
+    const filtered = studentDuesRegistry.filter(s =>
+        s.name.toLowerCase().includes(q) || s.matric.toLowerCase().includes(q)
+    );
+
+    if (filtered.length === 0) {
+        const tr = mk('tr');
+        const td = mk('td', '', 'No students found.');
+        td.colSpan = 5;
+        td.style.cssText = 'text-align:center; color:#8fa5c3;';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+    }
+
+    filtered.forEach((student, index) => {
+        const tr = mk('tr');
+        tr.appendChild(mk('td', '', String(index + 1)));
+        tr.appendChild(mk('td', 'course-code-tag', student.matric));
+
+        const nameTd = mk('td');
+        nameTd.appendChild(mk('strong', '', student.name));
+        tr.appendChild(nameTd);
+
+        const badgeTd = mk('td');
+        const badge = mk('span', `grade-badge ${student.paid ? 'grade-a' : 'grade-b'}`, student.paid ? 'Paid' : 'Pending');
+        if (!student.paid) badge.style.cssText = 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;';
+        badgeTd.appendChild(badge);
+        tr.appendChild(badgeTd);
+
+        const toggleTd = mk('td');
+        const label = mk('label', 'status-toggle-label');
+        const chk = mk('input', 'dues-toggle-checkbox');
+        chk.type = 'checkbox';
+        chk.dataset.matric = student.matric;
+        chk.checked = !!student.paid;
+        label.append(chk, mk('span', 'toggle-slider'));
+        toggleTd.appendChild(label);
+        tr.appendChild(toggleTd);
+
+        chk.addEventListener('change', async () => {
+            const isChecked = chk.checked;
+            const previous = !isChecked;
+            const refresh = () => {
+                if (window.currentLoggedInMatric === student.matric && typeof window.updateStudentDuesUI === 'function') {
+                    window.updateStudentDuesUI(student.matric);
+                }
+                window.renderAdminDuesTable(q);
+            };
+            const revert = () => { student.paid = previous; refresh(); };
+
+            // UI-level guard only; the real rule is RLS on student_dues (see supabase_security.sql).
+            if (!isAdminNow()) {
+                alert("Only admins can change payment status.");
+                revert();
+                return;
+            }
+            student.paid = isChecked;
+            try {
+                await window.adminCall({ action: 'set_dues', matric: student.matric, paid: isChecked });
+                refresh();
+            } catch (err) {
+                console.error('Error updating status in Supabase:', err);
+                alert("Could not save the change: " + (err.message || err));
+                revert();
+            }
+        });
+
+        tbody.appendChild(tr);
+    });
+};
+
 // ======================================================= 
 // 5. ANNOUNCEMENTS & NOTIFICATIONS LOGIC 
 // ======================================================= 
@@ -583,152 +615,156 @@ window.requestNotificationPermission = async function() {
         alert("Notification permission was denied. You can enable it in your browser settings.");
     }
 };
+let noticeAudioCtx = null;
+function playNoticeChime() {
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        noticeAudioCtx = noticeAudioCtx || new Ctx();
+        if (noticeAudioCtx.state === 'suspended') noticeAudioCtx.resume();
+        const osc = noticeAudioCtx.createOscillator();
+        const gain = noticeAudioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, noticeAudioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, noticeAudioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, noticeAudioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(noticeAudioCtx.destination);
+        osc.start();
+        osc.stop(noticeAudioCtx.currentTime + 0.4);
+    } catch (e) { /* audio is optional */ }
+}
+
 function showNotificationToast(notice) {
     const container = document.getElementById('toastContainer');
     if (container) {
         const isImportant = (notice.category || '').toUpperCase() === 'IMPORTANT';
-        const toast = document.createElement('div');
-        toast.className = `toast-card ${isImportant ? 'toast-important' : ''}`;
-        toast.innerHTML = `
-            <div class="toast-icon">
-                <i class="fa-solid ${isImportant ? 'fa-triangle-exclamation' : 'fa-bell'}"></i>
-            </div>
-            <div class="toast-content">
-                <div class="toast-title">${notice.title || 'New Announcement'}</div>
-                <div class="toast-text">${notice.content || ''}</div>
-            </div>
-            <button class="toast-close-btn" onclick="this.parentElement.remove()">×</button>
-        `;
-        toast.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('toast-close-btn')) {
-                if (typeof window.switchToView === 'function') {
-                    window.switchToView('noticesView');
-                }
-            }
+        const toast = mk('div', `toast-card ${isImportant ? 'toast-important' : ''}`);
+
+        const iconWrap = mk('div', 'toast-icon');
+        iconWrap.appendChild(mk('i', `fa-solid ${isImportant ? 'fa-triangle-exclamation' : 'fa-bell'}`));
+
+        const content = mk('div', 'toast-content');
+        content.append(
+            mk('div', 'toast-title', notice.title || 'New Announcement'),
+            mk('div', 'toast-text', notice.content || '')
+        );
+
+        const closeBtn = mk('button', 'toast-close-btn', '×');
+        closeBtn.type = 'button';
+        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); toast.remove(); });
+
+        toast.append(iconWrap, content, closeBtn);
+        toast.addEventListener('click', () => {
+            if (typeof window.switchToView === 'function') window.switchToView('noticesView');
         });
         container.appendChild(toast);
-       
+
         setTimeout(() => {
             toast.classList.add('toast-hide');
             setTimeout(() => toast.remove(), 300);
         }, 6000);
     }
-    // Trigger Mobile & Desktop Push via Service Worker Registration
-    if (Notification.permission === 'granted') {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(registration => {
-                registration.showNotification(notice.title || "New Departmental Announcement", {
-                    body: notice.content || "Click to view the new announcement on your portal.",
+
+    // `Notification` does not exist on iOS Safari (outside installed PWAs): guard it, and never let
+    // a push failure stop the chime / calendar update that follow.
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const title = notice.title || "New Departmental Announcement";
+        const body = notice.content || "Click to view the new announcement on your portal.";
+        try {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => registration.showNotification(title, {
+                    body,
                     icon: "./icon-192.jpg",
                     badge: "./favicon-32.jpg",
                     vibrate: [200, 100, 200],
                     tag: "announcement-" + Date.now()
-                });
-            });
-        } else if ('Notification' in window) {
-            new Notification(notice.title || "New Departmental Announcement", {
-                body: notice.content || "Click to view the new announcement on your portal.",
-                icon: "./icon-192.jpg"
-            });
-        }
+                })).catch(() => {});
+            } else {
+                new Notification(title, { body, icon: "./icon-192.jpg" });
+            }
+        } catch (e) { /* ignore */ }
     }
-    
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-    } catch (e) {}
+
+    playNoticeChime();
 }
-function formatDateString(dateStr) {   
-    if (!dateStr) return '';   
-    const dateObj = new Date(dateStr);   
-    if (isNaN(dateObj.getTime())) return dateStr;   
-    return dateObj.toLocaleDateString('en-US', {   
-        month: 'long',   
-        day: 'numeric',   
-        year: 'numeric'   
-    });   
-}   
-   
-function updateNoticeCount() {   
-    const countBadge = document.getElementById('activeNoticeCount');   
-    const container = document.getElementById('noticesContainer');   
-    if (countBadge && container) {   
-        const total = container.querySelectorAll('article').length;   
-        countBadge.textContent = `${total} Active Announcement${total === 1 ? '' : 's'}`;   
-    }   
-}   
-   
-function renderNoticeCard(notice) {   
-    const container = document.getElementById('noticesContainer');   
-    if (!container) return;   
-   
-    const category = (notice.category || 'GENERAL').toUpperCase();   
-    const isImportant = category === 'IMPORTANT';   
-   
-    const article = document.createElement('article');   
-    article.className = `matrix-card ${isImportant ? 'notice-card-important' : 
-'notice-card-general'}`;   
-    article.innerHTML = `   
-        <div class="notice-card-header">   
-            <span class="${isImportant ? 'course-code-tag' : 
-'total-units-badge'}">${category}</span>   
-            <small class="notice-date"><i class="fa-solid fa-clock"></i> 
-${formatDateString(notice.date)}</small>   
-        </div>   
-        <h4 class="notice-title">${notice.title}</h4>   
-        <p class="notice-text">${notice.content}</p>   
-    `;   
-   
-    container.prepend(article);   
-    updateNoticeCount();   
-}   
-   
-async function fetchInitialAnnouncements() {   
-    if (typeof supabase === 'undefined') return;   
-    const { data, error } = await supabase   
-        .from('announcements')   
-        .select('*')   
-        .order('created_at', { ascending: false });   
-   
-    if (error) {   
-        console.error('Error fetching announcements:', error);   
-        return;   
-    }   
-   
-    const container = document.getElementById('noticesContainer');   
-    if (!container) return;   
-   
-    if (data && data.length > 0) {   
-        container.innerHTML = '';   
-        data.forEach(notice => renderNoticeCard(notice));   
-    }   
-}   
- 
+
+function formatDateString(dateStr) {
+    if (!dateStr) return '';
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function updateNoticeCount() {
+    const countBadge = document.getElementById('activeNoticeCount');
+    const container = document.getElementById('noticesContainer');
+    if (countBadge && container) {
+        const total = container.querySelectorAll('article').length;
+        countBadge.textContent = `${total} Active Announcement${total === 1 ? '' : 's'}`;
+    }
+}
+
+// prepend = true for a live (realtime) notice; false when rendering an already newest-first list.
+function renderNoticeCard(notice, prepend = false) {
+    const container = document.getElementById('noticesContainer');
+    if (!container) return;
+
+    const category = (notice.category || 'GENERAL').toUpperCase();
+    const isImportant = category === 'IMPORTANT';
+
+    const article = mk('article', `matrix-card ${isImportant ? 'notice-card-important' : 'notice-card-general'}`);
+
+    const header = mk('div', 'notice-card-header');
+    header.appendChild(mk('span', isImportant ? 'course-code-tag' : 'total-units-badge', category));
+    const date = mk('small', 'notice-date');
+    date.append(mk('i', 'fa-solid fa-clock'), ' ' + formatDateString(notice.date));
+    header.appendChild(date);
+
+    article.append(header, mk('h4', 'notice-title', notice.title || ''), mk('p', 'notice-text', notice.content || ''));
+
+    if (prepend) container.prepend(article);
+    else container.appendChild(article);
+    updateNoticeCount();
+}
+
+async function fetchInitialAnnouncements() {
+    const supabase = window.tbSupabase;
+    if (!supabase) return;
+    const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching announcements:', error);
+        return;
+    }
+
+    const container = document.getElementById('noticesContainer');
+    if (!container) return;
+
+    if (data && data.length > 0) {
+        container.replaceChildren();
+        data.forEach(notice => renderNoticeCard(notice)); // already newest-first: append in order
+    }
+}
+
 function subscribeToRealtimeAnnouncements() {
-    if (typeof supabase === 'undefined') return;
-   
+    const supabase = window.tbSupabase;
+    if (!supabase) return;
+
     supabase
         .channel('public:announcements')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
             const notice = payload.new;
             if (!notice) return;
-            renderNoticeCard(notice);
+            renderNoticeCard(notice, true);
             showNotificationToast(notice);
-            
+
             const today = new Date();
             const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const todayStr = `${year}-${month}-${day}`;
+            const todayStr = `${year}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             if (notice.date === todayStr) {
                 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                 const displayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${year}`;
@@ -741,7 +777,7 @@ function subscribeToRealtimeAnnouncements() {
             console.log("Supabase Realtime Channel Status:", status);
         });
 }
-   
+
 // ======================================================= 
 // 6. DOM CONTENT LOADED INITIALIZATIONS 
 // ======================================================= 
@@ -789,26 +825,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });   
     });   
    
-    const backToCoursesBtn = document.getElementById('backToCoursesBtn');   
-    if (backToCoursesBtn) {   
-        backToCoursesBtn.addEventListener('click', function () {   
-            const listView = document.getElementById('resultsCourseListView');   
-            const detailView = document.getElementById('courseScoresDetailView');   
-            if (detailView) detailView.style.display = 'none';   
-            if (listView) listView.style.display = 'block';   
-        });   
-    }   
-   
-    const studentSearchInput = document.getElementById('studentSearchInput');   
-    if (studentSearchInput) {   
-        studentSearchInput.addEventListener('input', function (e) {   
-            const query = e.target.value.toLowerCase().trim();   
-            document.querySelectorAll('#studentScoresTbody tr').forEach(row => {   
-                const text = row.textContent.toLowerCase();   
-                row.style.display = text.includes(query) ? '' : 'none';   
-            });   
-        });   
-    }   
+    // Back button + name/matric search for the scoresheet live in auth.js (the copies here hid every row).
     // Check existing notification permission on app load 
 if ('Notification' in window && Notification.permission === 'granted') 
 { 
@@ -820,45 +837,35 @@ Notifications Enabled`;
     } 
 } 
    
-    // Mobile Sidebar & Overlay Controller
-const menuToggleBtn = document.getElementById('menu-toggle-btn');
-const sidebar = document.querySelector('.dashboard-sidebar');
-const sidebarOverlay = document.getElementById('sidebar-overlay');
-const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
-// 1. Open / Toggle Mobile Menu
-function openMobileMenu() {
-    if (sidebar) sidebar.classList.add('mobile-open');
-    if (sidebarOverlay) sidebarOverlay.classList.add('active');
-}
-// 2. Close Mobile Menu
-function closeMobileMenu() {
-    if (sidebar) sidebar.classList.remove('mobile-open');
-    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-}
-// 3. Bind Hamburger Button
-if (menuToggleBtn) {
-    menuToggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (sidebar && sidebar.classList.contains('mobile-open')) {
-            closeMobileMenu();
-        } else {
-            openMobileMenu();
-        }
+    // Mobile Sidebar & Overlay Controller (the only one; auth.js's copy was removed).
+    // The CSS has used both `mobile-open` and `active` on the sidebar, so set both.
+    const menuToggleBtn = document.getElementById('menu-toggle-btn');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+
+    function openMobileMenu() {
+        if (sidebar) sidebar.classList.add('mobile-open', 'active');
+        if (sidebarOverlay) sidebarOverlay.classList.add('active');
+    }
+    function closeMobileMenu() {
+        if (sidebar) sidebar.classList.remove('mobile-open', 'active');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+    }
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (sidebar && sidebar.classList.contains('mobile-open')) closeMobileMenu();
+            else openMobileMenu();
+        });
+    }
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeMobileMenu);
+    menuItems.forEach((item) => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) closeMobileMenu();
+        });
     });
-}
-// 4. Close menu when tapping anywhere on the dark backdrop outside
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', closeMobileMenu);
-}
-// 5. Automatically close menu when any sidebar item is clicked
-menuItems.forEach((item) => {
-    item.addEventListener('click', () => {
-        if (window.innerWidth <= 1024) {
-            closeMobileMenu();
-        }
-    });
-});   
-   
+
     const profileBtn = document.getElementById('profileDropdownBtn');   
     const profileModal = document.getElementById('profileModal');   
     const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');   
@@ -941,14 +948,8 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         });   
     }   
    
-    if (modalLogoutBtn) {   
-        modalLogoutBtn.addEventListener('click', () => {   
-            const logoutBtn = document.getElementById('logoutBtn');   
-            if (logoutBtn) logoutBtn.click();   
-            else location.reload();   
-        });   
-    }   
-   
+    // Logout (header and profile modal buttons) is handled in auth.js.
+
     loadUserProfilePicture();   
    
     // ======================================================= 
@@ -971,130 +972,111 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         }   
     };   
    
-    function updateFocusedEventCard(title, dateStr, text) {  
-        const focusedEventTitle = document.getElementById("focusedEventTitle");  
-        const focusedEventDate = document.getElementById("focusedEventDate");  
-        const focusedEventText = document.getElementById("focusedEventText");  
-        if (focusedEventTitle) {  
-            focusedEventTitle.innerHTML = title && title !== "No Scheduled Events"  
-                ? `<span class='blue-indicator-dot'></span> ${title}`  
-                : `<span class='blue-indicator-dot' style='background: #8b949e;'></span> No 
-Scheduled Events`;  
-        }  
-        if (focusedEventDate) focusedEventDate.textContent = dateStr;  
-        if (focusedEventText) focusedEventText.textContent = text || "There are no events scheduled for today.";  
-    }  
-    window.updateFocusedEventCard = updateFocusedEventCard;  
- 
-    async function renderCalendar(dateObj) {   
-        if (!calendarGridDays || !calendarMonthYearText) return;   
-      
-        const year = dateObj.getFullYear();   
-        const month = dateObj.getMonth();   
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", 
-"August", "September", "October", "November", "December"];   
-        calendarMonthYearText.textContent = `${monthNames[month]} ${year}`;   
-      
-        calendarGridDays.innerHTML = `   
-            <div class="day-label">MON</div><div class="day-label">TUE</div><div 
-class="day-label">WED</div>   
-            <div class="day-label">THU</div><div class="day-label">FRI</div><div 
-class="day-label">SAT</div><div class="day-label">SUN</div>   
-        `;   
-      
-        const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;   
-        const lastDay = new Date(year, month + 1, 0).getDate();   
-        const prevLastDay = new Date(year, month, 0).getDate();   
-        const today = new Date();   
-      
-        for (let x = firstDayIndex; x > 0; x--) {   
-            const dayDiv = document.createElement("div");   
-            dayDiv.className = "day-num muted";   
-            dayDiv.textContent = prevLastDay - x + 1;   
-            calendarGridDays.appendChild(dayDiv);   
-        }   
-      
-        const dayElements = {};  
-        let todayNoticeFound = null; 
- 
-        for (let i = 1; i <= lastDay; i++) {   
-            const dayDiv = document.createElement("div");   
-            dayDiv.className = "day-num";   
-            dayDiv.textContent = i;   
-            dayDiv.style.cursor = "pointer";   
-      
-            const monthFormatted = String(month + 1).padStart(2, "0");   
-            const dayFormatted = String(i).padStart(2, "0");   
-            const dateKey = `${year}-${monthFormatted}-${dayFormatted}`;   
-              
-            dayElements[dateKey] = dayDiv;  
-      
-            if (sampleEvents[dateKey]) {   
-                dayDiv.classList.add("has-event");   
-            }   
-      
-            const isToday = (i === today.getDate() && month === today.getMonth() && year === 
-today.getFullYear());   
-            if (isToday) {   
-                dayDiv.classList.add("today-highlight");   
-                if (sampleEvents[dateKey]) {  
-                    todayNoticeFound = { notice: sampleEvents[dateKey], dateStr: 
-`${monthNames[month]} ${i}, ${year}` }; 
-                }  
-            }   
-      
-            dayDiv.addEventListener("click", function () {   
-                document.querySelectorAll(".day-num").forEach(d => 
-d.classList.remove("selected-day"));   
-                this.classList.add("selected-day");   
-                const displayDateStr = `${monthNames[month]} ${i}, ${year}`;   
-                  
-                const eventData = dayDiv.dataset.noticeContent ? 
-JSON.parse(dayDiv.dataset.noticeContent) : sampleEvents[dateKey];  
-                if (eventData) {   
-                    updateFocusedEventCard(eventData.title, displayDateStr, eventData.content || 
-eventData.text);   
-                } else {   
-                    updateFocusedEventCard("No Scheduled Events", displayDateStr, "There are no events scheduled for today.");   
-                }   
-            });   
-      
-            calendarGridDays.appendChild(dayDiv);   
-        }   
- 
-        if (typeof supabase !== 'undefined') {   
-            try {  
-                const { data, error } = await supabase.from('announcements').select('*');   
-                if (!error && data) {  
-                    data.forEach(notice => {  
-                        if (dayElements[notice.date]) {  
-                            dayElements[notice.date].classList.add("has-event");  
-                            dayElements[notice.date].dataset.noticeContent = JSON.stringify(notice);  
-                                  
-                            const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 
-1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;  
-                            if (notice.date === todayKey) {  
-                                todayNoticeFound = { notice: notice, dateStr: 
-`${monthNames[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}` }; 
-                            }  
-                        }  
-                    });  
-                }  
-            } catch (err) {  
-                console.error("Error loading calendar events from Supabase:", err);  
-            }  
-        }   
- 
-        const todayDisplayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, 
-${today.getFullYear()}`;  
-        if (todayNoticeFound) {  
-            updateFocusedEventCard(todayNoticeFound.notice.title, todayNoticeFound.dateStr, 
-todayNoticeFound.notice.content || todayNoticeFound.notice.text);  
-        } else {  
-            updateFocusedEventCard("No Scheduled Events", todayDisplayDate, "There are no events scheduled for today.");  
-        }  
-    }   
-   
+    function updateFocusedEventCard(title, dateStr, text) {
+        const titleEl = document.getElementById("focusedEventTitle");
+        const dateEl = document.getElementById("focusedEventDate");
+        const textEl = document.getElementById("focusedEventText");
+        if (titleEl) {
+            const hasEvent = title && title !== "No Scheduled Events";
+            const dot = mk('span', 'blue-indicator-dot');
+            if (!hasEvent) dot.style.background = '#8b949e';
+            titleEl.replaceChildren(dot, document.createTextNode(' ' + (hasEvent ? title : 'No Scheduled Events')));
+        }
+        if (dateEl) dateEl.textContent = dateStr;
+        if (textEl) {
+            textEl.style.whiteSpace = 'pre-line';
+            textEl.textContent = text || "There are no events scheduled for today.";
+        }
+    }
+    window.updateFocusedEventCard = updateFocusedEventCard;
+
+    function showEventsOnCard(events, dateStr) {
+        if (!events || events.length === 0) {
+            updateFocusedEventCard("No Scheduled Events", dateStr, "There are no events scheduled for today.");
+        } else if (events.length === 1) {
+            updateFocusedEventCard(events[0].title, dateStr, events[0].content || events[0].text);
+        } else {
+            updateFocusedEventCard(`${events.length} events`, dateStr,
+                events.map(ev => `• ${ev.title}: ${ev.content || ev.text || ''}`).join('\n'));
+        }
+    }
+
+    let calendarRenderId = 0;
+    async function renderCalendar(dateObj) {
+        if (!calendarGridDays || !calendarMonthYearText) return;
+        const renderId = ++calendarRenderId; // ignore results of a render the user has already navigated past
+
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        calendarMonthYearText.textContent = `${monthNames[month]} ${year}`;
+
+        calendarGridDays.innerHTML = `
+            <div class="day-label">MON</div><div class="day-label">TUE</div><div class="day-label">WED</div>
+            <div class="day-label">THU</div><div class="day-label">FRI</div><div class="day-label">SAT</div><div class="day-label">SUN</div>
+        `;
+
+        const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const prevLastDay = new Date(year, month, 0).getDate();
+        const today = new Date();
+
+        for (let x = firstDayIndex; x > 0; x--) {
+            const dayDiv = mk('div', 'day-num muted', String(prevLastDay - x + 1));
+            calendarGridDays.appendChild(dayDiv);
+        }
+
+        // date -> array of notices (several can share one date)
+        const eventsByDate = {};
+        Object.keys(sampleEvents).forEach(k => { eventsByDate[k] = [sampleEvents[k]]; });
+        const dayElements = {};
+
+        for (let i = 1; i <= lastDay; i++) {
+            const dayDiv = mk('div', 'day-num', String(i));
+            dayDiv.style.cursor = "pointer";
+
+            const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
+            dayElements[dateKey] = dayDiv;
+            if (eventsByDate[dateKey]) dayDiv.classList.add("has-event");
+
+            if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayDiv.classList.add("today-highlight");
+            }
+
+            dayDiv.addEventListener("click", function () {
+                document.querySelectorAll(".day-num").forEach(d => d.classList.remove("selected-day"));
+                this.classList.add("selected-day");
+                showEventsOnCard(eventsByDate[dateKey], `${monthNames[month]} ${i}, ${year}`);
+            });
+
+            calendarGridDays.appendChild(dayDiv);
+        }
+
+        const supabase = window.tbSupabase;
+        if (supabase) {
+            try {
+                const { data, error } = await supabase.from('announcements').select('*');
+                if (renderId !== calendarRenderId) return;
+                if (!error && data) {
+                    data.forEach(notice => {
+                        if (!dayElements[notice.date]) return;
+                        (eventsByDate[notice.date] = eventsByDate[notice.date] || []).push(notice);
+                        dayElements[notice.date].classList.add("has-event");
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading calendar events from Supabase:", err);
+            }
+        }
+        if (renderId !== calendarRenderId) return;
+
+        // Only touch the "today" card while the current month is on screen.
+        if (year === today.getFullYear() && month === today.getMonth()) {
+            const todayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            showEventsOnCard(eventsByDate[todayKey], `${monthNames[month]} ${today.getDate()}, ${year}`);
+        }
+    }
+
     if (prevMonthBtn && nextMonthBtn) {   
         prevMonthBtn.addEventListener("click", function () {   
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);   
@@ -1107,33 +1089,40 @@ todayNoticeFound.notice.content || todayNoticeFound.notice.text);
         });   
     }   
    
-    renderCalendar(currentCalendarDate);   
+    onSupabaseReady(() => {
+        renderCalendar(currentCalendarDate);
+        fetchInitialAnnouncements();
+        subscribeToRealtimeAnnouncements();
+        fetchInitialStudentDues();
+        subscribeToRealtimeDues();
+    });   
    
-    fetchInitialAnnouncements();   
-    subscribeToRealtimeAnnouncements();   
-    fetchInitialStudentDues();   
-    subscribeToRealtimeDues();   
-   
-    const postNoticeForm = document.getElementById('postNoticeForm');   
-    if (postNoticeForm) {   
-        postNoticeForm.addEventListener('submit', async function (e) {   
-            e.preventDefault();   
-            const title = document.getElementById('noticeTitleInput')?.value;   
-            const date = document.getElementById('noticeDateInput')?.value;   
-            const content = document.getElementById('noticeTextInput')?.value;   
-   
-            if (typeof supabase !== 'undefined') {   
-                const { error } = await supabase.from('announcements').insert([{ title, date, content, 
-category: 'GENERAL' }]);   
-                if (error) alert("Error publishing announcement: " + error.message);   
-                else {   
-                    alert("Announcement published successfully!");   
-                    postNoticeForm.reset();   
-                }   
-            }   
-        });   
-    }   
-  
+    const postNoticeForm = document.getElementById('postNoticeForm');
+    if (postNoticeForm) {
+        postNoticeForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!isAdminNow()) {
+                alert("Only admins can post announcements.");
+                return;
+            }
+            const title = (document.getElementById('noticeTitleInput')?.value || '').trim();
+            const date = document.getElementById('noticeDateInput')?.value;
+            const content = (document.getElementById('noticeTextInput')?.value || '').trim();
+            if (!title || !date || !content) {
+                alert("Please fill in the title, date and message.");
+                return;
+            }
+
+            try {
+                await window.adminCall({ action: 'post_announcement', title, date, content, category: 'GENERAL' });
+                alert("Announcement published successfully!");
+                postNoticeForm.reset();
+            } catch (err) {
+                alert("Error publishing announcement: " + err.message);
+            }
+        });
+    }
+
     const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');   
     if (duesAdminSearchInput) {   
         duesAdminSearchInput.addEventListener('input', (e) => {   
@@ -1210,7 +1199,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let visible = [...cards];
     let index = 0;
 
-    const isOpen = () => modal.style.display !== 'none';
+    // computed style: the modal may be hidden by a CSS class rather than an inline style
+    const isOpen = () => getComputedStyle(modal).display !== 'none';
     const close = () => { modal.style.display = 'none'; img.removeAttribute('src'); };
 
     function show(i) {
@@ -1250,6 +1240,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener('keydown', e => {
         if (!isOpen()) return;
+        if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
         if (e.key === 'Escape') close();
         else if (e.key === 'ArrowLeft') show(index - 1);
         else if (e.key === 'ArrowRight') show(index + 1);
@@ -1258,8 +1249,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Swipe left/right on the image (mobile)
     let startX = null;
     const box = document.querySelector('.lightbox-img-container');
-    box.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
-    box.addEventListener('touchend', e => {
+    box?.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    box?.addEventListener('touchend', e => {
         if (startX === null) return;
         const dx = e.changedTouches[0].clientX - startX;
         startX = null;
@@ -1273,21 +1264,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const url = new URL(d.src, window.location.href).href;
         const text = "Check out this photo on Trailblazers '29: " + d.caption;
         try {
-            if (navigator.share) {
-                try {
-                    const blob = await (await fetch(url)).blob();
-                    const file = new File([blob], d.src.split('/').pop(), { type: blob.type });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: d.caption, text });
-                        return;
-                    }
-                } catch (_) { /* fall through to link share */ }
-                await navigator.share({ title: d.caption, text, url });
-            } else {
+            if (!navigator.share) {
                 await navigator.clipboard.writeText(url);
                 alert('Image link copied to clipboard!');
+                return;
             }
-        } catch (err) { /* user cancelled */ }
+            let file = null;
+            try {
+                const blob = await (await fetch(url)).blob();
+                file = new File([blob], d.src.split('/').pop(), { type: blob.type });
+            } catch (_) { /* could not fetch the image: share the link instead */ }
+
+            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file], title: d.caption, text });
+                } catch (err) {
+                    // Cancelling the file share must NOT open a second share sheet.
+                    if (err && err.name === 'AbortError') return;
+                    await navigator.share({ title: d.caption, text, url });
+                }
+                return;
+            }
+            await navigator.share({ title: d.caption, text, url });
+        } catch (err) { /* user cancelled or sharing unavailable */ }
     });
 });
 
@@ -1373,8 +1372,18 @@ document.addEventListener("DOMContentLoaded", function () {
     window.loadForum = async function () {
         if (!window.tbSupabase) return;
         const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
-        const { data } = await window.tbSupabase.from("topics").select("*")
-            .eq("release_date", today).eq("approved", true).maybeSingle();
+        // limit(1): two approved topics on one date made maybeSingle() error out and look like "no topic".
+        const { data, error } = await window.tbSupabase.from("topics").select("*")
+            .eq("release_date", today).eq("approved", true)
+            .order("closes_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) {
+            console.error("Forum topic load failed:", error);
+            topic = null;
+            $("forumTopic").textContent = "Could not load today's topic. Please try again.";
+            $("forumForm").style.display = "none";
+            $("forumPosts").replaceChildren();
+            return;
+        }
         topic = data;
         if (!topic) {
             $("forumTopic").textContent = "No topic yet today. Check back soon.";
@@ -1467,13 +1476,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    let adminCheckedFor = null; // uid the cached admin flag belongs to
     window.loadForum = async function () {
-        if (window.forumIsAdmin === undefined) {
+        const uid = window.tbUid || null;
+        if (window.forumIsAdmin === undefined || adminCheckedFor !== uid) {
+            window.forumIsAdmin = undefined;
             try {
                 window.forumIsAdmin = (await window.forumCall({ action: "whoami" })).admin === true;
-                $("forumAdmin").style.display = window.forumIsAdmin ? "" : "none";
+                adminCheckedFor = uid;
             } catch (e) { /* not signed in yet: treat as a student for now */ }
         }
+        const adminBox = $("forumAdmin");
+        if (adminBox) adminBox.style.display = window.forumIsAdmin ? "" : "none";
         await baseLoad();
         if (window.forumIsAdmin) loadAdmin();
     };

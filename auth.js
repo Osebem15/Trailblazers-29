@@ -8,22 +8,22 @@ import {
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 
 // =======================================================
 // 1. EMBEDDED API KEYS & CONFIGURATION
 // =======================================================
-const GOOGLE_API_KEY = atob("QUl6YVN5QzIwenBmaW9lMEM3aXl6U210NWV4NWg4WDRwUXk1cmM0");
+// Firebase web API keys are public by design (base64 gave no protection).
+// Restrict this key by HTTP referrer in Google Cloud Console instead.
+const GOOGLE_API_KEY = "AIzaSyC20zpfioe0C7iyzSmt5ex5h8X4pQy5rc4";
 const SUPABASE_URL = "https://yuebmlmamkclsfizurkp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWJtbG1hbWtjbHNmaXp1cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MDIyMzksImV4cCI6MjEwMzQ3ODIzOX0.eWDugNSs0GD0Mx-eWaDjkiLx07B_oqjm-xVTdB39zpI";
+
+// Set to true ONLY after Supabase third-party auth (Firebase) + RLS are set up (see supabase_security.sql).
+const USE_FIREBASE_JWT_FOR_SUPABASE = false;
+// Anyone who knows a matric (they are all visible in app.js) could claim it first. Keep false and
+// create student accounts as <matric>@student.local in the Firebase console (or Admin SDK).
+const ALLOW_SELF_REGISTRATION = false;
 
 const firebaseConfig = {
   apiKey: GOOGLE_API_KEY,
@@ -37,11 +37,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
-const db = getFirestore(app);
 
 // SUPABASE STORAGE INITIALIZATION
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  USE_FIREBASE_JWT_FOR_SUPABASE
+    ? { accessToken: async () => (auth.currentUser ? await auth.currentUser.getIdToken() : null) }
+    : undefined
+);
 window.tbSupabase = supabase;
+window.supabaseClient = supabase;
 window.tbGetIdToken = async () => (auth.currentUser ? auth.currentUser.getIdToken() : null);
 
 const MATRIC_SUFFIX = "@student.local"; 
@@ -59,6 +65,28 @@ const ALLOWED_GOOGLE_EMAILS = [
   "yusuphaishat14@gmail.com",
   "nnafrancis5@gmail.com" 
 ];
+
+const onReady = (fn) => (document.readyState === 'loading'
+  ? document.addEventListener('DOMContentLoaded', fn) : fn());
+
+const isGoogleUser = (user) => !!user && user.providerData.some(p => p.providerId === 'google.com');
+
+// Admin = verified Google sign-in on the allowlist. A password account that merely uses an admin
+// email address is NOT admin. The Edge function must enforce the same rule (see supabase_security.sql).
+function isAdminUser(user) {
+  return !!(user && user.email && user.emailVerified && isGoogleUser(user) &&
+    ALLOWED_GOOGLE_EMAILS.includes(user.email.toLowerCase()));
+}
+
+// Matric only comes from our own <matric>@student.local accounts, never from arbitrary emails.
+function matricFromUser(user) {
+  if (!user || !user.email) return '';
+  const email = user.email.toLowerCase();
+  if (!email.endsWith(MATRIC_SUFFIX)) return '';
+  return email.slice(0, -MATRIC_SUFFIX.length).replace(/[^0-9]/g, '');
+}
+window.tbIsAdmin = () => isAdminUser(auth.currentUser);
+
 // Course Topics Map for Upload Modal Dropdowns
 const courseTopicsMap = {
     'ACC 210': [
@@ -156,70 +184,15 @@ window.toggleCourseTopics = async function(topicContainerId, courseCode) {
   }
 };
 
-async function fetchTopicMaterials(courseCode, topicContainerId) {
-  const topicContainer = document.getElementById(topicContainerId);
-  if (!topicContainer) return;
-
+function safeFileUrl(raw) {
   try {
-    const { data: materials, error } = await supabase
-  .from('course_materials')
-  .select('*')
-  .eq('courseCode', courseCode);
-
-if (error) {
-  console.error('Error fetching materials from Supabase:', error);
-  return;
-}
-
-const topicMap = {};
-(materials || []).forEach((data) => {
-  if (!topicMap[data.topicName]) {
-    topicMap[data.topicName] = [];
-  }
-  topicMap[data.topicName].push(data);
-});
-
-    const expandableTopics = topicContainer.querySelectorAll('.topic-expandable');
-    expandableTopics.forEach((topicEl) => {
-      const summaryText = topicEl.querySelector('summary')?.textContent.trim() || '';
-      const materialsList = topicEl.querySelector('.materials-list');
-      if (!materialsList) return;
-
-      const matchingTopicKey = Object.keys(topicMap).find((key) =>
-        summaryText.toLowerCase().includes(key.toLowerCase())
-      );
-      const files = matchingTopicKey ? topicMap[matchingTopicKey] : [];
-
-      if (files.length === 0) {
-        materialsList.innerHTML = `<p style="color: #8fa5c3; font-size: 0.8rem;">No uploaded notes yet. Be the first to upload!</p>`;
-        return;
-      }
-
-      materialsList.innerHTML = files.map((file) => `
-        <div class="material-file-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-          <span style="color: #8fa5c3; font-size: 0.85rem;">
-            <i class="${getFileIconClass(file.fileType)}" style="${getFileIconStyle(file.fileType)} margin-right: 6px;"></i> ${file.fileName}
-          </span>
-          <div style="display: flex; gap: 6px;">
-            <a href="${file.fileUrl}" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;">
-              <i class="fa-solid fa-eye"></i> View
-            </a>
-            <a href="${file.fileUrl}" download="${file.fileName}" target="_blank" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;">
-              <i class="fa-solid fa-download"></i> Download
-            </a>
-            <button onclick="printDocument('${file.fileUrl}')" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem;">
-              <i class="fa-solid fa-print"></i> Print
-            </button>
-          </div>
-        </div>
-      `).join('');
-    });
-  } catch (error) {
-    console.error('Error fetching materials:', error);
-  }
+    const u = new URL(raw);
+    return (u.protocol === 'https:' || u.protocol === 'http:') ? u : null;
+  } catch (_) { return null; }
 }
 
 function getFileIconClass(fileType = '') {
+  fileType = fileType || '';
   if (fileType.includes('pdf')) return 'fa-solid fa-file-pdf';
   if (fileType.includes('image')) return 'fa-solid fa-file-image';
   if (fileType.includes('video') || fileType.includes('mp4')) return 'fa-solid fa-file-video';
@@ -227,19 +200,129 @@ function getFileIconClass(fileType = '') {
 }
 
 function getFileIconStyle(fileType = '') {
+  fileType = fileType || '';
   if (fileType.includes('pdf')) return 'color: #ff4d4d;';
   if (fileType.includes('image')) return 'color: #4ade80;';
   if (fileType.includes('video') || fileType.includes('mp4')) return 'color: #4f8bff;';
   return 'color: var(--gold-glow);';
 }
 
-window.printDocument = function(fileUrl) {
-  const printWindow = window.open(fileUrl, '_blank');
-  if (printWindow) {
-    printWindow.focus();
-    printWindow.onload = function() {
-      printWindow.print();
+function styleAction(el, iconClass, text) {
+  el.className = 'btn-outline';
+  el.style.cssText = 'padding: 4px 8px; font-size: 0.75rem;';
+  const i = document.createElement('i');
+  i.className = iconClass;
+  el.append(i, ' ' + text);
+  return el;
+}
+
+function buildMaterialRow(file) {
+  const url = safeFileUrl(file.fileUrl);
+  if (!url) return null;
+
+  const row = document.createElement('div');
+  row.className = 'material-file-row';
+  row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);';
+
+  const label = document.createElement('span');
+  label.style.cssText = 'color: #8fa5c3; font-size: 0.85rem;';
+  const icon = document.createElement('i');
+  icon.className = getFileIconClass(file.fileType);
+  icon.style.cssText = getFileIconStyle(file.fileType) + ' margin-right: 6px;';
+  label.append(icon, ' ' + (file.fileName || 'Untitled'));
+
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display: flex; gap: 6px;';
+
+  const view = styleAction(document.createElement('a'), 'fa-solid fa-eye', 'View');
+  view.href = url.href;
+  view.target = '_blank';
+  view.rel = 'noopener noreferrer';
+
+  // The HTML "download" attribute is ignored cross-origin; Supabase honours ?download=<name>.
+  const dlUrl = new URL(url.href);
+  dlUrl.searchParams.set('download', file.fileName || 'file');
+  const dl = styleAction(document.createElement('a'), 'fa-solid fa-download', 'Download');
+  dl.href = dlUrl.href;
+  dl.rel = 'noopener noreferrer';
+
+  const print = styleAction(document.createElement('button'), 'fa-solid fa-print', 'Print');
+  print.type = 'button';
+  print.addEventListener('click', () => window.printDocument(url.href));
+
+  actions.append(view, dl, print);
+  row.append(label, actions);
+  return row;
+}
+
+async function fetchTopicMaterials(courseCode, topicContainerId) {
+  const topicContainer = document.getElementById(topicContainerId);
+  if (!topicContainer) return;
+
+  try {
+    const { data: materials, error } = await supabase
+      .from('course_materials')
+      .select('*')
+      .eq('courseCode', courseCode);
+
+    if (error) {
+      console.error('Error fetching materials from Supabase:', error);
+      return;
+    }
+
+    const topicMap = {};
+    (materials || []).forEach((data) => {
+      if (!topicMap[data.topicName]) topicMap[data.topicName] = [];
+      topicMap[data.topicName].push(data);
+    });
+
+    topicContainer.querySelectorAll('.topic-expandable').forEach((topicEl) => {
+      const summaryText = topicEl.querySelector('summary')?.textContent.trim() || '';
+      const materialsList = topicEl.querySelector('.materials-list');
+      if (!materialsList) return;
+
+      const matchingTopicKey = Object.keys(topicMap).find((key) =>
+        summaryText.toLowerCase().includes(String(key).toLowerCase())
+      );
+      const rows = (matchingTopicKey ? topicMap[matchingTopicKey] : [])
+        .map(buildMaterialRow).filter(Boolean);
+
+      if (rows.length === 0) {
+        const p = document.createElement('p');
+        p.style.cssText = 'color: #8fa5c3; font-size: 0.8rem;';
+        p.textContent = 'No uploaded notes yet. Be the first to upload!';
+        materialsList.replaceChildren(p);
+        return;
+      }
+      materialsList.replaceChildren(...rows);
+    });
+  } catch (error) {
+    console.error('Error fetching materials:', error);
+  }
+}
+
+// window.print() on a cross-origin window throws, so fetch the file and print it from a same-origin blob.
+window.printDocument = async function (fileUrl) {
+  try {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blobUrl = URL.createObjectURL(await res.blob());
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    frame.onload = () => {
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } catch (_) {
+        window.open(blobUrl, '_blank');
+      }
+      setTimeout(() => { URL.revokeObjectURL(blobUrl); frame.remove(); }, 60000);
     };
+    frame.src = blobUrl;
+    document.body.appendChild(frame);
+  } catch (err) {
+    console.warn('Print fallback (opening file):', err);
+    window.open(fileUrl, '_blank', 'noopener');
   }
 };
 
@@ -287,6 +370,10 @@ if (uploadMaterialForm) {
       alert('Please select a course, topic, and file before uploading.');
       return;
     }
+    if (!auth.currentUser) {
+      alert('Please log in before uploading.');
+      return;
+    }
 
     const submitBtn = uploadMaterialForm.querySelector('button[type="submit"]');
     if (submitBtn) {
@@ -330,7 +417,11 @@ if (uploadMaterialForm) {
 if (dbError) throw dbError;
 
       alert('Material uploaded successfully to Supabase Storage!');
-      document.getElementById('uploadNotesModal')?.close();
+      const uploadModal = document.getElementById('uploadNotesModal');
+      if (uploadModal) {
+        if (typeof uploadModal.close === 'function') uploadModal.close();
+        else uploadModal.style.display = 'none';
+      }
       uploadMaterialForm.reset();
 
       const targetAccordionId = `${course.toLowerCase().replace(/\s+/g, '')}-topics`;
@@ -348,40 +439,62 @@ if (dbError) throw dbError;
 }
 
 // 2. AUTH OBSERVER + DYNAMIC GREETING & ADMIN CHECK
+function setGreeting(name) {
+  const h = document.querySelector('.welcome-greeting h2');
+  if (h) {
+    h.textContent = name + ' ';
+    const badge = document.createElement('i');
+    badge.className = 'fa-solid fa-circle-check verified-badge-icon';
+    badge.style.color = '#1d9bf0';
+    h.appendChild(badge);
+  }
+  const label = document.getElementById('dropdownUserName');
+  if (label) label.textContent = name;
+}
+
+// Everything tied to a signed-in user is wiped here, whichever way the session ended.
+function clearSessionState() {
+  window.currentLoggedInMatric = '';
+  window.tbUid = null;
+  window.forumIsAdmin = undefined;
+  ['logged_in_user_email', 'logged_in_user_matric', 'trailblazers_user'].forEach(k => localStorage.removeItem(k));
+  sessionStorage.clear();
+  if (Array.isArray(window.studentDuesRegistry)) window.studentDuesRegistry.forEach(s => { s.paid = false; });
+  ['adminFeesControl', 'forumAdmin', 'profileModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
-    if (isGoogleUser && !ALLOWED_GOOGLE_EMAILS.includes(user.email)) {
+    if (isGoogleUser(user) && !isAdminUser(user)) {
       displayError("This Google account does not have access to this portal.");
       signOut(auth);
       return;
     }
-    let cleanMatric = user.email ? user.email.replace(MATRIC_SUFFIX, '').replace('@gmail.com', '').replace(/[^0-9]/g, '').trim() : '';
+    if (!isGoogleUser(user) && !matricFromUser(user)) {
+      displayError("This account is not a recognised student account.");
+      signOut(auth);
+      return;
+    }
+
+    const cleanMatric = matricFromUser(user);
     window.currentLoggedInMatric = cleanMatric;
-   
-    // Save to LocalStorage for Profile & Receipt modules
+    window.tbUid = user.uid;
     localStorage.setItem('logged_in_user_email', user.email || '');
     localStorage.setItem('logged_in_user_matric', cleanMatric);
-    let displayName = (window.studentDirectory && window.studentDirectory[cleanMatric]) || user.displayName || 'Trailblazer';
-   
-    const greetingHeader = document.querySelector('.welcome-greeting h2');
-    if (greetingHeader) {
-      greetingHeader.innerHTML = `${displayName} <i class="fa-solid fa-circle-check verified-badge-icon" style="color: #1d9bf0;"></i>`;
-    }
-    const dropdownNameLabel = document.getElementById("dropdownUserName");
-    if (dropdownNameLabel) {
-      dropdownNameLabel.textContent = displayName;
-    }
-    if (typeof window.updateStudentDuesUI === 'function') {
-      window.updateStudentDuesUI(cleanMatric);
-    }
+
+    setGreeting((window.studentDirectory && window.studentDirectory[cleanMatric]) || user.displayName || 'Trailblazer');
+
+    if (typeof window.refreshStudentDues === 'function') window.refreshStudentDues();
+    else if (typeof window.updateStudentDuesUI === 'function') window.updateStudentDuesUI(cleanMatric);
+
     const adminPanel = document.getElementById('adminFeesControl');
     if (adminPanel) {
-      if (user.email && ALLOWED_GOOGLE_EMAILS.includes(user.email)) {
+      if (isAdminUser(user)) {
         adminPanel.style.display = 'block';
-        if (typeof window.renderAdminDuesTable === 'function') {
-          window.renderAdminDuesTable();
-        }
+        if (typeof window.renderAdminDuesTable === 'function') window.renderAdminDuesTable();
       } else {
         adminPanel.style.display = 'none';
       }
@@ -391,62 +504,64 @@ onAuthStateChanged(auth, (user) => {
     if (loginForm) loginForm.reset();
     authError.style.display = "none";
   } else {
+    clearSessionState();
     if (loggedOutView) loggedOutView.style.display = "block";
     if (loggedInView) loggedInView.style.display = "none";
   }
 });
-// 3A. EMAIL / MATRICULATION LOGIN FORM
+
+// 3A. MATRICULATION LOGIN FORM
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    authError.style.display = 'none'; 
+    authError.style.display = 'none';
 
     const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.getElementById('email-input');
     const passwordInput = loginForm.querySelector('input[name="password"]');
+    const matric = (matricInput ? matricInput.value : '').replace(/\s+/g, '');
+    const password = passwordInput ? passwordInput.value : '';
 
-    let rawMatric = matricInput ? matricInput.value.trim().toLowerCase() : "";
-    const password = passwordInput ? passwordInput.value : "";
-
-    if (!rawMatric || !password) {
+    if (!matric || !password) {
       displayError("Please enter your matriculation number and password.");
       return;
     }
-
-    const extractedMatric = rawMatric.replace(/[^0-9]/g, '');
-    if (typeof window.setStudentDisplayName === 'function') {
-      window.setStudentDisplayName(extractedMatric);
+    // Digits only: "250201001@anything.com" used to resolve to the same account.
+    if (!/^\d{6,12}$/.test(matric)) {
+      displayError("Enter your matriculation number (digits only).");
+      return;
+    }
+    if (window.studentDirectory && !window.studentDirectory[matric]) {
+      displayError("Matriculation number not recognised.");
+      return;
     }
 
-    if (!rawMatric.includes('@')) rawMatric = `${rawMatric}${MATRIC_SUFFIX}`;
-
+    const email = `${matric}${MATRIC_SUFFIX}`;
     try {
-      await signInWithEmailAndPassword(auth, rawMatric, password);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Firebase Auth Sign-In Error:", error.code, error.message);
-
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-        try {
-          await createUserWithEmailAndPassword(auth, rawMatric, password);
-        } catch (createErr) {
-          if (createErr.code === 'auth/weak-password') {
-            displayError("Password must be at least 6 characters long.");
-          } else if (createErr.code === 'auth/email-already-in-use') {
-            displayError("Incorrect password for this account. Please try again.");
-          } else {
-            displayError("Authentication failed. Please verify your details.");
+      const code = error.code;
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
+        if (ALLOW_SELF_REGISTRATION && code !== 'auth/wrong-password') {
+          try {
+            await createUserWithEmailAndPassword(auth, email, password);
+          } catch (createErr) {
+            if (createErr.code === 'auth/weak-password') displayError("Password must be at least 6 characters long.");
+            else if (createErr.code === 'auth/email-already-in-use') displayError("Incorrect password for this account. Please try again.");
+            else displayError("Authentication failed. Please verify your details.");
           }
+        } else {
+          displayError("Incorrect matriculation number or password. First time here? Ask the class admin to activate your account.");
         }
-      } else if (error.code === 'auth/wrong-password') {
-        displayError("Invalid matriculation number/email or password.");
+      } else if (code === 'auth/too-many-requests') {
+        displayError("Too many attempts. Please wait a few minutes and try again.");
       } else {
-        displayError(`Authentication failed: ${error.message}`);
+        displayError("Sign-in failed. Please try again.");
       }
     }
   });
 }
-// =======================================================
-// 3. LOGIN & LOGOUT FLOWS
-// =======================================================
+
 // 3B. GOOGLE SIGN-IN BUTTON
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', async () => {
@@ -459,112 +574,22 @@ if (googleLoginBtn) {
   });
 }
 
-// 3C. LOGOUT BUTTON
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout Error:", error);
-    }
-  });
-}
-// Function to handle full user logout
-function performLogout() {
-    // 1. Hide profile popup modal immediately
-    const profileModal = document.getElementById('profileModal');
-    if (profileModal) {
-        profileModal.style.display = 'none';
-    }
-    // 2. Hide dashboard and display login screen
-    const loggedInView = document.getElementById('LoggedInView');
-    const loggedOutView = document.getElementById('loggedOutView');
-   
-    if (loggedInView) loggedInView.style.display = 'none';
-    if (loggedOutView) loggedOutView.style.display = 'block';
-    // 3. Clear session storage
-    localStorage.removeItem('trailblazers_user');
-    sessionStorage.clear();
-}
-// Bind both logout buttons
-document.getElementById('modalLogoutBtn')?.addEventListener('click', performLogout);
-document.getElementById('logoutBtn')?.addEventListener('click', performLogout);
-
-// =======================================================
-// 4. MOBILE SIDEBAR DRAWER TOGGLE
-// =======================================================
-const menuToggleBtn = document.getElementById('menu-toggle-btn');
-const dashboardSidebar = document.querySelector('.dashboard-sidebar');
-const sidebarOverlay = document.getElementById('sidebar-overlay');
-const sidebarLinks = document.querySelectorAll('.sidebar-grid-menu .menu-item');
-
-if (menuToggleBtn && dashboardSidebar) {
-  menuToggleBtn.addEventListener('click', () => {
-    dashboardSidebar.classList.toggle('active');
-    if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
-  });
-}
-
-if (sidebarOverlay) {
-  sidebarOverlay.addEventListener('click', () => {
-    dashboardSidebar.classList.remove('active');
-    sidebarOverlay.classList.remove('active');
-  });
-}
-
-sidebarLinks.forEach(link => {
-  link.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      dashboardSidebar.classList.remove('active');
-      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-    }
-  });
-});
-
-// =======================================================
-// 5. DYNAMIC TAB & VIEW SWITCHER
-// =======================================================
-function switchDashboardTab(tabName) {
-  const menuItems = document.querySelectorAll('.sidebar-grid-menu .menu-item');
-  const views = {
-    'Home': document.getElementById('dashboardHomeView'),
-    'Courses': document.getElementById('coursesView'),
-    'Timetable': document.getElementById('timetableView'),
-    'Results': document.getElementById('resultsView'),
-    'Fees': document.getElementById('feesView'),
-    'Notices': document.getElementById('noticesView'),
-    'Documents': document.getElementById('documentsView')
-  };
-
-  menuItems.forEach((item) => {
-    const itemText = item.querySelector('span')?.textContent.trim();
-    item.classList.toggle('active', itemText === tabName);
-  });
-
-  Object.keys(views).forEach(key => {
-    if (views[key]) views[key].style.display = 'none';
-  });
-
-  if (views[tabName]) {
-    views[tabName].style.display = 'block';
-  } else if (views['Home']) {
-    views['Home'].style.display = 'block';
+// 3C. LOGOUT (one handler for the header button and the profile-modal button)
+async function doLogout() {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Logout Error:", error);
   }
+  clearSessionState();
+  if (loggedInView) loggedInView.style.display = 'none';
+  if (loggedOutView) loggedOutView.style.display = 'block';
 }
+if (logoutBtn) logoutBtn.addEventListener('click', doLogout);
+document.getElementById('modalLogoutBtn')?.addEventListener('click', doLogout);
 
-document.querySelectorAll('.sidebar-grid-menu .menu-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const tabName = item.querySelector('span')?.textContent.trim();
-    if (tabName) switchDashboardTab(tabName);
-  });
-});
-
-document.querySelectorAll('.access-box').forEach(box => {
-  box.addEventListener('click', () => {
-    const tabName = box.querySelector('span')?.textContent.trim();
-    if (tabName) switchDashboardTab(tabName);
-  });
-});
+// NOTE: the mobile sidebar controller and the tab/view switcher live in app.js only.
+// (The old copies here fought with them and did not know about the Gallery/Forum views.)
 
 // =======================================================
 // 6. COMPLETE DEPARTMENT SCORESHEET DATABASE
@@ -573,322 +598,7 @@ document.querySelectorAll('.access-box').forEach(box => {
 // SUPABASE RESULTS & CGPA CALCULATOR DATABASE HELPERS 
 // ======================================================= 
  
-// =======================================================
-// HYBRID RESULTS DATABASE: SUPABASE + LOCAL JS FALLBACK
-// Used when Supabase queries fail, or return empty results
-// (e.g. AMS 103 records missing / schema errors)
-// =======================================================
-const localCourseResultsFallback = {
-    "AMS 103": [
-         { matric: "250201001", name: "OLAOSUN, Isaac Ayoola", grade: "B" }, 
-  { matric: "250201002", name: "QUADRI, Oluwaseni Adekunle", grade: 
-"B" }, 
-  { matric: "250201003", name: "OKUNUBI, Mujeeb Oyindamola", grade: 
-"A" }, 
-  { matric: "250201004", name: "YUSUPH, Aishat Tunmise", grade: "B" }, 
-  { matric: "250201005", name: "ANENE, Deborah Ndubuisi", grade: "A" 
-}, 
-  { matric: "250201006", name: "AYANTOLA, Daniella Oluwapelumi", 
-grade: "A" }, 
-  { matric: "250201007", name: "ADUKANLE, Precious Oluwanifemi", 
-grade: "B" }, 
-  { matric: "250201008", name: "AMBELLY, Aleeyah Ochuware", grade: "A" 
-}, 
-  { matric: "250201009", name: "DIKE, Joy Nkemjika", grade: "B" }, 
-  { matric: "250201010", name: "KELANI, Victor Abiola", grade: "A" }, 
-  { matric: "250201011", name: "AJIBADE, Adeola Victoria", grade: "A" 
-}, 
-  { matric: "250201012", name: "BODE-ADAMS, Ireoluwa Olusola", grade: 
-"A" }, 
-  { matric: "250201013", name: "ABIDEKUN, Elizabeth Opeyemi", grade: 
-"B" }, 
-  { matric: "250201014", name: "CHIEGWU, Wilson Kenechukwu", grade: 
-"A" }, 
-  { matric: "250201015", name: "FAKOREDE, Aliyah Abike", grade: "C" }, 
-  { matric: "250201016", name: "NNADI, Francis Ikem", grade: "B" }, 
-  { matric: "250201017", name: "BOROKINNI, Precious Oyinkansola", 
-grade: "B" }, 
-  { matric: "250201019", name: "OMEJE, Somfe Benedicta", grade: "A" }, 
-  { matric: "250201020", name: "OGUNBAYO, Anuoluwapo Ayomikun", grade: 
-"A" }, 
-  { matric: "250201021", name: "ADEFALUJO, Oluwafunmilayo Hannah", 
-grade: "B" }, 
-  { matric: "250201022", name: "ILORI, Oluwatofunmi Olamide", grade: 
-"A" }, 
-  { matric: "250201023", name: "FOLORUNSHO, Mosunmola Elizabeth", 
-grade: "B" }, 
-  { matric: "250201024", name: "OGUNKOYA, Oluwademilade Opeyemi", 
-grade: "A" }, 
-  { matric: "250201025", name: "ADEBAKIN, Yusuf Kayode", grade: "A" }, 
-  { matric: "250201026", name: "SHITTU, Olamiposi Emmanuel", grade: 
-"A" }, 
-  { matric: "250201027", name: "SANI, Mubarak Yakubu", grade: "A" }, 
-  { matric: "250201028", name: "AGBALAYA, Hiqmat Olamide", grade: "B" 
-}, 
-  { matric: "250201029", name: "ADIO, Oluwanifemi Favour", grade: "C" 
-}, 
-  { matric: "250201030", name: "KALU, Glory Virginia", grade: "B" }, 
-  { matric: "250201031", name: "JOHN, Chisom Gift", grade: "B" }, 
-  { matric: "250201032", name: "BANKOLE, Ibukun Victor", grade: "C" }, 
-  { matric: "250201033", name: "NWOFIA, Jedidah Eziaha", grade: "A" }, 
-  { matric: "250201035", name: "ALAWODE, Praise Abimbola", grade: "B" 
-}, 
-  { matric: "250201038", name: "DA-SILVA, Precious Oluwatayo", grade: 
-"A" }, 
-  { matric: "250201042", name: "AKINTAN, Jamal Olanrewaju", grade: "A" 
-}, 
-  { matric: "250201043", name: "OLUWALAJIKI, Deborah Taiwo", grade: 
-"B" }, 
-  { matric: "250201044", name: "HASSAN, Eniola Oluwadamilola", grade: 
-"C" }, 
-  { matric: "250201045", name: "OLANREWAJU, Daniel Success", grade: 
-"B" }, 
-  { matric: "250201046", name: "AKINOLA, Olusolape Vivian", grade: "C" 
-}, 
-  { matric: "250201047", name: "BAKARE, Gold Moriseninuola", grade: 
-"B" }, 
-  { matric: "250201048", name: "UZOECHI, Chika Michal", grade: "A" }, 
-  { matric: "250201049", name: "AKINREFON, Eniola Priscilla", grade: 
-"A" }, 
-  { matric: "250201050", name: "AJISEGIRI, Eniola Samuel", grade: "A" 
-}, 
-  { matric: "250201051", name: "OMEKE, Precious Anuoluwapo", grade: 
-"B" }, 
-  { matric: "250201052", name: "ADEMOLA, Elijah Ayomide", grade: "A" 
-}, 
-  { matric: "250201053", name: "BAKARE, Sulhaa Temilola", grade: "A" 
-}, 
-  { matric: "250201054", name: "FAKAYODE, Samuel Oluwasemilore", 
-grade: "C" }, 
-  { matric: "250201055", name: "FADARE, Fadeshola Joyce", grade: "A" 
-}, 
-  { matric: "250201063", name: "FASHINA, Ifeoluwa Elizabeth", grade: 
-"B" }, 
-  { matric: "250201064", name: "OLADIRAN, Praise Opemipo", grade: "B" 
-}, 
-  { matric: "250201065", name: "OLUFADE, Oluwaseyi Olaitan", grade: 
-"C" }, 
-  { matric: "250201066", name: "AKINBODE, Precious Ifeoluwa", grade: 
-"C" }, 
-  { matric: "250201067", name: "PRINCEWILL, Joy-Abasi Idara", grade: 
-"A" }, 
-  { matric: "250201068", name: "KAZEEM, Abdullateef Opeyemi", grade: 
-"B" }, 
-  { matric: "250201069", name: "AFOLABIOZUA, Ebubechukwu Melchizedek", 
-grade: "A" }, 
-  { matric: "250201070", name: "AJAYI, Isaac Aduragbemi", grade: "B" 
-}, 
-  { matric: "250201071", name: "KILA, Khadijah Titilope", grade: "B" 
-}, 
-  { matric: "250201079", name: "ASAOLU, Babatope Christopher", grade: 
-"B" }, 
-  { matric: "250201081", name: "EMMANUEL, Okon Emmanuella Atinmma Ayomide", grade: "B" }, 
-  { matric: "250201105", name: "OLASUNMIBOYE, Adedamola Faith", grade: 
-"B" }, 
-  { matric: "250201106", name: "IBITOYE, Olawumi Peace", grade: "B" }, 
-  { matric: "250201107", name: "AFOLABI, Daniel Olanrewaju", grade: 
-"B" }, 
-  { matric: "250201108", name: "OLABAMERUN, Inioluwa Mercy", grade: 
-"B" }, 
-  { matric: "250201109", name: "CHUKWUDI, Okeh-Chidera Gift", grade: 
-"C" }, 
-  { matric: "250201110", name: "YUSUF, Abdul-Azeez Ajadi", grade: "A" 
-}, 
-  { matric: "250201111", name: "AMOLE, Abdulsamad Kolade", grade: "B" 
-}, 
-  { matric: "250201112", name: "HAMZAH, Fareedah Damilola", grade: "A" 
-}, 
-  { matric: "250201113", name: "ODUSOLA, Moyinoluwa Dorcas", grade: 
-"B" }, 
-  { matric: "250201114", name: "SALAU, Mistura Eniola", grade: "A" }, 
-  { matric: "250201115", name: "MARTINS, Adefunke Dorcas", grade: "B" 
-}, 
-  { matric: "250201117", name: "BADEWOLE, Prosper Oluwatoorese", 
-grade: "A" }, 
-  { matric: "250201288", name: "HUTHMAN, Sheriffdeen Omogbolahan", 
-grade: "B" }, 
-  { matric: "250201289", name: "OLADUNJOYE, Opemipo Dorcas", grade: 
-"B" }, 
-  { matric: "250201290", name: "BANKOLE, Jason Oluwafayokunmi", grade: 
-"A" }, 
-  { matric: "250201291", name: "ODUGHU, Gift Oseremien", grade: "B" }, 
-  { matric: "250201292", name: "ADEWOLE, Habeeb Gbolahan", grade: "B" 
-}, 
-  { matric: "250201293", name: "AJAYI, Ifeoluwa Uziezi", grade: "A" }, 
-  { matric: "250201294", name: "AJAYI, Motunrayo Eloho", grade: "B" }, 
-  { matric: "250201295", name: "LAMIDI, Emmanuel Olaoluwa", grade: "A" 
-}, 
-  { matric: "250201296", name: "OLADUNTOYE, Oluwatimilehin Lydia", 
-grade: "B" }, 
-  { matric: "250201297", name: "KOTUN, Sobur Olamiji", grade: "C" }, 
-  { matric: "250201299", name: "OLALEYE, Mopelola Grace", grade: "A" 
-}, 
-  { matric: "250201300", name: "EKEOPARA, Chibuike Francis", grade: 
-"C" }, 
-  { matric: "250201301", name: "AFOLABI, Hezekiah Tope", grade: "B" }, 
-  { matric: "250201302", name: "ADARAMOLA, Bisola Favour", grade: "B" 
-}, 
-  { matric: "250201303", name: "OLANREWAJU, Juliet Oluwadamilola", 
-grade: "B" }, 
-  { matric: "250201304", name: "ENIAFE, Abdulwahab Alabi", grade: "B" 
-}, 
-  { matric: "250201305", name: "BAKARE, Idris Abayomi", grade: "B" }, 
-  { matric: "250201306", name: "ADEBAYO, Ife Kassium", grade: "A" }, 
-  { matric: "250201308", name: "ADESANYA, Adetutu Adebimpe", grade: 
-"A" }, 
-  { matric: "250201316", name: "SHOBAYO, Malik Ramadan", grade: "B" }, 
-  { matric: "250201317", name: "OVIAWE, Faith Orobosa", grade: "B" }, 
-  { matric: "250201318", name: "ONI, Victoria Oluwaseyi", grade: "B" 
-}, 
-  { matric: "250201319", name: "MUSTAPHA, Amirat Temilade", grade: "A" 
-}, 
-  { matric: "250201320", name: "OBASESAN-YUSUF, Jafar Akanbi", grade: 
-"A" }, 
-  { matric: "250201321", name: "OGBEIDE, Serena Orobosa", grade: "B" 
-}, 
-  { matric: "250201322", name: "AKINYEMI, Faith Oluwadamilola", grade: 
-"C" }, 
-  { matric: "250201323", name: "OJORA, Roheem Adeola", grade: "D" }, 
-  { matric: "250201324", name: "OSEBEYO, Emmanuel Ayomide", grade: "B" 
-}, 
-  { matric: "250201325", name: "ADENIRAN, Oluwadamilola Mercy", grade: 
-"B" }, 
-  { matric: "250201328", name: "COKER, Omogbemisola Adedoyin", grade: 
-"C" }, 
-  { matric: "250201330", name: "ONI, Daniel Oluwadamilare", grade: "A" 
-}, 
-  { matric: "250201331", name: "OLOMO, Adeshina Emmanuel", grade: "B" 
-}, 
-  { matric: "250201332", name: "SHIYANBADE, Faderera Oluwanifemi", 
-grade: "B" }, 
-  { matric: "250201333", name: "NWANKWO, Favour Uchechi", grade: "C" 
-}, 
-  { matric: "250201334", name: "MONSURU, Abdul-Quadri Gbolahan", 
-grade: "B" }, 
-  { matric: "250201335", name: "OLADIMEJI, Isaac Ayomikun", grade: "D" 
-}, 
-  { matric: "250201336", name: "OYENIRAN, Olamide Jeremiah", grade: 
-"B" }, 
-  { matric: "250201337", name: "AGBASI, Chimamanda Valerie", grade: 
-"B" }, 
-  { matric: "250201338", name: "AJIBOLA, Peace Oluwanifemi Oluwatobi", 
-grade: "B" }, 
-  { matric: "250201339", name: "IBRAHIM, Aleeyat Kofoworola", grade: 
-"C" }, 
-  { matric: "250201340", name: "BATULA, Oluwaranti Janet", grade: "B" 
-}, 
-  { matric: "250201341", name: "AJADI, Fathia Arike", grade: "B" }, 
-  { matric: "250201342", name: "OYEBADEJO, Tobiloba Peter", grade: "B" 
-}, 
-  { matric: "250201343", name: "AGBOOLA, Olabisi Anthonia", grade: "A" 
-}, 
-  { matric: "250201344", name: "NJOKU, Francis Ikechukwu", grade: "B" 
-}, 
-  { matric: "250201345", name: "ALABI, Emmanuel Oladimeji", grade: "A" 
-}, 
-  { matric: "250201346", name: "UGO, Onyekachi Tobiloba", grade: "B" 
-}, 
-  { matric: "250201347", name: "OLUWOLE, Oluwakayode John", grade: "A" 
-}, 
-  { matric: "250201348", name: "OLAITAN, Oluwanifemi Elizabeth", 
-grade: "B" }, 
-  { matric: "250201349", name: "EJIKE, Esther Chisom.", grade: "B" }, 
-  { matric: "250201353", name: "AMOSUN, Daniella Oluwatofarati", 
-grade: "C" }, 
-  { matric: "250201354", name: "OMEREME, Ifeanyi", grade: "C" }, 
-  { matric: "250201356", name: "AYESORO, Eniola Ajoke", grade: "D" }, 
-  { matric: "250201357", name: "SALAMADE, Adesola Abosede", grade: "A" 
-}, 
-  { matric: "250201358", name: "AJENIFUJA, Anuoluwapo Temilola", 
-grade: "C" }, 
-  { matric: "250201359", name: "BUSARI, Abdullah Adesola", grade: "C" 
-}, 
-  { matric: "250201360", name: "OPEYEMI, Faithful Opemipo", grade: "B" 
-}, 
-  { matric: "250201361", name: "ISOGUN, Oluwasegun Moses", grade: "A" 
-}, 
-  { matric: "250201362", name: "ODIO, Esther Ogbedafe", grade: "B" }, 
-  { matric: "250201363", name: "OYENIYI-OKEDUN, Christiana Oluwanifemi", grade: "A" }, 
-  { matric: "250201364", name: "OLASUNKANMI, Mariam Abiola", grade: 
-"B" }, 
-  { matric: "250201365", name: "AKINBODE, Hameedat Morenikeji", grade: 
-"C" }, 
-  { matric: "250201366", name: "EHIREMEN, Mercy Elomeseh", grade: "B" 
-}, 
-  { matric: "250201367", name: "AKAPO, David Toluwalase", grade: "B" 
-}, 
-  { matric: "250201368", name: "ABUBAKAR, Kehinde Fatimah", grade: "B" 
-}, 
-  { matric: "250201369", name: "AYINLA, Abosede Morayo", grade: "D" }, 
-  { matric: "250201371", name: "OYEBULU, Olayiwola Damilare", grade: 
-"C" }, 
-  { matric: "250201372", name: "SAJOWA, Kehinde Oluwatosin", grade: 
-"A" }, 
-  { matric: "250201373", name: "CHUKWU, Esther Chidinma", grade: "B" 
-}, 
-  { matric: "250201374", name: "BENA, Elizabeth Teniola", grade: "B" 
-}, 
-  { matric: "250201375", name: "OLAJIRE, Quam Akinola", grade: "B" }, 
-  { matric: "250201376", name: "BASSEY, Favour Temiloluwa", grade: "B" 
-}, 
-  { matric: "250201378", name: "ADENIYI, Temitope Victoria", grade: 
-"D" }, 
-  { matric: "250201379", name: "ADEBOWALE-DAVID, Oluwaranolasimi Joshua", grade: "B" }, 
-  { matric: "250201380", name: "OLATOYE, Emmanuel Chukwuebuka", grade: 
-"C" }, 
-  { matric: "250201381", name: "HUSSEIN, Mutmainnah Damilola", grade: 
-"C" }, 
-  { matric: "250201382", name: "GARUBA, Aishat Eniola-Olubukola", 
-grade: "A" }, 
-  { matric: "250201383", name: "MOBOLADE, Zainab Morenikeji", grade: 
-"B" }, 
-  { matric: "250201384", name: "FADAIRO, Oluwaferanmi Elizabeth", 
-grade: "B" }, 
-  { matric: "250201385", name: "KUDEHINBU, Lateef Aremu", grade: "C" 
-}, 
-  { matric: "250201386", name: "SAMUEL, Eniola Omotoyosi", grade: "A" 
-}, 
-  { matric: "250201387", name: "BELLO, Mohammed Oladokun", grade: "B" 
-}, 
-  { matric: "250201389", name: "IMRAN, Al-Ameen Ayomide", grade: "A" 
-}, 
-  { matric: "250201390", name: "ODUWAYE, Toluwalase Isaac", grade: "C" 
-}, 
-  { matric: "250201391", name: "ADEDEJI, Tosin Christianah", grade: 
-"C" }, 
-  { matric: "250201393", name: "ADIGUN, Mosopefoluwa Anjolaoluwa", 
-grade: "B" }, 
-  { matric: "250201394", name: "OLA, Selimot Tolani", grade: "A" }, 
-  { matric: "250201395", name: "OLULANA, Ibukunoluwa Bukola", grade: 
-"B" }, 
-  { matric: "250201396", name: "AJIBADE, Fathia Olamide", grade: "D" 
-}, 
-  { matric: "250201397", name: "MAKANJUOLA, Halleluyah Israel", grade: 
-"A" }, 
-{ matric: "250201398", name: "COLLINS, Victoria Vobi", grade: "A" }, 
-{ matric: "250201399", name: "MUSTAPHA, Abdulbasit Olaide", grade: 
-"C" }, 
-{ matric: "250201400", name: "ADELEKE, Ayodeji Emmanuel", grade: "C" 
-}, 
-{ matric: "250201401", name: "OGUNFOWOKAN, Oluwatetisimi Ajoke", 
-grade: "B" }, 
-{ matric: "250201402", name: "ADENIRAN, Abdullahi Adedamola", grade: 
-"C" }, 
-{ matric: "250201404", name: "ADEYANJU, Mulikat Kehinde", grade: "B" 
-}, 
-{ matric: "250201405", name: "UTHMAN, Omonifemi Daniella", grade: 
-"A" }, 
-{ matric: "250201406", name: "FARAYIBI, Daniel Obaloluwa", grade: 
-"C" }, 
-{ matric: "250201407", name: "ADEKUNLE, Enoch Fiadeshola", grade: 
-"C" }, 
-{ matric: "250201408", name: "ADEBAYO, Oluwatofunmi Lydia", grade: 
-"C" } 
-
-    ]
-};
-
-// 1. Fetch scores for a single course (Used by Results view) 
+// 1. Fetch scores for a single course (Used by Results view)
 async function fetchCourseResultsFromSupabase(semester, courseCode) {
     try {
         const { data, error } = await supabase
@@ -897,55 +607,34 @@ async function fetchCourseResultsFromSupabase(semester, courseCode) {
             .eq('semester', semester)
             .eq('course_code', courseCode)
             .order('matric', { ascending: true });
-
-        if (!error && data && data.length > 0) {
-            return data;
+        if (error) {
+            console.warn(`[Supabase] ${courseCode}:`, error.message);
+            return [];
         }
-        if (error) console.warn(`[Supabase] ${courseCode}:`, error.message);
+        return data || [];
     } catch (err) {
-        console.warn(`[Supabase] ${courseCode} fetch failed, using local fallback:`, err.message);
+        console.warn(`[Supabase] ${courseCode} fetch failed:`, err.message);
+        return [];
     }
-    // Fallback: serve local JS dataset if DB query failed or returned nothing
-    return localCourseResultsFallback[courseCode] || [];
 }
 
-// 2. Fetch all course grades for a single student (Used by CGPA Calculator) 
+// 2. Fetch all course grades for a single student (Used by CGPA Calculator)
 async function fetchStudentGradesForCGPA(matricNo) {
-    const cleanMatric = matricNo.replace(/[^0-9]/g, '').trim();
-    let combinedGrades = [];
-
+    const cleanMatric = String(matricNo).replace(/[^0-9]/g, '').trim();
     try {
         const { data, error } = await supabase
             .from('student_results')
             .select('course_code, ca, exam, grade')
             .eq('matric', cleanMatric);
-
-        if (!error && data) {
-            combinedGrades = data;
-        } else if (error) {
+        if (error) {
             console.warn('[Supabase GPA Lookup]:', error.message);
+            return [];
         }
+        return data || [];
     } catch (err) {
-        console.warn('[Supabase GPA Lookup] failed, searching local fallback...', err.message);
+        console.warn('[Supabase GPA Lookup] failed:', err.message);
+        return [];
     }
-
-    // Merge in any local fallback records not already returned by Supabase
-    Object.keys(localCourseResultsFallback).forEach(courseCode => {
-        const studentMatch = localCourseResultsFallback[courseCode].find(item => item.matric === cleanMatric);
-        if (studentMatch) {
-            const alreadyExists = combinedGrades.some(g => g.course_code === courseCode);
-            if (!alreadyExists) {
-                combinedGrades.push({
-                    course_code: courseCode,
-                    ca: studentMatch.ca,
-                    exam: studentMatch.exam,
-                    grade: studentMatch.grade
-                });
-            }
-        }
-    });
-
-    return combinedGrades;
 }
 
 let activeSemester = "1st";
@@ -987,42 +676,41 @@ const activeCourseTitle = document.getElementById('activeCourseTitle');
 const studentScoresTbody = document.getElementById('studentScoresTbody');
 const studentSearchInput = document.getElementById('studentSearchInput');
 
+const hasNumber = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
+
 function renderScoresTable(dataList) {
   if (!studentScoresTbody) return;
-  studentScoresTbody.innerHTML = '';
-
-  const pointMap = { 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0 };
+  studentScoresTbody.replaceChildren();
 
   dataList.forEach((item, index) => {
-    const hasNumericScores = (item.ca !== undefined && item.exam !== undefined);
-    const caVal = hasNumericScores ? item.ca : "N/A";
-    const examVal = hasNumericScores ? item.exam : "N/A";
-    const totalVal = hasNumericScores ? (item.ca + item.exam) : "N/A";
+    // Supabase returns null (not undefined) for missing scores; null + null === 0 used to show as an F.
+    const hasScores = hasNumber(item.ca) && hasNumber(item.exam);
+    const total = hasScores ? Number(item.ca) + Number(item.exam) : null;
+    const gradeLetter = item.grade || (hasScores ? calculateGrade(total).grade : '');
+    const validGrade = /^[A-F]$/.test(gradeLetter);
 
-    let gradeLetter = item.grade;
-    let gradePoint = 0;
-
-    if (!gradeLetter && hasNumericScores) {
-      const gradeObj = calculateGrade(totalVal);
-      gradeLetter = gradeObj.grade;
-      gradePoint = gradeObj.point;
-    } else {
-      gradePoint = pointMap[gradeLetter] || 0;
-    }
-
-    const badgeClass = gradeLetter ? `grade-${gradeLetter.toLowerCase()}` : (gradePoint >= 4 ? 'grade-a' : 'grade-b');
-
-    const row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td class="course-code-tag">${item.matric}</td>
-        <td>${caVal}</td>
-        <td>${examVal}</td>
-        <td><strong>${totalVal}</strong></td>
-        <td><span class="grade-badge ${badgeClass}">${gradeLetter}</span></td>
-      </tr>
-    `;
-    studentScoresTbody.insertAdjacentHTML('beforeend', row);
+    const tr = document.createElement('tr');
+    const addCell = (text, cls) => {
+      const td = document.createElement('td');
+      if (cls) td.className = cls;
+      td.textContent = text;
+      tr.appendChild(td);
+      return td;
+    };
+    addCell(index + 1);
+    addCell(item.matric, 'course-code-tag');
+    addCell(hasScores ? Number(item.ca) : 'N/A');
+    addCell(hasScores ? Number(item.exam) : 'N/A');
+    const totalTd = addCell('');
+    const strong = document.createElement('strong');
+    strong.textContent = hasScores ? total : 'N/A';
+    totalTd.appendChild(strong);
+    const gradeTd = addCell('');
+    const badge = document.createElement('span');
+    badge.className = 'grade-badge' + (validGrade ? ` grade-${gradeLetter.toLowerCase()}` : '');
+    badge.textContent = validGrade ? gradeLetter : '—';
+    gradeTd.appendChild(badge);
+    studentScoresTbody.appendChild(tr);
   });
 }
 
@@ -1076,193 +764,113 @@ if (studentSearchInput) {
 // PRIVACY & PERMISSION HELPERS
 // =======================================================
 function isCurrentUserAdmin() {
-  const user = auth.currentUser;
-  return user && user.email && ALLOWED_GOOGLE_EMAILS.includes(user.email);
+  return isAdminUser(auth.currentUser);
 }
 
 function getLoggedInMatric() {
-  const user = auth.currentUser;
-  if (!user || !user.email) return '';
-  return user.email.replace(MATRIC_SUFFIX, '').replace('@gmail.com', '').replace(/[^0-9]/g, '').trim().toLowerCase();
+  return matricFromUser(auth.currentUser);
 }
 // =======================================================
-// 8. GPA CALCULATOR & MATRIC NO AUTO-FILL LOGIC
+// 8. GPA CALCULATOR & PRIVATE MATRIC AUTO-FILL (single implementation)
 // =======================================================
 const gpaMatricLookupInput = document.getElementById('gpaMatricLookupInput');
 const autoFillGradesBtn = document.getElementById('autoFillGradesBtn');
-const calculateGpaBtn = document.getElementById('calculateGpaBtn');
-const computedGpaValue = document.getElementById('computedGpaValue');
-
-// =======================================================
-// 8. PRIVATE GPA CALCULATOR & MATRIC NO AUTO-FILL LOGIC
-// =======================================================
-if (autoFillGradesBtn) { 
-    autoFillGradesBtn.addEventListener('click', async () => { 
-        let rawInput = gpaMatricLookupInput ? gpaMatricLookupInput.value.trim().toLowerCase() : 
-''; 
-        const searchMatric = rawInput.split('@')[0].replace(/[^0-9]/g, ''); 
- 
-        if (!searchMatric) { 
-            alert("Please enter a Matriculation Number to look up."); 
-            return; 
-        } 
- 
-        const loggedInMatric = getLoggedInMatric(); 
-        const isAdmin = isCurrentUserAdmin(); 
- 
-        if (!isAdmin && searchMatric !== loggedInMatric) { 
-            alert("Access Restricted: You can only view and auto-fill your own CGPA."); 
-            if (gpaMatricLookupInput) gpaMatricLookupInput.value = loggedInMatric; 
-            return; 
-        } 
- 
-        // Fetch student's overall results from Supabase 
-        const studentRecords = await fetchStudentGradesForCGPA(searchMatric); 
- 
-        if (!studentRecords || studentRecords.length === 0) { 
-            alert(`No results found in database for Matric No: ${searchMatric.toUpperCase()}`); 
-            return; 
-        } 
- 
-        const selects = document.querySelectorAll('.grade-select'); 
-        let matchesFound = 0; 
-        const pointMap = { 'A': '5', 'B': '4', 'C': '3', 'D': '2', 'E': '1', 'F': '0' }; 
- 
-        selects.forEach(select => { 
-            const tr = select.closest('tr'); 
-            if (tr && tr.style.display === 'none') return; 
- 
-            const courseText = tr ? tr.querySelector('td')?.textContent || '' : ''; 
- 
-            // Match course row against returned Supabase records 
-            const matchingRecord = studentRecords.find(record => 
-courseText.includes(record.course_code)); 
- 
-            if (matchingRecord) { 
-                let pointStr = '0'; 
-                if (matchingRecord.grade) { 
-                    pointStr = pointMap[matchingRecord.grade] || '0'; 
-                } else if (matchingRecord.ca !== undefined && matchingRecord.exam !== undefined) { 
-                    const total = matchingRecord.ca + matchingRecord.exam; 
-                    const gradeObj = calculateGrade(total); 
-                    pointStr = gradeObj.point.toString(); 
-                } 
-                select.value = pointStr; 
-                matchesFound++; 
-            } 
-        }); 
- 
-        if (matchesFound > 0) { 
-            alert(`Grades auto-filled successfully for Matric No: ${searchMatric.toUpperCase()}`); 
-            computeGPA(); 
-        } else { 
-            alert(`No matching course entries found for Matric No: ${searchMatric.toUpperCase()}`); 
-        } 
-    }); 
-} 
+// The page has used two sets of ids; support both so whichever exists gets updated.
+const GPA_BUTTON_IDS = ['calculateGpaBtn', 'calcGpaBtn'];
+const GPA_OUTPUT_IDS = ['computedGpaValue', 'gpaResultDisplay'];
 
 function computeGPA() {
-  const selects = document.querySelectorAll('.grade-select');
-  let totalGradePoints = 0;
-  let totalUnits = 0;
+  let points = 0;
+  let units = 0;
+  document.querySelectorAll('.grade-select').forEach(select => {
+    const row = select.closest('tr');
+    if (row && row.style.display === 'none') return; // only the semester being shown
+    const value = parseFloat(select.value);
+    const u = parseFloat(select.dataset.units);
+    if (Number.isNaN(value) || !(u > 0)) return;
+    points += value * u;
+    units += u;
+  });
+  const text = units > 0 ? (points / units).toFixed(2) : '0.00';
+  GPA_OUTPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+}
 
-  selects.forEach(select => {
-    const val = select.value;
-    const units = parseFloat(select.dataset.units) || 0;
+if (autoFillGradesBtn) {
+  autoFillGradesBtn.addEventListener('click', async () => {
+    const rawInput = gpaMatricLookupInput ? gpaMatricLookupInput.value.trim().toLowerCase() : '';
+    const searchMatric = rawInput.split('@')[0].replace(/[^0-9]/g, '');
 
-    if (val !== "") {
-      totalGradePoints += parseFloat(val) * units;
-      totalUnits += units;
+    if (!searchMatric) {
+      alert("Please enter a Matriculation Number to look up.");
+      return;
+    }
+
+    const loggedInMatric = getLoggedInMatric();
+    // UI-level check only: real enforcement must be RLS on student_results (see supabase_security.sql).
+    if (!isCurrentUserAdmin() && searchMatric !== loggedInMatric) {
+      alert("Access Restricted: You can only view and auto-fill your own CGPA.");
+      if (gpaMatricLookupInput) gpaMatricLookupInput.value = loggedInMatric;
+      return;
+    }
+
+    const studentRecords = await fetchStudentGradesForCGPA(searchMatric);
+    if (!studentRecords || studentRecords.length === 0) {
+      alert(`No results found in database for Matric No: ${searchMatric.toUpperCase()}`);
+      return;
+    }
+
+    const pointMap = { 'A': '5', 'B': '4', 'C': '3', 'D': '2', 'E': '1', 'F': '0' };
+    let matchesFound = 0;
+
+    document.querySelectorAll('.grade-select').forEach(select => {
+      const tr = select.closest('tr');
+      if (tr && tr.style.display === 'none') return;
+      const courseText = tr ? tr.querySelector('td')?.textContent || '' : '';
+      const record = studentRecords.find(r => r.course_code && courseText.includes(r.course_code));
+      if (!record) return;
+
+      let pointStr = null;
+      if (record.grade && pointMap[record.grade] !== undefined) {
+        pointStr = pointMap[record.grade];
+      } else if (hasNumber(record.ca) && hasNumber(record.exam)) {
+        pointStr = String(calculateGrade(Number(record.ca) + Number(record.exam)).point);
+      }
+      if (pointStr === null) return; // no usable result: leave the dropdown alone instead of forcing an F
+      select.value = pointStr;
+      matchesFound++;
+    });
+
+    if (matchesFound > 0) {
+      alert(`Grades auto-filled successfully for Matric No: ${searchMatric.toUpperCase()}`);
+      computeGPA();
+    } else {
+      alert(`No matching course entries found for Matric No: ${searchMatric.toUpperCase()}`);
     }
   });
-
-  if (totalUnits === 0) {
-    if (computedGpaValue) computedGpaValue.textContent = "0.00";
-    return;
-  }
-
-  const gpa = (totalGradePoints / totalUnits).toFixed(2);
-  if (computedGpaValue) computedGpaValue.textContent = gpa;
 }
 
-if (calculateGpaBtn) {
-  calculateGpaBtn.addEventListener('click', computeGPA);
-}
-document.addEventListener("DOMContentLoaded", () => {
-    const toggleButtons = document.querySelectorAll(".gpa-toggle-btn");
-    const tableRows = document.querySelectorAll("#gpaTableBody tr");
-    const gpaLabel = document.getElementById("gpaLabel");
-    const gpaDisplay = document.getElementById("gpaResultDisplay");
-    const calcBtn = document.getElementById("calcGpaBtn");
-    let currentFilter = "1st";
-    toggleButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            toggleButtons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentFilter = btn.dataset.filter;
-            // Filter row visibility based on active tab selection
-            tableRows.forEach(row => {
-                const semester = row.dataset.semester;
-                if (currentFilter === "all") {
-                    row.style.display = "";
-                } else {
-                    row.style.display = (semester === currentFilter) ? "" : "none";
-                }
-            });
-            if (currentFilter === "1st") {
-                if (gpaLabel) gpaLabel.textContent = "1st Semester GPA:";
-            } else if (currentFilter === "2nd") {
-                if (gpaLabel) gpaLabel.textContent = "2nd Semester GPA:";
-            } else {
-                if (gpaLabel) gpaLabel.textContent = "Cumulative GPA:";
-            }
-            calculateGPA();
-        });
+onReady(() => {
+  GPA_BUTTON_IDS.forEach(id => document.getElementById(id)?.addEventListener('click', computeGPA));
+  document.querySelectorAll('.grade-select').forEach(select => select.addEventListener('change', computeGPA));
+
+  const toggleButtons = document.querySelectorAll('.gpa-toggle-btn');
+  const tableRows = document.querySelectorAll('#gpaTableBody tr');
+  const gpaLabel = document.getElementById('gpaLabel');
+  const labels = { '1st': '1st Semester GPA:', '2nd': '2nd Semester GPA:' };
+
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      toggleButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      tableRows.forEach(row => {
+        row.style.display = (filter === 'all' || row.dataset.semester === filter) ? '' : 'none';
+      });
+      if (gpaLabel) gpaLabel.textContent = labels[filter] || 'Cumulative GPA:';
+      computeGPA();
     });
-    function calculateGPA() {
-        let totalQualityPoints = 0;
-        let totalUnits = 0;
-        tableRows.forEach(row => {
-            if (row.style.display !== "none") {
-                const select = row.querySelector(".grade-select");
-                if (!select) return;
-                const gradeValue = select.value;
-                const units = parseFloat(select.dataset.units);
-                if (gradeValue !== "" && !isNaN(gradeValue)) {
-                    const gradePoint = parseFloat(gradeValue);
-                    totalQualityPoints += gradePoint * units;
-                    totalUnits += units;
-                }
-            }
-        });
-        if (gpaDisplay) {
-            gpaDisplay.textContent = totalUnits > 0
-              ? (totalQualityPoints / totalUnits).toFixed(2)
-              : "0.00";
-        }
-    }
-    document.querySelectorAll(".grade-select").forEach(select => {
-        select.addEventListener("change", calculateGPA);
-    });
-    if (calcBtn) {
-        calcBtn.addEventListener("click", calculateGPA);
-    }
+  });
 });
-// Listen to real-time dues table updates from Supabase
-function listenToDuesRealtime() {
-    supabase
-        .channel('dues_live_channel')
-        .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'dues_payments' },
-            (payload) => {
-                console.log('[Supabase Realtime] Payment updated:', payload);
-                // Re-render student dues status & admin table instantly
-                if (typeof loadStudentDuesStatus === 'function') loadStudentDuesStatus();
-                if (typeof loadAdminDuesList === 'function') loadAdminDuesList();
-            }
-        )
-        .subscribe();
-}
-// Initialize on app load
-listenToDuesRealtime();
