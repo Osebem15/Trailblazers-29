@@ -1307,8 +1307,12 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
             body: JSON.stringify(payload)
         });
-        const out = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(out.error || "Something went wrong. Try again.");
+        const raw = await res.text();
+        let out = {};
+        try { out = JSON.parse(raw); } catch (e) { out = { message: raw.slice(0, 120) }; }
+        if (!res.ok) {
+            throw new Error(out.error || ("Error " + res.status + ": " + (out.message || out.msg || out.code || "no details")));
+        }
         return out;
     };
 
@@ -1394,15 +1398,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!body || !topic) return;
             btn.disabled = true;
             try {
-                const token = await window.tbGetIdToken();
-                if (!token) throw new Error("Please log in again.");
-                const res = await fetch(FN_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-                    body: JSON.stringify({ action: "post", topic_id: topic.id, body })
-                });
-                const out = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(out.error || "Could not post. Try again.");
+                await window.forumCall({ action: "post", topic_id: topic.id, body });
                 input.value = "";
                 $("forumCount").textContent = "0/500";
                 await loadPosts();
