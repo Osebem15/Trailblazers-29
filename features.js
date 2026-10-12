@@ -158,6 +158,14 @@
       const { error } = await this.sb().from("assignments").insert([Object.assign({ created_by: me().email }, a)]);
       if (error) throw error;
     },
+    async updateAssignment(id, fields) {
+      if (this.mode === "local") {
+        lsSet(L_ASSIGN, lsGet(L_ASSIGN, []).map((x) => (x.id === id ? Object.assign({}, x, fields) : x)));
+        return;
+      }
+      const { error } = await this.sb().from("assignments").update(fields).eq("id", id);
+      if (error) throw error;
+    },
     async deleteAssignment(id) {
       if (this.mode === "local") { lsSet(L_ASSIGN, lsGet(L_ASSIGN, []).filter((x) => x.id !== id)); return; }
       const { error } = await this.sb().from("assignments").delete().eq("id", id);
@@ -388,7 +396,7 @@
       const head = h("div", { class: "tbx-cal-head" });
       const prev = h("button", { type: "button", class: "tbx-icon-btn", "aria-label": "Previous month" }, icon("fa-chevron-left"));
       const next = h("button", { type: "button", class: "tbx-icon-btn", "aria-label": "Next month" }, icon("fa-chevron-right"));
-      prev.disabled = view <= new Date(today.getFullYear(), today.getMonth(), 1);
+      prev.disabled = !o.allowPast && view <= new Date(today.getFullYear(), today.getMonth(), 1);
       prev.addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); drawCal(); });
       next.addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); drawCal(); });
       head.append(prev, h("strong", { class: "tbx-cal-title", text: MONTHS[view.getMonth()] + " " + view.getFullYear() }), next);
@@ -402,7 +410,7 @@
       for (let n = 1; n <= count; n++) {
         const d = new Date(view.getFullYear(), view.getMonth(), n);
         const b = h("button", { type: "button", class: "tbx-cal-day" + (date && sameDay(d, date) ? " sel" : "") + (sameDay(d, today) ? " today" : ""), text: String(n) });
-        if (d < today) b.disabled = true;
+        if (d < today && !o.allowPast) b.disabled = true;
         else b.addEventListener("click", () => pick(d));
         grid.appendChild(b);
       }
@@ -429,7 +437,7 @@
 
   // ── Assignments ─────────────────────────────────────────────────────────
   const Assignments = {
-    items: [], state: "idle", admin: false, course: "", showPast: false, formOpen: false,
+    items: [], state: "idle", admin: false, course: "", showPast: false, formOpen: false, editing: null,
     doneKey() { return "tbx_done_" + voterId(); },
     done() { return new Set(lsGet(this.doneKey(), [])); },
     toggleDone(id) {
@@ -444,6 +452,7 @@
       try {
         const [items, admin] = await Promise.all([Store.listAssignments(), isAdmin()]);
         this.items = items; this.admin = admin; this.state = "ready";
+        Sync.set(items);
       } catch (e) {
         console.error("Assignments failed to load:", e);
         this.state = "error";
@@ -469,9 +478,9 @@
       if (this.admin) {
         card.appendChild(h("div", { class: "tbx-toolbar" },
           h("button", { type: "button", class: "btn-primary tbx-add", "aria-expanded": String(this.formOpen),
-            onclick: () => { this.formOpen = !this.formOpen; this.render(); } },
+            onclick: () => { this.formOpen = !this.formOpen; this.editing = null; this.render(); } },
             icon(this.formOpen ? "fa-xmark" : "fa-plus"), this.formOpen ? " Cancel" : " Add assignment")));
-        if (this.formOpen) card.appendChild(this.form());
+        if (this.formOpen) card.appendChild(this.form(this.editing ? this.items.find((x) => x.id === this.editing) : null));
       }
 
       const courses = Array.from(new Set(this.items.map((a) => a.course_code))).sort();
@@ -521,7 +530,16 @@
         h("button", { type: "button", class: "tbx-btn", role: "checkbox", "aria-checked": String(isDone),
           onclick: () => { this.toggleDone(a.id); this.render(); } },
           icon(isDone ? "fa-square-check" : "fa-square"), isDone ? " Done" : " Mark as done"));
-      if (this.admin) actions.appendChild(this.deleteButton(a));
+      if (this.admin) {
+        const edit = h("button", { type: "button", class: "tbx-btn" }, icon("fa-pen"), " Edit");
+        edit.addEventListener("click", () => {
+          this.editing = a.id; this.formOpen = true; this.render();
+          const f = $("assignmentsView").querySelector(".tbx-form");
+          if (f) f.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        actions.appendChild(edit);
+        actions.appendChild(this.deleteButton(a));
+      }
       el.appendChild(actions);
       return el;
     },
@@ -542,16 +560,17 @@
       return btn;
     },
 
-    form() {
+    form(edit) {
       const tomorrow = new Date(Date.now() + 86400000); tomorrow.setHours(23, 59, 0, 0);
-      const course = h("input", { class: "tbx-input", id: "tbxACourse", list: "tbxCourseList", maxlength: "20", placeholder: "ACC 210", autocomplete: "off", required: true });
+      const course = h("input", { class: "tbx-input", id: "tbxACourse", list: "tbxCourseList", maxlength: "20", placeholder: "ACC 210", autocomplete: "off", required: true, value: edit ? edit.course_code : "" });
       const list = h("datalist", { id: "tbxCourseList" });
       loadData().then((d) => (d.courses || []).forEach((c) => { if (c.code) list.appendChild(h("option", { value: c.code, label: c.title || "" })); }));
-      const title = h("input", { class: "tbx-input", id: "tbxATitle", maxlength: "200", placeholder: "What is the assignment?", required: true });
-      const due = dtPicker({ initial: tomorrow });
+      const title = h("input", { class: "tbx-input", id: "tbxATitle", maxlength: "200", placeholder: "What is the assignment?", required: true, value: edit ? edit.title : "" });
+      const due = dtPicker({ initial: edit ? new Date(edit.due_at) : tomorrow, allowPast: !!edit });
       const note = h("textarea", { class: "tbx-input", id: "tbxANote", maxlength: "1000", rows: "3", placeholder: "Any detail students should know (optional)" });
+      if (edit && edit.note) note.value = edit.note;
       const msg = h("p", { class: "tbx-formmsg", role: "alert" });
-      const submit = h("button", { type: "submit", class: "btn-primary tbx-submit" }, "Post assignment");
+      const submit = h("button", { type: "submit", class: "btn-primary tbx-submit" }, edit ? "Save changes" : "Post assignment");
       const form = h("form", { class: "tbx-form", novalidate: true },
         field("Course", course, "Pick from the list or type a course code"), list,
         field("Title", title), field("Due date and time", due, "Pick a date, then set the time"), field("Short note", note), msg, submit);
@@ -563,14 +582,16 @@
         if (code.length < 3) { msg.textContent = "Enter the course code, for example ACC 210."; course.focus(); return; }
         if (t.length < 3) { msg.textContent = "Give the assignment a title of at least 3 characters."; title.focus(); return; }
         if (!d) { msg.textContent = "Choose a due date and time."; due.focusPicker(); return; }
-        if (d < new Date()) { msg.textContent = "That time has already passed. Pick a later time."; due.focusPicker(); return; }
-        submit.disabled = true; submit.textContent = "Posting...";
+        const unchangedTime = edit && d.getTime() === new Date(edit.due_at).getTime();
+        if (d < new Date() && !unchangedTime) { msg.textContent = "That time has already passed. Pick a later time."; due.focusPicker(); return; }
+        submit.disabled = true; submit.textContent = edit ? "Saving..." : "Posting...";
         try {
-          await Store.addAssignment({ course_code: code, title: t, note: n || null, due_at: d.toISOString() });
-          this.formOpen = false; toast("Assignment posted."); await this.load();
+          const fields = { course_code: code, title: t, note: n || null, due_at: d.toISOString() };
+          if (edit) await Store.updateAssignment(edit.id, fields); else await Store.addAssignment(fields);
+          this.formOpen = false; this.editing = null; toast(edit ? "Assignment updated." : "Assignment posted."); await this.load();
         } catch (err) {
           console.error(err); msg.textContent = friendly(err);
-          submit.disabled = false; submit.textContent = "Post assignment";
+          submit.disabled = false; submit.textContent = edit ? "Save changes" : "Post assignment";
         }
       });
       return form;
@@ -677,14 +698,7 @@
         submit.addEventListener("click", () => this.cast(p, el, err));
         el.appendChild(submit);
       }
-      const foot = [];
-      if (showResults) foot.push(p.voters + (p.voters === 1 ? " student voted" : " students voted"));
-      if (canVote) {
-        foot.push(p.allow_multiple ? "You can pick more than one" : "Pick one answer");
-        foot.push("You can only vote once and cannot change it");
-        if (!showResults) foot.push("Results show after you vote");
-      } else if (open && voted) foot.push("Your vote is recorded and cannot be changed");
-      el.appendChild(h("p", { class: "tbx-meta", text: foot.join(". ") + "." }));
+      if (showResults) el.appendChild(h("p", { class: "tbx-meta", text: p.voters + (p.voters === 1 ? " student voted" : " students voted") }));
       if (this.admin) {
         const acts = h("div", { class: "tbx-item-actions" });
         if (open) {
@@ -794,6 +808,123 @@
         }
       });
       return form;
+    }
+  };
+
+
+  // ── Keep assignments visible in the Notices tab and on the profile calendar ──
+  const Sync = {
+    items: [], tries: 0, last: 0,
+    set(items) { this.items = items || []; this.last = Date.now(); this.paint(); },
+    async refresh() {
+      if (!window.tbSupabase && this.tries++ < 12) { setTimeout(() => this.refresh(), 800); return; }
+      try { this.set(await Store.listAssignments()); } catch (e) { /* leave what is shown */ }
+    },
+    keyOf(iso) { return new Intl.DateTimeFormat("en-CA", { timeZone: LAGOS }).format(new Date(iso)); },
+    byKey() {
+      const m = {};
+      this.items.slice().sort((a, b) => new Date(a.due_at) - new Date(b.due_at)).forEach((a) => { (m[this.keyOf(a.due_at)] = m[this.keyOf(a.due_at)] || []).push(a); });
+      return m;
+    },
+    paint() { this.paintNotices(); this.markCalendar(); this.enhanceFocused(); },
+
+    paintNotices() {
+      const container = $("noticesContainer");
+      if (!container || !container.parentNode) return;
+      let holder = $("tbxNoticeAssign");
+      if (!holder) { holder = h("div", { id: "tbxNoticeAssign" }); container.parentNode.insertBefore(holder, container); }
+      const upcoming = this.items.filter((a) => new Date(a.due_at) >= Date.now())
+        .sort((a, b) => new Date(a.due_at) - new Date(b.due_at)).slice(0, 12);
+      if (!upcoming.length) { holder.replaceChildren(); return; }
+      const open = h("button", { type: "button", class: "tbx-btn" }, "Open Assignments ", icon("fa-arrow-right"));
+      open.addEventListener("click", () => openView("assignmentsView"));
+      const cards = upcoming.map((a) => h("article", { class: "matrix-card notice-card-important" },
+        h("div", { class: "notice-card-header" },
+          h("span", { class: "course-code-tag", text: "ASSIGNMENT" }),
+          h("small", { class: "notice-date" }, icon("fa-clock"), " Due " + whenText(a.due_at))),
+        h("h4", { class: "notice-title", text: a.course_code + ": " + a.title }),
+        h("p", { class: "notice-text", text: (a.note ? a.note + "\n" : "") + "Due " + relText(a.due_at).replace(/^in /, "in ") + "." })));
+      holder.replaceChildren(
+        h("div", { class: "tbx-notice-head" }, h("h4", { class: "tbx-subhead", text: "Assignments due" }), open),
+        h("div", { class: "notices-grid" }, cards));
+    },
+
+    markCalendar() {
+      const grid = $("calendarGridDays"), label = $("calendarMonthYearText");
+      if (!grid || !label) return;
+      const m = /([A-Za-z]+)\s+(\d{4})/.exec(label.textContent || "");
+      const mi = m ? MONTHS.indexOf(m[1]) : -1;
+      grid.querySelectorAll(".tbx-due-day").forEach((el) => {
+        el.classList.remove("tbx-due-day");
+        if (el.dataset.tbxEv) { el.classList.remove("has-event"); delete el.dataset.tbxEv; }
+        el.removeAttribute("title");
+      });
+      if (mi < 0) return;
+      const map = this.byKey();
+      grid.querySelectorAll(".day-num:not(.muted)").forEach((el) => {
+        const key = m[2] + "-" + pad2(mi + 1) + "-" + pad2(Number(el.textContent));
+        const list = map[key];
+        if (!list) return;
+        el.classList.add("tbx-due-day");
+        if (!el.classList.contains("has-event")) { el.classList.add("has-event"); el.dataset.tbxEv = "1"; }
+        el.title = list.length + (list.length === 1 ? " assignment due" : " assignments due");
+      });
+    },
+
+    enhanceFocused() {
+      const titleEl = $("focusedEventTitle"), dateEl = $("focusedEventDate"), textEl = $("focusedEventText");
+      if (!titleEl || !dateEl || !textEl) return;
+      const m = /([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/.exec(dateEl.textContent || "");
+      const mi = m ? MONTHS.indexOf(m[1]) : -1;
+      if (mi < 0) return;
+      const list = this.byKey()[m[3] + "-" + pad2(mi + 1) + "-" + pad2(Number(m[2]))] || [];
+      const MARK = "Assignments due:";
+      const NONE = "There are no events scheduled for today.";
+      let base = textEl.textContent || "";
+      const at = base.indexOf("\n\n" + MARK);
+      if (at >= 0) base = base.slice(0, at); else if (base.indexOf(MARK) === 0) base = "";
+      const titleTxt = (titleEl.textContent || "").trim();
+      const mineTitle = /^\d+ assignments? due$/.test(titleTxt);
+      const noEvents = /No Scheduled Events/.test(titleTxt) || mineTitle;
+      let nextText, nextTitle = null;
+      if (!list.length) {
+        nextText = base || NONE;
+        if (mineTitle) nextTitle = "No Scheduled Events";
+      } else {
+        const lines = list.map((a) => "• " + a.course_code + ": " + a.title + " (" + new Intl.DateTimeFormat("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: LAGOS }).format(new Date(a.due_at)) + ")").join("\n");
+        const own = base && base !== NONE;
+        nextText = (own ? base + "\n\n" : "") + MARK + "\n" + lines;
+        if (noEvents) nextTitle = list.length + (list.length === 1 ? " assignment due" : " assignments due");
+      }
+      if (nextText !== textEl.textContent) textEl.textContent = nextText;
+      if (nextTitle && nextTitle !== titleTxt) {
+        const dot = h("span", { class: "blue-indicator-dot" });
+        if (nextTitle === "No Scheduled Events") dot.style.background = "#8b949e";
+        titleEl.replaceChildren(dot, document.createTextNode(" " + nextTitle));
+      }
+    },
+
+    init() {
+      const watch = (id, opts, fn) => {
+        const el = $(id);
+        if (!el || el.dataset.tbxWatch) return;
+        el.dataset.tbxWatch = "1";
+        let queued = false;
+        new MutationObserver(() => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fn(); }); }).observe(el, opts);
+      };
+      watch("calendarGridDays", { childList: true }, () => this.markCalendar());
+      watch("calendarFocusedEventCard", { childList: true, subtree: true, characterData: true }, () => this.enhanceFocused());
+      const orig = window.switchToView;
+      if (typeof orig === "function" && !orig.__tbx) {
+        const wrapped = function (id) {
+          const r = orig.apply(this, arguments);
+          if ((id === "noticesView" || id === "dashboardHomeView") && Date.now() - Sync.last > 15000) Sync.refresh();
+          return r;
+        };
+        wrapped.__tbx = true;
+        window.switchToView = wrapped;
+      }
+      this.refresh();
     }
   };
 
@@ -1031,9 +1162,43 @@
   // ── Start ───────────────────────────────────────────────────────────────
   function start() {
     if (installPages()) installSearch();
+    Sync.init();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 
-  window.__tbxTest = { Store, Assignments, Polls, search, buildIndex, SRC };
+  window.__tbxTest = { Store, Assignments, Polls, Sync, search, buildIndex, SRC };
+})();
+
+/* Splash controller: hide the splash once the portal view is up */
+(function () {
+  var KEY = "tbWasIn";
+  function done() {
+    var d = document.documentElement;
+    d.classList.remove("tb-splash-on");
+  }
+  function inView() {
+    var v = document.getElementById("LoggedInView");
+    return v && v.style.display !== "none" && getComputedStyle(v).display !== "none";
+  }
+  function check() {
+    if (inView()) { try { localStorage.setItem(KEY, "1"); } catch (e) {} done(); return true; }
+    return false;
+  }
+  function start() {
+    var v = document.getElementById("LoggedInView");
+    if (!check() && v) {
+      new MutationObserver(function () { if (check()) this.disconnect(); }).observe(v, { attributes: true, attributeFilter: ["style", "class"] });
+    }
+    // Not signed in anymore (or very slow network): stop waiting
+    setTimeout(function () {
+      if (!inView()) { try { localStorage.removeItem(KEY); } catch (e) {} }
+      done();
+    }, 6000);
+    ["logoutBtn", "modalLogoutBtn"].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b) b.addEventListener("click", function () { try { localStorage.removeItem(KEY); } catch (e) {} });
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

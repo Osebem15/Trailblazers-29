@@ -54,8 +54,22 @@
       #tb-fab { bottom: 18px; right: 18px; width: 56px; height: 56px; }
     }
   </style>
+<script>
+try {
+  if (localStorage.getItem('tbWasIn') === '1') {
+    document.documentElement.classList.add('tb-splash-on');
+    if (localStorage.getItem('theme') === 'light') document.documentElement.classList.add('tb-splash-light');
+  }
+} catch (e) {}
+</script>
 </head>
 <body>
+<div id="tbSplash" aria-hidden="true">
+  <img src="Unilag logo.jfif" alt="">
+  <div class="sp-name">THE TRAILBLAZERS</div>
+  <div class="sp-sub">Accounting '29</div>
+  <div class="sp-bar"></div>
+</div>
     <div id="loggedOutView">
         <!-- HEADER -->
         <header class="site-header">
