@@ -1987,5 +1987,47 @@ ${timetableBlock}${materialSection}`;
   });
 })();
 </script>
+
+
+<!-- Phone back button support: Back now moves between chat and picker (and back to the portal) instead of exiting -->
+<script>
+(function () {
+    'use strict';
+    var KNOWN = { pickerScreen: 1, chatScreen: 1 };
+    var current = 'pickerScreen';
+    var restoring = false;
+
+    var origShow = window.showScreen;
+    window.showScreen = function (id) {
+        if (!restoring && KNOWN[id] && id !== current) {
+            try { history.pushState({ tbAi: id }, ''); } catch (e) {}
+        }
+        current = id;
+        return origShow.apply(this, arguments);
+    };
+
+    window.addEventListener('popstate', function (ev) {
+        if (ev.state && KNOWN[ev.state.tbAi]) {
+            restoring = true;
+            try { window.showScreen(ev.state.tbAi); } finally { restoring = false; }
+            return;
+        }
+        // No in-app state on this entry: it belongs to another page (the portal).
+        // In an installed PWA with no page to return to, anchor once so Back
+        // doesn't kill the app on a single tap.
+        var standalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.matchMedia('(display-mode: fullscreen)').matches ||
+                         navigator.standalone === true;
+        if (standalone && (!history.state || !history.state.tbAi)) {
+            try { history.pushState({ tbAi: current }, ''); } catch (e) {}
+        }
+    });
+
+    try { history.replaceState({ tbAi: current }, ''); } catch (e) {}
+})();
+</script>
+
 </body>
+
 </html>
+

@@ -1,12 +1,12 @@
-const CACHE_NAME = 'tb29-portal-v15';
+// v16: features.js/features.css merged into app.js/style.css; ai.html cached for offline TB AI
+const CACHE_NAME = 'tb29-portal-v16';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './ai.html',
   './style.css',
   './app.js',
   './auth.js',
-  './features.js',
-  './features.css',
   './manifest.json',
   './favicon-32.jpg',
   './icon-192.jpg',

@@ -11,7 +11,6 @@
     
     <!-- Internal Styles -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="features.css">
     <!-- Favicon & Google Search Icon Setup -->
     <link rel="icon" type="image/jpg" sizes="32x32" href="./favicon-32.jpg">
     <link rel="icon" type="image/jpg" sizes="48x48" href="./favicon-48.jpg">
@@ -24,36 +23,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <style>
-    /* TB AI Floating Button */
-    #tb-fab {
-      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
-      width: 64px; height: 64px; border-radius: 50%;
-      background: linear-gradient(135deg, #C5A059, #D4AF37);
-      box-shadow: 0 4px 24px rgba(197,160,89,0.55);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      cursor: pointer; text-decoration: none;
-      transition: transform 0.2s, box-shadow 0.2s;
-      user-select: none;
-    }
-    #tb-fab:hover {
-      transform: scale(1.09);
-      box-shadow: 0 6px 32px rgba(197,160,89,0.75);
-    }
-    .tb-fab-logo {
-      font-size: 18px; font-weight: 900;
-      color: #000b18; line-height: 1;
-    }
-    .tb-fab-sub {
-      font-size: 8px; font-weight: 700; color: #000b18;
-      letter-spacing: 0.5px; margin-top: 2px;
-      font-family: 'Montserrat', sans-serif;
-    }
-    @media (max-width: 480px) {
-      #tb-fab { bottom: 18px; right: 18px; width: 56px; height: 56px; }
-    }
-  </style>
 <script>
 try {
   if (localStorage.getItem('tbWasIn') === '1') {
@@ -239,8 +208,7 @@ try {
         <span>First Semester 2026/2027</span> 
     </div> 
     <!-- Hide container pill until install prompt is ready --> 
-    <div class="status-pill" id="pwaInstallPill" style="display: 
-none;"> 
+    <div class="status-pill" id="pwaInstallPill" style="display: none;"> 
         <button id="pwaInstallBtn" class="btn-primary"> 
             <i class="fa-solid fa-download"></i> Install App 
         </button> 
@@ -2149,6 +2117,5 @@ none;">
         </div>
     </div>
 </div>
-    <script src="features.js"></script>
 </body>
 </html>
