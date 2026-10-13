@@ -99,7 +99,7 @@ self.addEventListener('push', (event) => {
       badge: './favicon-32.jpg',
       vibrate: [200, 100, 200],
       // Same tag as the in-app alert, so one announcement never shows twice.
-      tag: data.tag || 'tb29-announcement'
+      tag: data.tag || ('tb29-' + (data.id || data.title || Date.now()))
     })
   );
 });

@@ -2249,3 +2249,102 @@ html.tb-splash-light #tbSplash { background: #f0f4f8; color: #000b18; }
 html.tb-splash-light #tbSplash .sp-bar::after { background: #9a7420; }
 @keyframes tbSpSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
 @media (prefers-reduced-motion: reduce) { #tbSplash .sp-bar::after { animation: none; width: 100%; } }
+/* =======================================================
+   LANDING PAGE REFINEMENTS
+   Fixes hero text contrast in light mode + mobile spacing
+   ======================================================= */
+
+/* Hero headings must stay light on the darkened photo in BOTH themes —
+   the global light-theme h1-h4 override was turning them black-on-black. */
+.hero-text h1,
+.hero-text h2,
+.hero-text h3,
+body.light-theme .hero-text h1,
+body.light-theme .hero-text h2,
+body.light-theme .hero-text h3 {
+    color: #f1f5f9 !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.hero-text h1,
+body.light-theme .hero-text h1 {
+    color: var(--gold-glow) !important;
+}
+.hero-text hr {
+    background: linear-gradient(90deg, var(--gold-accent), transparent);
+    height: 2px;
+}
+.branding-statement,
+body.light-theme .branding-statement {
+    color: #e7c877 !important;
+}
+
+/* Welcome/login card body copy: stronger contrast in light mode */
+body.light-theme .info-card p,
+body.light-theme .login-card p {
+    color: #334155 !important;
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+/* Tighter, more balanced mobile landing layout */
+@media (max-width: 768px) {
+    .site-header {
+        padding: 8px 0 16px 0;
+        margin-bottom: 6px;
+    }
+    .hero-section {
+        padding: 30px 22px;
+        margin-bottom: 22px;
+        border-radius: 16px;
+    }
+    .hero-text h1 { font-size: 2.6rem; }
+    .hero-text h2 { font-size: 1.05rem; letter-spacing: 3px; }
+    .hero-text h3 { font-size: 0.85rem; }
+    .info-card, .sidebar-card {
+        padding: 22px 20px;
+        border-radius: 14px;
+    }
+    /* keep landing content clear of the TB AI floating button */
+    .master-layout { padding-bottom: 90px; }
+}
+
+/* Notification diagnostics (Notices view) */
+.notif-diag {
+    margin: 10px 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.notif-diag-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: rgba(255, 255, 255, 0.03);
+}
+.notif-diag-row i { width: 16px; text-align: center; }
+.notif-diag-row.is-ok i { color: #22c55e; }
+.notif-diag-row.is-bad i { color: #ef4444; }
+.notif-diag-row span { color: var(--text-muted); flex: 1; }
+.notif-diag-row strong { color: var(--text-main); font-weight: 600; text-align: right; }
+body.light-theme .notif-diag-row {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+body.light-theme .notif-diag-row span { color: #475569; }
+body.light-theme .notif-diag-row strong { color: #000b18; }
+.notif-test-btn {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    width: auto;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.notif-test-btn:hover { color: var(--gold-glow); border-color: var(--gold-accent); }

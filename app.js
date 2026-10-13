@@ -647,6 +647,8 @@ async function ensurePushSubscription() {
     }
 }
 window.syncPushSubscription = ensurePushSubscription; // auth.js calls this after login
+const _origSync = window.syncPushSubscription;
+window.syncPushSubscription = async function () { const r = await _origSync.apply(this, arguments); updateNotifDiag(); return r; };
 
 // FIX (notification bug): if the student granted permission on an earlier visit
 // (or in another tab), this device was never re-registered for push unless the
@@ -708,6 +710,7 @@ window.requestNotificationPermission = async function() {
             ? "Notifications are on. You'll be alerted about new announcements, even when the app is closed."
             : "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.";
 
+        updateNotifDiag();
         if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.ready;
             reg.showNotification("Trailblazers '29 Portal", {
@@ -722,6 +725,65 @@ window.requestNotificationPermission = async function() {
         alert("Notification permission was denied. You can enable it in your browser settings.");
     }
 };
+
+// ---- Notification diagnostics (visible in the Notices view) ----
+async function updateNotifDiag() {
+    const box = document.getElementById('notifDiag');
+    if (!box) return;
+    const rows = [];
+    const ok = (b) => b ? 'ok' : 'bad';
+
+    // 1. Permission
+    const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+    rows.push(['Browser permission', perm === 'granted' ? 'granted' : perm, perm === 'granted']);
+
+    // 2. Service worker
+    let swState = 'not registered';
+    if ('serviceWorker' in navigator) {
+        try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            swState = reg && reg.active ? 'active' : (reg ? 'installing' : 'not registered');
+        } catch (e) { swState = 'error'; }
+    }
+    rows.push(['Service worker', swState, swState === 'active']);
+
+    // 3. Push subscription on this device
+    let pushState = 'off';
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            const sub = reg && await reg.pushManager.getSubscription();
+            pushState = sub ? 'subscribed on this device' : 'not subscribed';
+        } catch (e) { pushState = 'error'; }
+    }
+    rows.push(['Push on this device', pushState, pushState.startsWith('subscribed')]);
+
+    // 4. Realtime channel
+    const rt = window.__tbRealtimeStatus || 'not connected yet';
+    rows.push(['Live announcement feed', rt, rt === 'SUBSCRIBED']);
+
+    box.innerHTML = rows.map(([label, val, good]) =>
+        `<div class="notif-diag-row ${good ? 'is-ok' : 'is-bad'}">` +
+        `<i class="fa-solid ${good ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>` +
+        `<span>${esc(label)}</span><strong>${esc(val)}</strong></div>`).join('');
+}
+
+window.tbTestNotification = async function () {
+    // Tests the DISPLAY path locally (no server needed).
+    showNotificationToast({ title: 'Test Announcement', content: 'If you can see and hear this, notifications are working.', date: new Date().toISOString().slice(0, 10), category: 'GENERAL' });
+    if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.showNotification("Trailblazers '29 Portal", {
+                body: 'This is a test — announcements will appear like this.',
+                icon: './icon-192.jpg',
+                badge: './favicon-32.jpg',
+                tag: 'tb29-test-' + Date.now()
+            });
+        } catch (e) { console.warn('Test notification failed:', e); }
+    }
+};
+
 let noticeAudioCtx = null;
 function playNoticeChime() {
     try {
@@ -874,11 +936,15 @@ async function fetchInitialAnnouncements() {
 }
 const LS_LAST_SEEN_ANN = 'tb_last_seen_announcement';
 
+let __tbAnnChannel = null;      // guard against double-subscribing the same channel
+let __tbAnnRetry = 0;
+
 function subscribeToRealtimeAnnouncements() {
     const supabase = window.tbSupabase;
     if (!supabase) return;
+    if (__tbAnnChannel) { try { supabase.removeChannel(__tbAnnChannel); } catch (e) {} __tbAnnChannel = null; }
 
-    supabase
+    __tbAnnChannel = supabase
         .channel('public:announcements')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
             const notice = payload.new;
@@ -901,6 +967,17 @@ function subscribeToRealtimeAnnouncements() {
         })
         .subscribe((status) => {
             console.log("Supabase Realtime Channel Status:", status);
+            window.__tbRealtimeStatus = status;
+            updateNotifDiag();
+            // Phones drop realtime constantly — rebuild the channel on hard failures.
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                if (__tbAnnRetry < 5) {
+                    __tbAnnRetry++;
+                    setTimeout(() => { __tbAnnChannel = null; subscribeToRealtimeAnnouncements(); }, 4000 * __tbAnnRetry);
+                }
+            } else if (status === 'SUBSCRIBED') {
+                __tbAnnRetry = 0;
+            }
         });
 }
 
@@ -1262,7 +1339,8 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         subscribeToRealtimeAnnouncements();
         fetchInitialStudentDues();
         subscribeToRealtimeDues();
-    });   
+    });
+    updateNotifDiag();   
    
     const postNoticeForm = document.getElementById('postNoticeForm');
     if (postNoticeForm) {
@@ -2898,12 +2976,14 @@ document.addEventListener("DOMContentLoaded", function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 // =======================================================
-// 8. PHONE BACK BUTTON (in-app navigation history)
+// 8. PHONE BACK BUTTON (self-healing in-app router)
 // =======================================================
-// The app is a single page that only toggles .view-panel display, so the browser
-// never got extra history entries — pressing Back on Android left the app outright.
-// Fix: push a history state for every view switch and walk them on popstate.
-(function backButtonRouter() {
+// The app is a single page that toggles .view-panel display, so the browser
+// never got history entries and Back on Android left the app outright. This
+// router gives every view switch a real history entry (#/viewId), walks them
+// on popstate, and watches the panels so any view change made outside this
+// wrapper (auth.js re-rendering, stale bfcache pages) is reverted instantly.
+(function tbRouter() {
     'use strict';
 
     const KNOWN_VIEWS = new Set([
@@ -2911,14 +2991,16 @@ document.addEventListener("DOMContentLoaded", function () {
         'feesView', 'noticesView', 'documentsView', 'galleryView', 'forumView',
         'assignmentsView', 'pollsView'
     ]);
+    const PREFIX = '#/';
 
-    const stack = [];          // parallel to the history entries we pushed
-    let restoring = false;     // true while reacting to popstate (don't re-push)
+    let expectedView = null;   // the router's single source of truth
+    let restoring = false;     // true while the router itself is switching
+    let adoptPending = false;  // first post-load switch replaces instead of pushing
     let lastRootBack = 0;
 
     const isLoggedIn = () => {
         const v = document.getElementById('LoggedInView');
-        return v && v.style.display !== 'none';
+        return !!v && v.style.display !== 'none' && getComputedStyle(v).display !== 'none';
     };
 
     const isStandalone = () =>
@@ -2926,49 +3008,120 @@ document.addEventListener("DOMContentLoaded", function () {
         window.matchMedia('(display-mode: fullscreen)').matches ||
         navigator.standalone === true;
 
-    const currentView = () => stack[stack.length - 1] || null;
+    const visibleView = () => {
+        const panels = document.querySelectorAll('.view-panel');
+        for (let i = 0; i < panels.length; i++) {
+            const p = panels[i];
+            if (p.style.display !== 'none' && getComputedStyle(p).display !== 'none') return p.id;
+        }
+        return null;
+    };
 
-    // Wrap the final switchToView (features.js may have wrapped it already)
+    function readRoute() {
+        const h = location.hash;
+        if (h.indexOf(PREFIX) === 0 && KNOWN_VIEWS.has(h.slice(PREFIX.length))) {
+            return h.slice(PREFIX.length);
+        }
+        if (history.state && history.state.tbView && KNOWN_VIEWS.has(history.state.tbView)) {
+            return history.state.tbView;
+        }
+        return null;
+    }
+
+    // Adopt the view saved in the current history entry (e.g. after a reload)
+    const initialRoute = readRoute();
+    if (initialRoute) {
+        expectedView = initialRoute;
+        adoptPending = true;
+    }
+
+    // Wrap the final switchToView (features.js may already have wrapped it)
     const innerSwitch = window.switchToView;
     if (typeof innerSwitch === 'function') {
         window.switchToView = function (viewId) {
-            if (!restoring && isLoggedIn() && viewId && KNOWN_VIEWS.has(viewId) && viewId !== currentView()) {
-                stack.push(viewId);
-                try { history.pushState({ tbView: viewId }, ''); } catch (e) {}
+            if (!restoring && viewId && KNOWN_VIEWS.has(viewId) && isLoggedIn()) {
+                if (adoptPending) {
+                    // First switch after a reload: keep the user on the view stored in
+                    // the current history entry instead of clobbering it.
+                    adoptPending = false;
+                    const keep = expectedView;
+                    const r = innerSwitch.apply(this, arguments);
+                    if (keep && viewId !== keep) {
+                        restoring = true;
+                        try { innerSwitch(keep); } finally { restoring = false; }
+                    }
+                    return r;
+                }
+                if (viewId !== expectedView) {
+                    expectedView = viewId;
+                    try { history.pushState({ tbView: viewId }, '', PREFIX + viewId); } catch (e) {}
+                }
             }
             return innerSwitch.apply(this, arguments);
         };
     }
 
+    function applyRoute() {
+        if (!isLoggedIn()) return;
+        const target = readRoute();
+        if (target && target !== expectedView) {
+            restoring = true;
+            expectedView = target;
+            try { window.switchToView(target); } finally { restoring = false; }
+        }
+    }
+
     window.addEventListener('popstate', function (ev) {
-        if (!isLoggedIn()) { stack.length = 0; return; }
+        if (!isLoggedIn()) { expectedView = null; return; }
 
         if (ev.state && ev.state.tbView && KNOWN_VIEWS.has(ev.state.tbView)) {
-            // Back/forward between in-app views
-            const target = ev.state.tbView;
-            stack.pop(); // drop the view we are leaving
-            if (currentView() !== target) stack.push(target);
-            restoring = true;
-            try { window.switchToView(target); } finally { restoring = false; }
+            applyRoute();
+            return;
+        }
+        if (location.hash.indexOf(PREFIX) === 0) {
+            applyRoute();
             return;
         }
 
-        // Back pressed at the root of in-app history. In an installed PWA there is
-        // nowhere to go, so stay once and exit on a second quick press.
+        // Back pressed at the root of in-app history. In an installed PWA there
+        // is nowhere to go: stay once, exit on a second quick press.
         if (isStandalone()) {
             const now = Date.now();
             if (now - lastRootBack < 2500) return; // second press: let the app close
             lastRootBack = now;
-            const cur = currentView() || 'dashboardHomeView';
-            try { history.pushState({ tbView: cur }, ''); } catch (e) {}
+            const cur = expectedView || 'dashboardHomeView';
+            try { history.pushState({ tbView: cur }, '', PREFIX + cur); } catch (e) {}
         }
-        // In a browser tab, a non-app entry means a real page (e.g. ai.html) — let it load.
+        // In a browser tab the previous entry is another page (e.g. ai.html) — let it load.
     });
 
-    // Leaving to the login screen wipes the stack
+    // Self-heal: if any code changes the visible panel without going through
+    // the router (auth.js re-render, bfcache restore, old inline handlers),
+    // put the user back on the view the router believes they are on.
+    const healObserver = new MutationObserver(() => {
+        if (restoring || !isLoggedIn()) return;
+        const visible = visibleView();
+        if (!visible) return;
+        if (expectedView && visible !== expectedView) {
+            restoring = true;
+            try { window.switchToView(expectedView); } finally { restoring = false; }
+        } else if (!expectedView) {
+            expectedView = visible;
+            try { history.replaceState({ tbView: visible }, '', PREFIX + visible); } catch (e) {}
+        }
+    });
+    document.querySelectorAll('.view-panel').forEach(pnl => {
+        healObserver.observe(pnl, { attributes: true, attributeFilter: ['style', 'class'] });
+    });
+
+    // Login wipes the route; coming back to the app re-checks it.
     const liveView = document.getElementById('LoggedInView');
     if (liveView) {
-        new MutationObserver(() => { if (!isLoggedIn()) stack.length = 0; })
-            .observe(liveView, { attributes: true, attributeFilter: ['style', 'class'] });
+        new MutationObserver(() => {
+            if (!isLoggedIn()) { expectedView = null; adoptPending = false; }
+        }).observe(liveView, { attributes: true, attributeFilter: ['style', 'class'] });
     }
+    window.addEventListener('pageshow', function (ev) {
+        if (ev.persisted) applyRoute(); // restored from bfcache: re-apply the route
+    });
 })();
