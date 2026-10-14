@@ -85,7 +85,7 @@ function matricFromUser(user) {
   if (!user || !user.email) return '';
   const email = user.email.toLowerCase();
   if (!email.endsWith(MATRIC_SUFFIX)) return '';
-  return email.slice(0, -MATRIC_SUFFIX.length).replace(/[^0-9]/g, '');
+  return email.slice(0, -MATRIC_SUFFIX.length).replace(/[^0-9a-z]/gi, '').toUpperCase();
 }
 window.tbIsAdmin = () => isAdminUser(auth.currentUser);
 
@@ -500,21 +500,34 @@ if (dbError) throw dbError;
 }
 
 // 2. AUTH OBSERVER + DYNAMIC GREETING & ADMIN CHECK
+// Puts the name in the greeting with the blue tick right beside it. The last word and the tick sit in one
+// no-wrap span, so a long name that wraps onto two lines can never leave the tick stranded on its own.
+window.tbRenderGreetingName = function (h, name) {
+  if (!h) return;
+  const words = String(name || 'Trailblazer').trim().split(/\s+/);
+  const last = words.pop();
+  const badge = document.createElement('i');
+  badge.className = 'fa-solid fa-circle-check verified-badge-icon';
+  badge.setAttribute('aria-label', 'Verified');
+  const tail = document.createElement('span');
+  tail.className = 'greeting-name-tail';
+  tail.append(document.createTextNode(last), badge);
+  h.replaceChildren();
+  if (words.length) h.append(document.createTextNode(words.join(' ') + ' '));
+  h.appendChild(tail);
+};
+
 function setGreeting(name) {
   const h = document.querySelector('.welcome-greeting h2');
-  if (h) {
-    h.textContent = name + ' ';
-    const badge = document.createElement('i');
-    badge.className = 'fa-solid fa-circle-check verified-badge-icon';
-    badge.style.color = '#1d9bf0';
-    h.appendChild(badge);
-  }
+  window.tbRenderGreetingName(h, name);
   const label = document.getElementById('dropdownUserName');
   if (label) label.textContent = name;
 }
 
 // Everything tied to a signed-in user is wiped here, whichever way the session ended.
 function clearSessionState() {
+  // Unwind the in-app history so the phone's back button does not step through dead screens after logout.
+  if (typeof window.tbNavStop === 'function') window.tbNavStop();
   window.currentLoggedInMatric = '';
   window.tbUid = null;
   window.forumIsAdmin = undefined;
@@ -566,39 +579,102 @@ onAuthStateChanged(auth, (user) => {
     if (loggedInView) loggedInView.style.display = "flex";
     if (loginForm) loginForm.reset();
     authError.style.display = "none";
+
+    // Back-button handling, and an alert for any announcement posted while the app was closed.
+    if (typeof window.tbNavStart === 'function') window.tbNavStart();
+    if (typeof window.tbCatchUpNotices === 'function') window.tbCatchUpNotices();
   } else {
     clearSessionState();
     if (loggedOutView) loggedOutView.style.display = "block";
     if (loggedInView) loggedInView.style.display = "none";
   }
+  // The install button lives in different places on the two screens, so look again after each switch.
+  window.dispatchEvent(new Event('tb-auth-change'));
 });
 
 // 3A. MATRICULATION LOGIN FORM
+// The matric box must accept letters (newer students have letters in their numbers). The page may set the
+// box up for digits only (type=number, a numeric keypad, a pattern, or a key filter written in index.html or
+// another script), so this does three things: it finds the box whatever its name/id is, resets its attributes,
+// and blocks any digits-only key/input filter from running on it.
+const MATRIC_FIELD_SELECTOR = 'input[name="matriculation-number"], #email-input';
+
+function findMatricInput() {
+  if (!loginForm) return null;
+  return loginForm.querySelector(MATRIC_FIELD_SELECTOR) ||
+    // Fallback: the first plain field in the form that is not the password box.
+    loginForm.querySelector('input:not([type="password"]):not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="hidden"])');
+}
+
+function unlockMatricInput() {
+  const el = findMatricInput();
+  if (!el) return null;
+  ['pattern', 'oninput', 'onkeypress', 'onkeydown', 'onbeforeinput', 'maxlength', 'min', 'max', 'step'].forEach(n => el.removeAttribute(n));
+  el.setAttribute('type', 'text');
+  el.setAttribute('inputmode', 'text');
+  el.setAttribute('autocapitalize', 'characters');
+  el.setAttribute('autocomplete', 'username');
+  el.setAttribute('autocorrect', 'off');
+  el.setAttribute('spellcheck', 'false');
+  el.setAttribute('maxlength', '24');
+  return el;
+}
+
+(function guardMatricInput() {
+  if (!loginForm) return;
+  // Capture-phase listeners on window run before any listener on the field itself. Stopping propagation
+  // here means a digits-only filter attached by another script (now or later) never gets to run.
+  ['keydown', 'keypress', 'beforeinput', 'input', 'paste'].forEach((type) => {
+    window.addEventListener(type, (e) => {
+      const t = e.target;
+      if (t && t.matches && t.matches('input') && loginForm.contains(t) && t.type !== 'password') {
+        e.stopPropagation();
+      }
+    }, true);
+  });
+  unlockMatricInput();
+  onReady(unlockMatricInput);
+  window.addEventListener('load', unlockMatricInput);
+  // If anything flips the box back (type=number, a pattern...), undo it straight away.
+  const el = findMatricInput();
+  if (el && 'MutationObserver' in window) {
+    new MutationObserver(() => {
+      if (el.type !== 'text' || el.getAttribute('pattern') || el.getAttribute('inputmode') !== 'text') unlockMatricInput();
+    }).observe(el, { attributes: true, attributeFilter: ['type', 'pattern', 'inputmode', 'maxlength'] });
+  }
+})();
+
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     authError.style.display = 'none';
 
-    const matricInput = loginForm.querySelector('input[name="matriculation-number"]') || document.getElementById('email-input');
+    const matricInput = findMatricInput();
     const passwordInput = loginForm.querySelector('input[name="password"]');
-    const matric = (matricInput ? matricInput.value : '').replace(/\s+/g, '').replace(/@student\.local$/i, '');
+    // Letters and numbers are both fine ("/", "-" and spaces are ignored). Upper-case keeps lookups consistent.
+    const matric = (matricInput ? matricInput.value : '')
+      .replace(/@student\.local$/i, '')
+      .replace(/[\s\/\-]+/g, '')
+      .toUpperCase();
     const password = passwordInput ? passwordInput.value : '';
 
     if (!matric || !password) {
       displayError("Please enter your matriculation number and password.");
       return;
     }
-    // Digits only: "250201001@anything.com" used to resolve to the same account.
-    if (!/^\d{6,12}$/.test(matric)) {
-      displayError("Enter your matriculation number (digits only).");
+    // Letters and digits only: "250201001@anything.com" used to resolve to the same account.
+    if (!/^[A-Z0-9]{4,20}$/.test(matric)) {
+      displayError("Enter your matriculation number (letters and numbers only).");
       return;
     }
-    if (window.studentDirectory && !window.studentDirectory[matric]) {
+    // The built-in class list only holds all-digit numbers. A number with letters is a newer student,
+    // so let the account check decide instead of rejecting it here.
+    if (/^\d+$/.test(matric) && window.studentDirectory && !window.studentDirectory[matric]) {
       displayError("Matriculation number not recognised.");
       return;
     }
 
-    const email = `${matric}${MATRIC_SUFFIX}`;
+    const email = `${matric.toLowerCase()}${MATRIC_SUFFIX}`;
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
@@ -687,7 +763,7 @@ async function fetchCourseResultsFromSupabase(semester, courseCode) {
 
 // 2. Fetch all course grades for a single student (Used by CGPA Calculator)
 async function fetchStudentGradesForCGPA(matricNo) {
-    const cleanMatric = String(matricNo).replace(/[^0-9]/g, '').trim();
+    const cleanMatric = String(matricNo).replace(/[^0-9a-z]/gi, '').toUpperCase();
     try {
         const { data, error } = await supabase
             .from('student_results')
@@ -870,7 +946,7 @@ function computeGPA() {
 if (autoFillGradesBtn) {
   autoFillGradesBtn.addEventListener('click', async () => {
     const rawInput = gpaMatricLookupInput ? gpaMatricLookupInput.value.trim().toLowerCase() : '';
-    const searchMatric = rawInput.split('@')[0].replace(/[^0-9]/g, '');
+    const searchMatric = rawInput.split('@')[0].replace(/[^0-9a-z]/gi, '').toUpperCase();
 
     if (!searchMatric) {
       alert("Please enter a Matriculation Number to look up.");

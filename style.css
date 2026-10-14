@@ -455,14 +455,16 @@ rgba(1, 10, 24, 0.95) 100%),
 .welcome-greeting h2 { 
     font-size: 1.4rem; 
     color: var(--text-main); 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
+    display: block;
+    line-height: 1.25;
+    overflow-wrap: anywhere; 
 } 
  
 .verified-badge-icon {  
     color: #1d9bf0;  
-    font-size: 1.1rem;  
+    font-size: 0.9em;
+    margin-left: 6px;
+    vertical-align: baseline;  
 }  
   
 .menu-toggle-btn {  
@@ -495,6 +497,7 @@ rgba(1, 10, 24, 0.95) 100%),
     width: 100%;  
     padding-top: 20px; 
 }  
+  
   
   
 .hero-panel-content h1 {  
@@ -689,6 +692,8 @@ rgba(1, 10, 24, 0.95) 100%),
     z-index: 10000;  
 }  
  
+  
+ 
 .profile-modal-close-btn {  
     position: absolute;  
     top: 14px;  
@@ -720,53 +725,24 @@ rgba(1, 10, 24, 0.95) 100%),
 }  
  
 .profile-modal-header h3 {  
-    margin: 4px 0 2px 0;  
-    color: #ffffff;  
-    font-size: 1.1rem;  
+    margin: 4px 0 2px 0;
 }  
  
 .profile-modal-header p {  
-    margin: 0;  
-    color: #8fa5c3;  
-    font-size: 0.85rem;  
+    margin: 0;
 }  
  
-.profile-modal-actions {  
-    display: flex;  
-    flex-direction: column;  
-    gap: 10px;  
-    width: 100%;  
-}  
+  
  
-.profile-modal-actions .dropdown-btn {  
-    display: flex;  
-    align-items: center;  
-    justify-content: center; 
-    gap: 10px;  
-    width: 100%;  
-    padding: 10px 14px;  
-    background: rgba(255, 255, 255, 0.06);  
-    border: 1px solid rgba(255, 255, 255, 0.1);  
-    border-radius: 10px;  
-    color: #f8fafc;  
-    font-size: 0.85rem;  
-    font-weight: 600; 
-    cursor: pointer;  
-    transition: background 0.2s;  
-}  
+  
  
 .profile-modal-actions .dropdown-btn:hover {  
     background: rgba(255, 255, 255, 0.15);  
 }  
  
-.profile-modal-actions .logout-btn {  
-    color: #f87171;  
-    border-color: rgba(248, 113, 113, 0.3);  
-}  
+  
  
-.profile-modal-actions .logout-btn:hover {  
-    background: rgba(248, 113, 113, 0.15);  
-}  
+  
  
 /* ==========================================  
    5. ACADEMIC CALENDAR & CURRENT DAY HIGHLIGHT 
@@ -829,6 +805,49 @@ rgba(1, 10, 24, 0.95) 100%),
     color: var(--text-muted);  
     padding-bottom: 6px;  
     text-transform: uppercase;  
+}  
+ 
+.calendar-day-num {  
+    padding: 8px 2px;  
+    font-size: 0.85rem;  
+    border-radius: 50%;  
+    cursor: pointer;  
+    transition: all 0.2s ease;  
+    position: relative;  
+    color: #e2e8f0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 32px; 
+    height: 32px; 
+    margin: 0 auto; 
+}  
+ 
+.calendar-day-num:hover {  
+    background: rgba(255, 255, 255, 0.15);  
+}  
+ 
+/* High Contrast Current Day Highlight */ 
+.calendar-day-num.today, 
+.calendar-day-num.active-day, 
+.calendar-day-num.current-day {  
+    background: #C5A059 !important;  
+    color: #000b18 !important;  
+    font-weight: 800 !important;  
+    box-shadow: 0 0 12px rgba(197, 160, 89, 0.7) !important; 
+    border: 1px solid #ffffff !important; 
+}  
+ 
+.calendar-day-num.has-event::after {  
+    content: '';  
+    position: absolute;  
+    bottom: 2px;  
+    left: 50%;  
+    transform: translateX(-50%);  
+    width: 4px;  
+    height: 4px;  
+    border-radius: 50%;  
+    background: #1d9bf0;  
 }  
  
 .calendar-focused-event-card {  
@@ -1238,13 +1257,7 @@ body.light-theme .dashboard-sidebar {
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.06) !important;  
 }  
  
-/* Light Mode Dashboard Hero Banner Fix */ 
-body.light-theme .dashboard-hero-panel {  
-    background: linear-gradient(135deg, #ffffff 0%, #edf4fc 100%) 
-!important;  
-    border: 1px solid #cbd5e1 !important;  
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;  
-}  
+  
  
 body.light-theme .hero-panel-content h1 {  
     color: #0f172a !important;  
@@ -1306,6 +1319,25 @@ body.light-theme .text-muted,
 body.light-theme .calendar-day-header, 
 body.light-theme .profile-modal-header p {  
 color: #475569 !important;  
+}  
+ 
+/* Calendar Numbers & Current Day in Light Mode */ 
+body.light-theme .calendar-day-num {  
+    color: #0f172a !important;  
+    font-weight: 600; 
+}  
+ 
+body.light-theme .calendar-day-num:hover {  
+    background: #e2e8f0 !important;  
+}  
+ 
+body.light-theme .calendar-day-num.today, 
+body.light-theme .calendar-day-num.active-day, 
+body.light-theme .calendar-day-num.current-day {  
+    background: #0284c7 !important;  
+    color: #ffffff !important;  
+    font-weight: 800 !important;  
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4) !important; 
 }  
  
 body.light-theme .sidebar-grid-menu .menu-item {  
@@ -1382,6 +1414,13 @@ body.light-theme .enlarged-avatar-box i {
     color: #000b18 !important;  
 }  
  
+/* Landing hero: dark photo overlay in BOTH themes, so keep its text light
+   (the global light-theme heading rule above made it near-black and unreadable). */
+body.light-theme .hero-text h1 { color: var(--gold-glow) !important; }
+body.light-theme .hero-text h2 { color: #ffffff !important; }
+body.light-theme .hero-text h3 { color: #cbd5e1 !important; }
+body.light-theme .hero-text hr { background-color: rgba(255, 255, 255, 0.55); }
+
 /* Preserve Gold Accent Branding in Light Mode */  
 body.light-theme .course-code-tag,  
 body.light-theme .branding-statement,  
@@ -1397,13 +1436,15 @@ body.light-theme #tb-fab {
    11. MEDIA QUERIES & RESPONSIVE LAYOUTS  
    ========================================== */  
 @media (max-width: 1024px) {  
+    .dashboard-layout-wrapper {  
+        grid-template-columns: 1fr !important;  
+    }  
     .dashboard-sidebar {  
         position: fixed;  
         top: 0;  
         left: -280px;  
         width: 260px;  
-        height: 100vh;  
-        z-index: 1000;  
+        height: 100vh;
         background: #000b18;  
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);  
     }  
@@ -1437,7 +1478,13 @@ body.light-theme #tb-fab {
         display: flex !important;  
         flex-direction: column !important;  
     }  
-}  
+} 
+.profile-modal-card { 
+    position: relative;
+    gap: 16px;
+    color: #f0f6fc; 
+} 
+ 
 .profile-modal-header h3 { 
     color: #f0f6fc !important; 
     font-size: 1.15rem; 
@@ -1448,10 +1495,8 @@ body.light-theme #tb-fab {
     color: #8b949e !important; 
 font-size: 0.85rem; 
 } 
-.profile-modal-actions .logout-btn { 
-color: #ff6b6b !important; 
-border-color: rgba(255, 107, 107, 0.3) !important; 
-background: rgba(255, 107, 107, 0.1) !important; 
+.profile-modal-actions .logout-btn {
+border-color: rgba(255, 107, 107, 0.3) !important;
 } 
 .profile-modal-actions .logout-btn:hover { 
 background: rgba(255, 107, 107, 0.25) !important; 
@@ -1749,8 +1794,6 @@ body.light-theme .dashboard-hero-panel {
 }
 /* Sleek Mobile Profile Modal & Buttons */
 .profile-modal-card {
-    position: relative;
-    gap: 16px;
     background: rgba(13, 17, 23, 0.95) !important;
     border: 1px solid rgba(197, 160, 89, 0.35) !important;
     backdrop-filter: blur(16px);
@@ -1864,12 +1907,17 @@ body.light-theme .dashboard-hero-panel {
     padding: 10px 12px !important;
     font-size: 0.82rem !important;
 }
-/* Force course badges to stay on a single line */
-.timetable-table .course-badge,
-.timetable-table td:last-child span,
+/* Keep course badges on one line.
+   Never give a table cell display:inline-block: it drops the cell out of the table layout, so each row's
+   bottom border and the day-separator line were drawn as short, misaligned segments. Only the badge is inline-block. */
 .timetable-table td:last-child {
-    white-space: nowrap !important;
-    word-break: keep-all !important;
+    white-space: nowrap;
+    word-break: keep-all;
+}
+.timetable-table .course-badge,
+.timetable-table td:last-child span {
+    white-space: nowrap;
+    word-break: keep-all;
     display: inline-block;
 }
 
@@ -2028,10 +2076,24 @@ body.light-theme #galleryView, body.light-theme #forumView, body.light-theme #li
 .forum-queued { margin: 4px 0; color: var(--g-text-muted); font-size: 0.85rem; }
 .forum-remove { margin-left: 12px; background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; }
 
+/* ==========================================
+   TOP BAR (greeting + search + profile)
+   ========================================== */
+.dashboard-top-nav { gap: 10px; }
+.dashboard-top-nav > div { min-width: 0; }
+.welcome-greeting { min-width: 0; flex: 1 1 auto; }
+.dashboard-top-nav > .top-nav-actions { min-width: auto; flex-shrink: 0; }
+@media (max-width: 768px) {
+    .welcome-greeting p { font-size: 0.8rem; }
+    .welcome-greeting h2 { font-size: clamp(1.05rem, 4.8vw, 1.3rem); }
+    .top-nav-actions { gap: 8px; }
+    .tbx-search-btn { width: 40px; height: 40px; }
+}
 
-/* =======================================================
-   FEATURES STYLES (merged from features.css)
-   ======================================================= */
+/* ==========================================
+   ASSIGNMENTS, POLLS, SEARCH & SPLASH
+   (merged from features.css; keep this section last so it keeps overriding the rules above)
+   ========================================== */
 /* Assignments, Polls and search. Uses the portal's own colour variables so light and dark themes both work. */
 
 .tbx-card .table-header-row h3 i { margin-right: 6px; color: var(--gold-accent); }
@@ -2249,102 +2311,185 @@ html.tb-splash-light #tbSplash { background: #f0f4f8; color: #000b18; }
 html.tb-splash-light #tbSplash .sp-bar::after { background: #9a7420; }
 @keyframes tbSpSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
 @media (prefers-reduced-motion: reduce) { #tbSplash .sp-bar::after { animation: none; width: 100%; } }
-/* =======================================================
-   LANDING PAGE REFINEMENTS
-   Fixes hero text contrast in light mode + mobile spacing
-   ======================================================= */
 
-/* Hero headings must stay light on the darkened photo in BOTH themes —
-   the global light-theme h1-h4 override was turning them black-on-black. */
-.hero-text h1,
-.hero-text h2,
-.hero-text h3,
-body.light-theme .hero-text h1,
-body.light-theme .hero-text h2,
-body.light-theme .hero-text h3 {
-    color: #f1f5f9 !important;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-}
-.hero-text h1,
-body.light-theme .hero-text h1 {
-    color: var(--gold-glow) !important;
-}
-.hero-text hr {
-    background: linear-gradient(90deg, var(--gold-accent), transparent);
-    height: 2px;
-}
-.branding-statement,
-body.light-theme .branding-statement {
-    color: #e7c877 !important;
+
+/* ==========================================
+   FIXES (kept last so they win over earlier rules)
+   ========================================== */
+
+/* --- Blue tick: sits right beside the name, never floats off toward the search button --- */
+.welcome-greeting h2 { display: block !important; }
+.welcome-greeting h2 .greeting-name-tail { white-space: nowrap; }
+.welcome-greeting h2 .verified-badge-icon,
+.verified-badge-icon {
+    display: inline-block;
+    position: static;
+    float: none;
+    margin: 0 0 0 5px;
+    font-size: 0.78em;
+    vertical-align: 0.06em;
+    color: #1d9bf0;
 }
 
-/* Welcome/login card body copy: stronger contrast in light mode */
-body.light-theme .info-card p,
-body.light-theme .login-card p {
-    color: #334155 !important;
-    font-size: 0.92rem;
-    line-height: 1.65;
-}
-
-/* Tighter, more balanced mobile landing layout */
-@media (max-width: 768px) {
-    .site-header {
-        padding: 8px 0 16px 0;
-        margin-bottom: 6px;
-    }
-    .hero-section {
-        padding: 30px 22px;
-        margin-bottom: 22px;
-        border-radius: 16px;
-    }
-    .hero-text h1 { font-size: 2.6rem; }
-    .hero-text h2 { font-size: 1.05rem; letter-spacing: 3px; }
-    .hero-text h3 { font-size: 0.85rem; }
-    .info-card, .sidebar-card {
-        padding: 22px 20px;
-        border-radius: 14px;
-    }
-    /* keep landing content clear of the TB AI floating button */
-    .master-layout { padding-bottom: 90px; }
-}
-
-/* Notification diagnostics (Notices view) */
-.notif-diag {
-    margin: 10px 0 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.notif-diag-row {
+/* --- Install button: the floating pill and the how-to sheet had no styles at all --- */
+.tb-install-fab {
+    position: fixed;
+    left: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 9990;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.8rem;
-    padding: 7px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--card-border);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--gold-glow, #D4AF37);
+    color: #0b1220;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    font-family: inherit;
 }
-.notif-diag-row i { width: 16px; text-align: center; }
-.notif-diag-row.is-ok i { color: #22c55e; }
-.notif-diag-row.is-bad i { color: #ef4444; }
-.notif-diag-row span { color: var(--text-muted); flex: 1; }
-.notif-diag-row strong { color: var(--text-main); font-weight: 600; text-align: right; }
-body.light-theme .notif-diag-row {
-    background: #f8fafc;
-    border-color: #cbd5e1;
+@media (min-width: 1025px) {
+    .tb-install-fab { left: 300px; }
 }
-body.light-theme .notif-diag-row span { color: #475569; }
-body.light-theme .notif-diag-row strong { color: #000b18; }
-.notif-test-btn {
-    margin-top: 4px;
-    font-size: 0.8rem;
-    padding: 8px 14px;
-    width: auto;
+.tb-install-go,
+.tb-install-x {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
     background: transparent;
-    border: 1px solid var(--card-border);
-    color: var(--text-muted);
-    border-radius: 8px;
+    color: inherit;
+    font-family: inherit;
     cursor: pointer;
 }
-.notif-test-btn:hover { color: var(--gold-glow); border-color: var(--gold-accent); }
+.tb-install-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px 12px 18px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.tb-install-x {
+    padding: 12px 14px 12px 6px;
+    font-size: 1.2rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+.tb-install-x:hover { opacity: 1; }
+
+.tb-install-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(2, 8, 20, 0.6);
+    padding: 16px;
+}
+.tb-install-card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+    padding: 24px 22px 20px;
+    border-radius: 20px;
+    background: var(--card-bg, #021329);
+    color: var(--text-main, #fff);
+    border: 1px solid rgba(197, 160, 89, 0.4);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+.tb-install-card h3 { margin: 0 0 6px; font-size: 1.1rem; color: var(--gold-glow, #D4AF37); }
+.tb-install-card p { margin: 0 0 12px; font-size: 0.88rem; color: var(--text-muted, #A0AEC0); }
+.tb-install-steps { margin: 0; padding-left: 20px; font-size: 0.9rem; line-height: 1.6; }
+.tb-install-steps li + li { margin-top: 6px; }
+.tb-install-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted, #A0AEC0);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+}
+body.light-theme .tb-install-card { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+body.light-theme .tb-install-card h3 { color: #0284c7; }
+body.light-theme .tb-install-card p,
+body.light-theme .tb-install-close { color: #475569; }
+
+/* --- Logged-out hero: the title stays light on its dark photo overlay in both themes --- */
+#loggedOutView .hero-panel-content h1,
+#loggedOutView .hero-panel-content h1 * { color: #ffffff !important; }
+#loggedOutView .hero-panel-content .highlight-title { color: var(--gold-glow, #D4AF37) !important; }
+#loggedOutView .hero-panel-tagline { color: #e2e8f0 !important; }
+
+/* --- Timetable: one look for every row, cell and badge, in both themes --- */
+.timetable-table {
+    --tt-line: rgba(255, 255, 255, 0.08);
+    --tt-line-strong: #21262d;
+    --tt-day: var(--gold-accent, #C5A059);
+    --tt-badge-bg: rgba(197, 160, 89, 0.16);
+    --tt-badge-fg: var(--gold-glow, #D4AF37);
+    --tt-empty: #64748b;
+}
+body.light-theme .timetable-table {
+    --tt-line: #e2e8f0;
+    --tt-line-strong: #cbd5e1;
+    --tt-day: #0284c7;
+    --tt-badge-bg: #f5ecda;
+    --tt-badge-fg: #a8803a;
+    --tt-empty: #94a3b8;
+}
+
+/* Real table layout everywhere. A cell that is not a table-cell is why the row lines used to stop at
+   different widths and the day line sat at a different height in each column. */
+.timetable-table { display: table !important; width: 100%; border-collapse: separate !important; border-spacing: 0 !important; }
+.timetable-table thead { display: table-header-group !important; }
+.timetable-table tbody { display: table-row-group !important; }
+.timetable-table tr { display: table-row !important; }
+
+.timetable-table th,
+.timetable-table td {
+    display: table-cell !important;
+    box-sizing: border-box;
+    height: 56px;
+    padding: 10px 14px !important;
+    vertical-align: middle !important;
+    text-align: left !important;
+    white-space: nowrap;
+    font-size: 0.85rem !important;
+    line-height: 1.3;
+    border-top: 0;
+    border-bottom: 1px solid var(--tt-line) !important;
+}
+.timetable-table th { height: 48px; border-bottom: 2px solid var(--tt-line-strong) !important; }
+
+/* The day separator is drawn on every cell of the first row of a day, so it is one straight line. */
+.timetable-table tr.day-divider > td,
+.timetable-table tr.day-start > td,
+.timetable-table tr:has(> td.day-cell) > td {
+    border-top: 3px solid var(--tt-day) !important;
+}
+
+/* Course codes: identical size and shape, whatever the code */
+.timetable-table .course-badge,
+.timetable-table td:last-child span {
+    display: inline-block;
+    min-width: 92px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    background: var(--tt-badge-bg) !important;
+    color: var(--tt-badge-fg) !important;
+}
+
+/* Empty cells ("-"): same muted dash in every row, lined up with the text above it */
+.timetable-table td.tt-empty {
+    color: var(--tt-empty) !important;
+    font-weight: 400;
+}

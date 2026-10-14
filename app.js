@@ -306,15 +306,19 @@ window.setStudentDisplayName = function(matricNumber) {
 
     const greetingHeader = document.querySelector(".welcome-greeting h2");
     if (greetingHeader) {
-        greetingHeader.textContent = displayName + ' ';
-        greetingHeader.appendChild(mk('i', 'fa-solid fa-circle-check verified-badge-icon'));
+        if (typeof window.tbRenderGreetingName === 'function') {
+            window.tbRenderGreetingName(greetingHeader, displayName);
+        } else {
+            greetingHeader.textContent = displayName;
+            greetingHeader.appendChild(mk('i', 'fa-solid fa-circle-check verified-badge-icon'));
+        }
     }
 
     const dropdownNameLabel = document.getElementById("dropdownUserName");
     if (dropdownNameLabel) dropdownNameLabel.textContent = displayName;
 };
 
-window.switchToView = function(viewId) {   
+function showViewPanel(viewId) {   
     if (!viewId) return;   
    
     document.querySelectorAll('.view-panel').forEach(panel => {   
@@ -349,14 +353,150 @@ window.switchToView = function(viewId) {
         }   
     });   
    
-    window.scrollTo({ top: 0, behavior: 'smooth' });   
-};   
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const hook = window.tbViewHooks && window.tbViewHooks[viewId];
+    if (typeof hook === 'function') { try { hook(); } catch (e) { console.warn('View hook failed:', e); } }
+}
+
+// -------------------------------------------------------
+// BACK BUTTON / HISTORY
+// -------------------------------------------------------
+// The portal is one page, so the phone's back button used to leave the app. Every screen change now
+// adds a history entry, and back first closes whatever is open on top (menu, search, photo, popup),
+// then goes to the previous screen. On the home screen it asks for a second press before leaving.
+window.tbViewHooks = window.tbViewHooks || {};
+let currentView = 'dashboardHomeView';
+let navOn = false;
+let lastExitTap = 0;
+
+function navToast(text) {
+    let t = document.getElementById('tbNavToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'tbNavToast';
+        t.setAttribute('role', 'status');
+        document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.className = 'tbx-toast show';
+    clearTimeout(navToast._t);
+    navToast._t = setTimeout(() => { t.className = 'tbx-toast'; }, 2200);
+}
+
+window.switchToView = function(viewId, opts) {
+    if (!viewId) return;
+    showViewPanel(viewId);
+    if (!(opts && opts.fromHistory)) lastExitTap = 0;   // opening a screen cancels a pending "press back again"
+    if (navOn && !(opts && opts.fromHistory) && viewId !== currentView) {
+        const depth = ((history.state && history.state.d) || 0) + 1;
+        history.pushState({ tbView: viewId, d: depth }, '');
+    }
+    currentView = viewId;
+};
+
+// Returns a function that closes the top-most open layer, or null when nothing is open.
+function topLayerCloser() {
+    const shown = (el) => !!el && getComputedStyle(el).display !== 'none';
+
+    if (document.querySelector('.tbx-sheet.open') && typeof window.tbxCloseSearch === 'function') return window.tbxCloseSearch;
+
+    const cal = document.querySelector('.tbx-cal:not([hidden])');
+    if (cal) return () => { cal.hidden = true; };
+
+    if (shown(document.getElementById('lightboxModal'))) {
+        return () => { const b = document.getElementById('closeLightboxBtn'); if (b) b.click(); };
+    }
+
+    const dlg = document.getElementById('uploadNotesModal');
+    if (dlg && dlg.open && typeof dlg.close === 'function') return () => dlg.close();
+
+    const pm = document.getElementById('profileModal');
+    if (shown(pm)) return () => { pm.style.display = 'none'; };
+
+    const sb = document.querySelector('.dashboard-sidebar.mobile-open, .dashboard-sidebar.active');
+    if (sb && window.matchMedia('(max-width: 1024px)').matches) {
+        return () => {
+            sb.classList.remove('mobile-open', 'active');
+            const ov = document.getElementById('sidebar-overlay');
+            if (ov) ov.classList.remove('active');
+        };
+    }
+
+    // Results: the score list is a screen inside the Results tab
+    const detail = document.getElementById('courseScoresDetailView');
+    if (shown(detail)) return () => { const b = document.getElementById('backToCoursesBtn'); if (b) b.click(); };
+
+    return null;
+}
+
+window.addEventListener('popstate', (e) => {
+    if (!navOn || !window.tbUid) return;
+    const st = e.state || {};
+
+    // 1) Something is open on top: close it and stay on the current screen.
+    const close = topLayerCloser();
+    if (close) {
+        close();
+        history.pushState({ tbView: currentView, d: ((st.d || 0) + 1) }, '');
+        return;
+    }
+
+    // 2) A normal step back through the screens.
+    if (st.tbView) {
+        window.switchToView(st.tbView, { fromHistory: true });
+        return;
+    }
+
+    // 3) Back pressed on the home screen: the first press only warns, the second leaves.
+    if (st.tbBase) {
+        if (Date.now() - lastExitTap < 2500) {
+            navOn = false;
+            history.back();
+            return;
+        }
+        lastExitTap = Date.now();
+        navToast('Press back again to exit');
+        history.pushState({ tbView: 'dashboardHomeView', d: 1 }, '');
+        window.switchToView('dashboardHomeView', { fromHistory: true });
+    }
+});
+
+// auth.js calls this once a student is signed in, and tbNavStop when the session ends.
+window.tbNavStart = function () {
+    if (navOn) return;
+    navOn = true;
+    const st = history.state || {};
+    if (st.tbView) {
+        // The page was reloaded (or came back from TB AI) in the middle of the app: show the same screen.
+        window.switchToView(st.tbView, { fromHistory: true });
+    } else {
+        history.replaceState({ tbBase: true, d: 0 }, '');
+        history.pushState({ tbView: 'dashboardHomeView', d: 1 }, '');
+        currentView = 'dashboardHomeView';
+    }
+    // A tapped notification opens the app on ?open=<view>
+    try {
+        const q = new URLSearchParams(location.search).get('open');
+        if (q && document.getElementById(q)) {
+            window.switchToView(q);
+            history.replaceState(history.state, '', location.pathname);
+        }
+    } catch (_) { /* ignore */ }
+};
+window.tbNavStop = function () {
+    if (!navOn) return;
+    navOn = false;
+    const d = (history.state && history.state.d) || 0;
+    currentView = 'dashboardHomeView';
+    if (d > 0) { try { history.go(-d); } catch (_) { /* ignore */ } }
+};
    
 // switchSemester lives in auth.js (it also resets the scores detail view).
 
 window.updateStudentDuesUI = function(matricNumber) {    
     if (!matricNumber) return;   
-    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();    
+    const cleanMatric = String(matricNumber).replace(/[^0-9a-z]/gi, '').toUpperCase();    
     const student = studentDuesRegistry.find(s => s.matric === cleanMatric);    
    
     const statusText = document.getElementById('studentDuesStatusText');    
@@ -405,7 +545,7 @@ Payment`;
 };    
    
 window.printDuesReceipt = async function(matricNumber) {
-    const cleanMatric = String(matricNumber).replace(/[^0-9]/g, '').trim();
+    const cleanMatric = String(matricNumber).replace(/[^0-9a-z]/gi, '').toUpperCase();
     if (!isAdminNow() && cleanMatric !== window.currentLoggedInMatric) {
         alert("You can only print your own receipt.");
         return;
@@ -621,18 +761,38 @@ async function pushCall(payload) {
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
         body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error("Push setup failed (" + res.status + ")");
+    if (!res.ok) {
+        let why = '';
+        try { why = (await res.text()).slice(0, 160); } catch (_) { /* ignore */ }
+        throw new Error("Push setup failed (" + res.status + ")" + (why ? ": " + why : ""));
+    }
+}
+
+// A subscription created with an older VAPID key is silently rejected by the push service, so it must be replaced.
+function subscriptionMatchesKey(sub) {
+    try {
+        const cur = sub.options && sub.options.applicationServerKey;
+        if (!cur) return true;
+        const a = new Uint8Array(cur), b = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+        return a.length === b.length && a.every((v, i) => v === b[i]);
+    } catch (_) { return true; }
 }
 
 // Registers this device for push. Returns true when it is registered.
+// window.tbPushStatus says why it is not (open the console to read it).
 async function ensurePushSubscription() {
-    if (!VAPID_PUBLIC_KEY) return false;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-    if (!('Notification' in window) || Notification.permission !== 'granted') return false;
-    if (!window.tbUid) return false;
+    const fail = (why) => { window.tbPushStatus = why; return false; };
+    if (!VAPID_PUBLIC_KEY) return fail('no VAPID key');
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return fail('push not supported here');
+    if (!('Notification' in window) || Notification.permission !== 'granted') return fail('permission not granted');
+    if (!window.tbUid) return fail('not signed in');
     try {
         const reg = await navigator.serviceWorker.ready;
         let sub = await reg.pushManager.getSubscription();
+        if (sub && !subscriptionMatchesKey(sub)) {
+            await sub.unsubscribe().catch(() => {});
+            sub = null;
+        }
         if (!sub) {
             sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -640,30 +800,16 @@ async function ensurePushSubscription() {
             });
         }
         await pushCall({ action: 'subscribe', subscription: sub.toJSON() });
+        window.tbPushStatus = 'registered';
+        lastPushSync = Date.now();
         return true;
     } catch (err) {
         console.warn('Push subscription failed:', err);
-        return false;
+        return fail(String((err && err.message) || err));
     }
 }
+let lastPushSync = 0;
 window.syncPushSubscription = ensurePushSubscription; // auth.js calls this after login
-const _origSync = window.syncPushSubscription;
-window.syncPushSubscription = async function () { const r = await _origSync.apply(this, arguments); updateNotifDiag(); return r; };
-
-// FIX (notification bug): if the student granted permission on an earlier visit
-// (or in another tab), this device was never re-registered for push unless the
-// "Enable Notifications" button was pressed again. Re-sync automatically as soon
-// as both login (window.tbUid) and the service worker are ready.
-(function autoSyncPushWhenReady() {
-    if (!VAPID_PUBLIC_KEY) return;
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    let tries = 0;
-    (function attempt() {
-        if (window.tbUid) { ensurePushSubscription(); return; }
-        if (++tries < 90) setTimeout(attempt, 1000); // login can be slow on mobile data — keep trying ~90s
-    })();
-})();
 
 // Called on logout so a shared phone stops receiving the previous student's alerts.
 window.tbPushUnsubscribe = async function () {
@@ -697,20 +843,11 @@ window.requestNotificationPermission = async function() {
         }
 
         // Register for push so alerts also arrive when the app is closed.
-        let pushOn = await ensurePushSubscription();
-        if (!pushOn && !window.tbUid) {
-            // Login may not have finished yet — retry quietly in the background.
-            let tries = 0;
-            const retry = setInterval(async () => {
-                if (window.tbUid) { pushOn = await ensurePushSubscription(); clearInterval(retry); }
-                else if (++tries > 30) clearInterval(retry);
-            }, 1000);
-        }
+        const pushOn = await ensurePushSubscription();
         const body = pushOn
             ? "Notifications are on. You'll be alerted about new announcements, even when the app is closed."
             : "Notifications are on. You'll get an alert when a new announcement is posted while the app is open.";
 
-        updateNotifDiag();
         if ('serviceWorker' in navigator) {
             const reg = await navigator.serviceWorker.ready;
             reg.showNotification("Trailblazers '29 Portal", {
@@ -725,65 +862,6 @@ window.requestNotificationPermission = async function() {
         alert("Notification permission was denied. You can enable it in your browser settings.");
     }
 };
-
-// ---- Notification diagnostics (visible in the Notices view) ----
-async function updateNotifDiag() {
-    const box = document.getElementById('notifDiag');
-    if (!box) return;
-    const rows = [];
-    const ok = (b) => b ? 'ok' : 'bad';
-
-    // 1. Permission
-    const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
-    rows.push(['Browser permission', perm === 'granted' ? 'granted' : perm, perm === 'granted']);
-
-    // 2. Service worker
-    let swState = 'not registered';
-    if ('serviceWorker' in navigator) {
-        try {
-            const reg = await navigator.serviceWorker.getRegistration();
-            swState = reg && reg.active ? 'active' : (reg ? 'installing' : 'not registered');
-        } catch (e) { swState = 'error'; }
-    }
-    rows.push(['Service worker', swState, swState === 'active']);
-
-    // 3. Push subscription on this device
-    let pushState = 'off';
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-        try {
-            const reg = await navigator.serviceWorker.getRegistration();
-            const sub = reg && await reg.pushManager.getSubscription();
-            pushState = sub ? 'subscribed on this device' : 'not subscribed';
-        } catch (e) { pushState = 'error'; }
-    }
-    rows.push(['Push on this device', pushState, pushState.startsWith('subscribed')]);
-
-    // 4. Realtime channel
-    const rt = window.__tbRealtimeStatus || 'not connected yet';
-    rows.push(['Live announcement feed', rt, rt === 'SUBSCRIBED']);
-
-    box.innerHTML = rows.map(([label, val, good]) =>
-        `<div class="notif-diag-row ${good ? 'is-ok' : 'is-bad'}">` +
-        `<i class="fa-solid ${good ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>` +
-        `<span>${esc(label)}</span><strong>${esc(val)}</strong></div>`).join('');
-}
-
-window.tbTestNotification = async function () {
-    // Tests the DISPLAY path locally (no server needed).
-    showNotificationToast({ title: 'Test Announcement', content: 'If you can see and hear this, notifications are working.', date: new Date().toISOString().slice(0, 10), category: 'GENERAL' });
-    if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
-        try {
-            const reg = await navigator.serviceWorker.ready;
-            await reg.showNotification("Trailblazers '29 Portal", {
-                body: 'This is a test — announcements will appear like this.',
-                icon: './icon-192.jpg',
-                badge: './favicon-32.jpg',
-                tag: 'tb29-test-' + Date.now()
-            });
-        } catch (e) { console.warn('Test notification failed:', e); }
-    }
-};
-
 let noticeAudioCtx = null;
 function playNoticeChime() {
     try {
@@ -804,7 +882,38 @@ function playNoticeChime() {
     } catch (e) { /* audio is optional */ }
 }
 
-function showNotificationToast(notice) {
+// The same announcement can arrive by the live connection, by push and by a catch-up fetch.
+// These keep it to one alert. The OS tag is built from the title in BOTH app.js and sw.js, so a
+// push and an in-app alert for the same announcement replace each other instead of doubling up.
+const seenNotices = new Set();
+const recentTitles = new Map();
+const NOTICE_TS_KEY = 'tb_last_notice_ts';
+
+function noticeKey(n) { return n.id != null ? 'id:' + n.id : 'k:' + (n.title || '') + '|' + (n.date || ''); }
+function noticeTag(title) { return 'tb29-' + String(title || 'notice').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60); }
+function rememberNoticeTime(ts) {
+    const t = Date.parse(ts || '');
+    if (!t) return;
+    try {
+        const cur = Date.parse(localStorage.getItem(NOTICE_TS_KEY) || '') || 0;
+        if (t > cur) localStorage.setItem(NOTICE_TS_KEY, new Date(t).toISOString());
+    } catch (_) { /* storage blocked */ }
+}
+
+// Returns false when this announcement was already alerted.
+function announceNotice(notice, opts) {
+    const key = noticeKey(notice);
+    if (seenNotices.has(key)) return false;
+    seenNotices.add(key);
+    recentTitles.set(String(notice.title || '').trim().toLowerCase(), Date.now());
+    rememberNoticeTime(notice.created_at);
+    showNotificationToast(notice, opts);
+    return true;
+}
+
+// opts.os === false: in-app toast only (used for catch-up and for push, where sw.js already showed the OS alert)
+function showNotificationToast(notice, opts) {
+    const showOs = !(opts && opts.os === false);
     const container = document.getElementById('toastContainer');
     if (container) {
         const isImportant = (notice.category || '').toUpperCase() === 'IMPORTANT';
@@ -836,8 +945,8 @@ function showNotificationToast(notice) {
     }
 
     // `Notification` does not exist on iOS Safari (outside installed PWAs): guard it, and never let
-    // a push failure stop the chime / calendar update that follow.
-    if ('Notification' in window && Notification.permission === 'granted') {
+    // a failure here stop the chime / calendar update that follow.
+    if (showOs && 'Notification' in window && Notification.permission === 'granted') {
         const title = notice.title || "New Departmental Announcement";
         const body = notice.content || "Click to view the new announcement on your portal.";
         try {
@@ -847,7 +956,8 @@ function showNotificationToast(notice) {
                     icon: "./icon-192.jpg",
                     badge: "./favicon-32.jpg",
                     vibrate: [200, 100, 200],
-                    tag: ('notice-' + (notice.title || '') + '-' + (notice.date || '')).slice(0, 100)
+                    tag: noticeTag(title),
+                    data: { view: 'noticesView' }
                 })).catch(() => {});
             } else {
                 new Notification(title, { body, icon: "./icon-192.jpg" });
@@ -857,6 +967,29 @@ function showNotificationToast(notice) {
 
     playNoticeChime();
 }
+
+// Announcements posted while the phone was asleep or the app was closed never reached the live
+// connection. When the portal opens or resumes, tell the student about anything newer than the
+// last announcement they were alerted to. (First run only records a starting point, so nobody
+// gets a pile of old alerts.)
+function catchUpNotices(list) {
+    if (!window.tbUid || !Array.isArray(list) || !list.length) return;
+    const times = list.map(n => Date.parse(n.created_at) || 0);
+    const newest = Math.max(...times);
+    if (!newest) return;
+    let last = 0;
+    try { last = Date.parse(localStorage.getItem(NOTICE_TS_KEY) || '') || 0; } catch (_) { /* ignore */ }
+    if (!last) { rememberNoticeTime(new Date(newest).toISOString()); return; }
+
+    const fresh = list.filter(n => (Date.parse(n.created_at) || 0) > last && !seenNotices.has(noticeKey(n)));
+    fresh.forEach(n => seenNotices.add(noticeKey(n)));
+    rememberNoticeTime(new Date(newest).toISOString());
+    if (!fresh.length) return;
+
+    if (fresh.length === 1) showNotificationToast(fresh[0], { os: false });
+    else showNotificationToast({ title: fresh.length + ' new announcements', content: fresh[0].title || '', category: 'GENERAL' }, { os: false });
+}
+window.tbCatchUpNotices = function () { return fetchInitialAnnouncements().catch(() => {}); };
 
 function formatDateString(dateStr) {
     if (!dateStr) return '';
@@ -918,67 +1051,49 @@ async function fetchInitialAnnouncements() {
     if (data && data.length > 0) {
         container.replaceChildren();
         data.forEach(notice => renderNoticeCard(notice)); // already newest-first: append in order
-
-        // FIX (notification bug): realtime events are dropped while the app is in the
-        // background, so announcements posted in the meantime used to appear silently.
-        // Remember the newest announcement we've seen and alert about any missed ones
-        // the next time we re-sync (on return to the app / back online).
-        const keyOf = (n) => (n.created_at || '') + '|' + (n.id || '');
-        const newest = data[0];
-        let lastSeen = null;
-        try { lastSeen = localStorage.getItem(LS_LAST_SEEN_ANN); } catch (_) {}
-        if (lastSeen && lastSeen !== keyOf(newest)) {
-            const missed = data.filter(n => keyOf(n) !== lastSeen);
-            missed.slice(0, 5).reverse().forEach(n => showNotificationToast(n));
-        }
-        try { localStorage.setItem(LS_LAST_SEEN_ANN, keyOf(newest)); } catch (_) {}
+        catchUpNotices(data);
     }
 }
-const LS_LAST_SEEN_ANN = 'tb_last_seen_announcement';
 
-let __tbAnnChannel = null;      // guard against double-subscribing the same channel
-let __tbAnnRetry = 0;
+let noticeChannel = null, noticeRetry = 0, noticeRetryTimer = null;
+
+function handleLiveNotice(notice) {
+    if (!notice) return;
+    renderNoticeCard(notice, true);
+    announceNotice(notice);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const todayStr = `${year}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    if (notice.date === todayStr) {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const displayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${year}`;
+        if (typeof window.updateFocusedEventCard === 'function') {
+            window.updateFocusedEventCard(notice.title, displayDate, notice.content);
+        }
+    }
+}
 
 function subscribeToRealtimeAnnouncements() {
     const supabase = window.tbSupabase;
     if (!supabase) return;
-    if (__tbAnnChannel) { try { supabase.removeChannel(__tbAnnChannel); } catch (e) {} __tbAnnChannel = null; }
 
-    __tbAnnChannel = supabase
-        .channel('public:announcements')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
-            const notice = payload.new;
-            if (!notice) return;
-            renderNoticeCard(notice, true);
-            showNotificationToast(notice);
-            // Mark as seen so the resync in fetchInitialAnnouncements doesn't alert again.
-            try { localStorage.setItem(LS_LAST_SEEN_ANN, (notice.created_at || '') + '|' + (notice.id || '')); } catch (_) {}
+    clearTimeout(noticeRetryTimer);
+    if (noticeChannel) { try { supabase.removeChannel(noticeChannel); } catch (_) { /* ignore */ } }
 
-            const today = new Date();
-            const year = today.getFullYear();
-            const todayStr = `${year}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-            if (notice.date === todayStr) {
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                const displayDate = `${monthNames[today.getMonth()]} ${today.getDate()}, ${year}`;
-                if (typeof window.updateFocusedEventCard === 'function') {
-                    window.updateFocusedEventCard(notice.title, displayDate, notice.content);
-                }
-            }
-        })
-        .subscribe((status) => {
-            console.log("Supabase Realtime Channel Status:", status);
-            window.__tbRealtimeStatus = status;
-            updateNotifDiag();
-            // Phones drop realtime constantly — rebuild the channel on hard failures.
-            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                if (__tbAnnRetry < 5) {
-                    __tbAnnRetry++;
-                    setTimeout(() => { __tbAnnChannel = null; subscribeToRealtimeAnnouncements(); }, 4000 * __tbAnnRetry);
-                }
-            } else if (status === 'SUBSCRIBED') {
-                __tbAnnRetry = 0;
-            }
-        });
+    const ch = supabase.channel('public:announcements');
+    noticeChannel = ch;
+    ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => handleLiveNotice(payload.new))
+      .subscribe((status) => {
+        if (ch !== noticeChannel) return; // an old channel that was replaced on purpose
+        console.log("Supabase Realtime Channel Status:", status);
+        if (status === 'SUBSCRIBED') { noticeRetry = 0; return; }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            // A phone drops this connection whenever the app sleeps. Reconnect instead of staying deaf.
+            const wait = Math.min(30000, 1000 * Math.pow(2, noticeRetry++));
+            noticeRetryTimer = setTimeout(subscribeToRealtimeAnnouncements, wait);
+        }
+    });
 }
 
 // Phones suspend the live connection while the app is in the background, so anything posted in the
@@ -990,6 +1105,9 @@ function resyncLiveData() {
     lastResync = Date.now();
     fetchInitialAnnouncements().catch(() => {});
     if (window.tbUid) fetchInitialStudentDues().catch(() => {});
+    if (!noticeChannel || noticeChannel.state !== 'joined') subscribeToRealtimeAnnouncements();
+    // Re-register for push now and then: the browser may have renewed or dropped the subscription.
+    if (window.tbUid && Date.now() - lastPushSync > 6 * 3600 * 1000) ensurePushSubscription();
 }
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
@@ -1000,6 +1118,28 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 window.addEventListener('online', resyncLiveData);
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        const msg = event.data || {};
+        if (msg.type === 'tb-open' && msg.view && window.tbUid) {
+            window.switchToView(msg.view);
+        } else if (msg.type === 'tb-push' && msg.notice) {
+            // sw.js already showed the system alert. Add the in-app toast, and pull the new card in,
+            // unless the live connection delivered this announcement a moment ago.
+            const t = String(msg.notice.title || '').trim().toLowerCase();
+            if (Date.now() - (recentTitles.get(t) || 0) > 20000) {
+                recentTitles.set(t, Date.now());
+                showNotificationToast({
+                    title: msg.notice.title,
+                    content: msg.notice.body || msg.notice.content,
+                    category: msg.notice.category
+                }, { os: false });
+            }
+            fetchInitialAnnouncements().catch(() => {});
+        }
+    });
+}
 
 // ======================================================= 
 // 6. DOM CONTENT LOADED INITIALIZATIONS 
@@ -1012,6 +1152,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (document.getElementById(targetId)) {   
                 e.preventDefault();   
                 window.switchToView(targetId);   
+            } else if (targetId === '') {
+                e.preventDefault();
             }   
         });   
     });   
@@ -1339,8 +1481,7 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         subscribeToRealtimeAnnouncements();
         fetchInitialStudentDues();
         subscribeToRealtimeDues();
-    });
-    updateNotifDiag();   
+    });   
    
     const postNoticeForm = document.getElementById('postNoticeForm');
     if (postNoticeForm) {
@@ -1414,28 +1555,147 @@ if ('serviceWorker' in navigator) {
   });   
 }   
    
-let deferredPrompt; 
-const installBtn = document.getElementById('pwaInstallBtn'); 
-const installPill = document.getElementById('pwaInstallPill'); 
- 
-window.addEventListener('beforeinstallprompt', (e) => { 
-  e.preventDefault(); 
-  deferredPrompt = e; 
-  if (installPill) installPill.style.display = 'flex'; 
-  if (installBtn) installBtn.style.display = 'inline-flex'; 
-}); 
- 
-if (installBtn) { 
-  installBtn.addEventListener('click', async () => { 
-    if (!deferredPrompt) return; 
-    deferredPrompt.prompt(); 
-    const { outcome } = await deferredPrompt.userChoice; 
-    if (outcome === 'accepted') { 
-      if (installPill) installPill.style.display = 'none'; 
-    } 
-    deferredPrompt = null; 
-  }); 
-}
+(function () {
+  // Chrome / Edge / Samsung Internet only offer the install prompt when they decide to (and never once the
+  // app is installed or the prompt was dismissed). iPhones and some browsers never offer it at all.
+  // So the button is shown to everyone who has not installed the app, and when there is no one-tap prompt
+  // it shows the steps for their phone instead of doing nothing.
+  const DISMISS_KEY = 'tb_install_dismissed';
+  let deferred = window.__tbDeferredInstall || null;
+
+  const isStandalone = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true;
+  const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function legacyBtn() { return document.getElementById('pwaInstallBtn'); }
+  function legacyPill() { return document.getElementById('pwaInstallPill'); }
+  const onScreen = (el) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+
+  function steps() {
+    return isIos()
+      ? ['Tap the Share button (the square with an arrow) in Safari.', 'Scroll down and tap "Add to Home Screen".', 'Tap "Add". Open the portal from your Home Screen.']
+      : ['Open your browser menu (the three dots).', 'Tap "Install app" or "Add to Home screen".', 'Confirm, then open the portal from your Home Screen.'];
+  }
+
+  function showSteps() {
+    if (document.getElementById('tbInstallSheet')) return;
+    const sheet = mk('div', 'tb-install-sheet');
+    sheet.id = 'tbInstallSheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    const card = mk('div', 'tb-install-card');
+    const close = mk('button', 'tb-install-close', '×');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close');
+    const list = mk('ol', 'tb-install-steps');
+    steps().forEach(t => list.appendChild(mk('li', '', t)));
+    card.append(mk('h3', '', 'Install the portal'), mk('p', '', 'Add it to your phone like an app, with alerts for new announcements.'), list, close);
+    sheet.appendChild(card);
+    const dismiss = () => sheet.remove();
+    close.addEventListener('click', dismiss);
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) dismiss(); });
+    document.body.appendChild(sheet);
+  }
+
+  async function install() {
+    if (deferred) {
+      try {
+        deferred.prompt();
+        const { outcome } = await deferred.userChoice;
+        deferred = null;
+        window.__tbDeferredInstall = null;
+        if (outcome === 'accepted') { refresh(); return; }
+      } catch (_) { deferred = null; }
+    }
+    if (!isStandalone()) showSteps();
+  }
+
+  // The floating pill is only used when the page has no visible install button of its own.
+  function floatingPill() {
+    let pill = document.getElementById('tbInstallFab');
+    if (pill) return pill;
+    pill = mk('div', 'tb-install-fab');
+    pill.id = 'tbInstallFab';
+    const go = mk('button', 'tb-install-go');
+    go.type = 'button';
+    go.append(mk('i', 'fa-solid fa-download'), document.createTextNode(' Install app'));
+    go.addEventListener('click', install);
+    const x = mk('button', 'tb-install-x', '×');
+    x.type = 'button';
+    x.setAttribute('aria-label', 'Hide install button');
+    x.addEventListener('click', () => {
+      try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (_) { /* ignore */ }
+      pill.style.display = 'none';
+    });
+    pill.append(go, x);
+    document.body.appendChild(pill);
+    return pill;
+  }
+
+  function dismissedRecently() {
+    try { return Date.now() - Number(localStorage.getItem(DISMISS_KEY) || 0) < 1 * 86400000; } catch (_) { return false; }
+  }
+
+  function refresh() {
+    try { refreshInner(); } catch (err) { console.warn('Install button refresh failed:', err); }
+  }
+
+  function refreshInner() {
+    const btn = legacyBtn(), pill = legacyPill();
+    if (isStandalone()) {
+      if (pill) pill.style.display = 'none';
+      if (btn) btn.style.display = 'none';
+      const f = document.getElementById('tbInstallFab');
+      if (f) f.style.display = 'none';
+      return;
+    }
+    if (btn) btn.style.display = 'inline-flex';
+    if (pill) pill.style.display = 'flex';
+    const f = floatingPill();
+    f.style.display = (onScreen(btn) || dismissedRecently()) ? 'none' : 'flex';
+  }
+  window.tbInstallRefresh = refresh;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+    window.__tbDeferredInstall = e;
+    refresh();
+  });
+  // Logging in or out swaps which screen is showing, and coming back to the tab can change the install state.
+  window.addEventListener('tb-auth-change', () => { setTimeout(refresh, 150); setTimeout(refresh, 1200); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  window.addEventListener('appinstalled', () => {
+    deferred = null;
+    try { localStorage.removeItem(DISMISS_KEY); } catch (_) { /* ignore */ }
+    refresh();
+  });
+
+  function wire() {
+    const btn = legacyBtn();
+    if (btn && !btn.dataset.tbWired) {
+      btn.dataset.tbWired = '1';
+      btn.addEventListener('click', install);
+    }
+    refresh();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+  else wire();
+  // The portal view appears after sign-in, so look again once the page has settled.
+  setTimeout(refresh, 1500);
+  setTimeout(refresh, 5000);
+})();
+
+
+// Timetable: give empty cells ("-") one consistent look in every row and both themes.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.timetable-table td').forEach(td => {
+        if (/^[\s\-\u2013\u2014]*$/.test(td.textContent)) td.classList.add('tt-empty');
+    });
+});
 
 // =======================================================
 // 7. GALLERY & LIGHTBOX
@@ -1771,8 +2031,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 })();
+
+
+// =======================================================
+// 8. ASSIGNMENTS, POLLS, SITE SEARCH & SPLASH
+// (merged from features.js: it adds its own sidebar items, pages, dashboard tiles and search button)
+// =======================================================
 // Trailblazers '29 portal: Assignments, Polls and site search.
-// MERGED (was features.js): it adds its own sidebar items, pages, dashboard tiles and search button,
+// Loaded after app.js. It adds its own sidebar items, pages, dashboard tiles and search button,
 // so index.html only needs the two include lines.
 (function () {
   "use strict";
@@ -2060,28 +2326,35 @@ document.addEventListener("DOMContentLoaded", function () {
   function closeMobileMenu() {
     const sb = document.querySelector(".dashboard-sidebar");
     const ov = $("sidebar-overlay");
-    if (sb) sb.classList.remove("mobile-open");
+    if (sb) sb.classList.remove("mobile-open", "active");
     if (ov) ov.classList.remove("active");
+  }
+
+  function markActive(id) {
+    document.querySelectorAll(".sidebar-grid-menu .menu-item").forEach((item) => {
+      const span = item.querySelector("span");
+      if (PAGES[id] && span && span.textContent.trim() === PAGES[id].label) item.classList.add("active");
+    });
   }
 
   function openView(id) {
     closeMobileMenu();
     if (typeof window.switchToView === "function") window.switchToView(id);
-    document.querySelectorAll(".sidebar-grid-menu .menu-item").forEach((item) => {
-      const span = item.querySelector("span");
-      const mine = PAGES[id] && span && span.textContent.trim() === PAGES[id].label;
-      if (mine) item.classList.add("active");
-    });
-    if (id === "assignmentsView") Assignments.load();
-    if (id === "pollsView") Polls.load();
   }
   window.tbxOpenView = openView;
+
+  // switchToView runs these after showing the page, whether the student tapped a menu item,
+  // opened a search result or pressed the phone's back button.
+  window.tbViewHooks = window.tbViewHooks || {};
+  window.tbViewHooks.assignmentsView = () => { markActive("assignmentsView"); Assignments.load(); };
+  window.tbViewHooks.pollsView = () => { markActive("pollsView"); Polls.load(); };
 
   function installPages() {
     const nav = document.querySelector(".sidebar-grid-menu");
     const anchor = $("galleryView");
     const grid = document.querySelector(".quick-access-box-grid");
     if (!nav || !anchor) return false;
+    if ($("assignmentsView")) return false;   // already installed (guards against a second copy of this code)
 
     Object.keys(PAGES).forEach((id) => {
       const p = PAGES[id];
@@ -2887,6 +3160,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (inlineInput) inlineInput.blur();
   }
 
+  window.tbxCloseSearch = closeAll;   // the back button closes the search sheet through this
+
   function openSearch() {
     if (desktopMQ.matches && inlineInput) { inline.classList.add("open"); inlineInput.focus(); inlineInput.select(); return; }
     sheet.classList.add("open");
@@ -2974,154 +3249,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
-})();
-// =======================================================
-// 8. PHONE BACK BUTTON (self-healing in-app router)
-// =======================================================
-// The app is a single page that toggles .view-panel display, so the browser
-// never got history entries and Back on Android left the app outright. This
-// router gives every view switch a real history entry (#/viewId), walks them
-// on popstate, and watches the panels so any view change made outside this
-// wrapper (auth.js re-rendering, stale bfcache pages) is reverted instantly.
-(function tbRouter() {
-    'use strict';
-
-    const KNOWN_VIEWS = new Set([
-        'dashboardHomeView', 'coursesView', 'timetableView', 'resultsView',
-        'feesView', 'noticesView', 'documentsView', 'galleryView', 'forumView',
-        'assignmentsView', 'pollsView'
-    ]);
-    const PREFIX = '#/';
-
-    let expectedView = null;   // the router's single source of truth
-    let restoring = false;     // true while the router itself is switching
-    let adoptPending = false;  // first post-load switch replaces instead of pushing
-    let lastRootBack = 0;
-
-    const isLoggedIn = () => {
-        const v = document.getElementById('LoggedInView');
-        return !!v && v.style.display !== 'none' && getComputedStyle(v).display !== 'none';
-    };
-
-    const isStandalone = () =>
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches ||
-        navigator.standalone === true;
-
-    const visibleView = () => {
-        const panels = document.querySelectorAll('.view-panel');
-        for (let i = 0; i < panels.length; i++) {
-            const p = panels[i];
-            if (p.style.display !== 'none' && getComputedStyle(p).display !== 'none') return p.id;
-        }
-        return null;
-    };
-
-    function readRoute() {
-        const h = location.hash;
-        if (h.indexOf(PREFIX) === 0 && KNOWN_VIEWS.has(h.slice(PREFIX.length))) {
-            return h.slice(PREFIX.length);
-        }
-        if (history.state && history.state.tbView && KNOWN_VIEWS.has(history.state.tbView)) {
-            return history.state.tbView;
-        }
-        return null;
-    }
-
-    // Adopt the view saved in the current history entry (e.g. after a reload)
-    const initialRoute = readRoute();
-    if (initialRoute) {
-        expectedView = initialRoute;
-        adoptPending = true;
-    }
-
-    // Wrap the final switchToView (features.js may already have wrapped it)
-    const innerSwitch = window.switchToView;
-    if (typeof innerSwitch === 'function') {
-        window.switchToView = function (viewId) {
-            if (!restoring && viewId && KNOWN_VIEWS.has(viewId) && isLoggedIn()) {
-                if (adoptPending) {
-                    // First switch after a reload: keep the user on the view stored in
-                    // the current history entry instead of clobbering it.
-                    adoptPending = false;
-                    const keep = expectedView;
-                    const r = innerSwitch.apply(this, arguments);
-                    if (keep && viewId !== keep) {
-                        restoring = true;
-                        try { innerSwitch(keep); } finally { restoring = false; }
-                    }
-                    return r;
-                }
-                if (viewId !== expectedView) {
-                    expectedView = viewId;
-                    try { history.pushState({ tbView: viewId }, '', PREFIX + viewId); } catch (e) {}
-                }
-            }
-            return innerSwitch.apply(this, arguments);
-        };
-    }
-
-    function applyRoute() {
-        if (!isLoggedIn()) return;
-        const target = readRoute();
-        if (target && target !== expectedView) {
-            restoring = true;
-            expectedView = target;
-            try { window.switchToView(target); } finally { restoring = false; }
-        }
-    }
-
-    window.addEventListener('popstate', function (ev) {
-        if (!isLoggedIn()) { expectedView = null; return; }
-
-        if (ev.state && ev.state.tbView && KNOWN_VIEWS.has(ev.state.tbView)) {
-            applyRoute();
-            return;
-        }
-        if (location.hash.indexOf(PREFIX) === 0) {
-            applyRoute();
-            return;
-        }
-
-        // Back pressed at the root of in-app history. In an installed PWA there
-        // is nowhere to go: stay once, exit on a second quick press.
-        if (isStandalone()) {
-            const now = Date.now();
-            if (now - lastRootBack < 2500) return; // second press: let the app close
-            lastRootBack = now;
-            const cur = expectedView || 'dashboardHomeView';
-            try { history.pushState({ tbView: cur }, '', PREFIX + cur); } catch (e) {}
-        }
-        // In a browser tab the previous entry is another page (e.g. ai.html) — let it load.
-    });
-
-    // Self-heal: if any code changes the visible panel without going through
-    // the router (auth.js re-render, bfcache restore, old inline handlers),
-    // put the user back on the view the router believes they are on.
-    const healObserver = new MutationObserver(() => {
-        if (restoring || !isLoggedIn()) return;
-        const visible = visibleView();
-        if (!visible) return;
-        if (expectedView && visible !== expectedView) {
-            restoring = true;
-            try { window.switchToView(expectedView); } finally { restoring = false; }
-        } else if (!expectedView) {
-            expectedView = visible;
-            try { history.replaceState({ tbView: visible }, '', PREFIX + visible); } catch (e) {}
-        }
-    });
-    document.querySelectorAll('.view-panel').forEach(pnl => {
-        healObserver.observe(pnl, { attributes: true, attributeFilter: ['style', 'class'] });
-    });
-
-    // Login wipes the route; coming back to the app re-checks it.
-    const liveView = document.getElementById('LoggedInView');
-    if (liveView) {
-        new MutationObserver(() => {
-            if (!isLoggedIn()) { expectedView = null; adoptPending = false; }
-        }).observe(liveView, { attributes: true, attributeFilter: ['style', 'class'] });
-    }
-    window.addEventListener('pageshow', function (ev) {
-        if (ev.persisted) applyRoute(); // restored from bfcache: re-apply the route
-    });
 })();
