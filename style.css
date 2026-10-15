@@ -2493,3 +2493,61 @@ body.light-theme .timetable-table {
     color: var(--tt-empty) !important;
     font-weight: 400;
 }
+
+/* --- Timetable on phones: fit the card instead of scrolling sideways ------------------------------
+   The block above gives every row the same height and the same look. Text is not allowed to wrap there
+   (so a table with many columns scrolls), which is what cut off the Course column on a phone. Under 769px
+   only the free-text cells (class / room) may wrap, the cells and badges get a little tighter, and
+   day, time and course codes stay on one line. Heights and lines stay identical in every row. */
+@media (max-width: 768px) {
+    .timetable-table th,
+    .timetable-table td {
+        padding: 9px 7px !important;
+        font-size: 0.76rem !important;
+        height: 54px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+    .timetable-table th { height: 44px; white-space: nowrap; }
+    .timetable-table .day-cell,
+    .timetable-table .time-cell { white-space: nowrap; }
+    .timetable-table .course-badge,
+    .timetable-table td:last-child span {
+        min-width: 0;
+        padding: 5px 9px;
+        font-size: 0.74rem;
+        white-space: nowrap;
+    }
+}
+
+/* --- Search boxes in light theme -------------------------------------------------------------------
+   The base rule forces white text with !important (it is right for dark theme), so what you typed in the
+   student / payment / CGPA search boxes was white on white. Light theme gets dark text and a light box. */
+body.light-theme .search-input-box input,
+body.light-theme .admin-search-wrapper input,
+body.light-theme #studentSearchInput,
+body.light-theme #duesAdminSearchInput,
+body.light-theme #gpaMatricLookupInput {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a;   /* some phones paint typed/auto-filled text with their own colour */
+    caret-color: #0f172a;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+body.light-theme .search-input-box input::placeholder,
+body.light-theme .admin-search-wrapper input::placeholder,
+body.light-theme #studentSearchInput::placeholder,
+body.light-theme #duesAdminSearchInput::placeholder,
+body.light-theme #gpaMatricLookupInput::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b;
+    opacity: 1;
+}
+body.light-theme .search-input-box input:focus,
+body.light-theme .admin-search-wrapper input:focus,
+body.light-theme #studentSearchInput:focus,
+body.light-theme #duesAdminSearchInput:focus,
+body.light-theme #gpaMatricLookupInput:focus {
+    border-color: #1d9bf0 !important;
+    box-shadow: 0 0 10px rgba(29, 155, 240, 0.25) !important;
+}

@@ -544,6 +544,21 @@ Payment`;
     }   
 };    
    
+// The receipt shows when the paid switch was last changed. The dues table can carry that as paid_at and/or
+// updated_at, so take whichever is newer. Returns { d: Date, hasTime: boolean } or null.
+function latestDuesStamp(row) {
+    if (!row) return null;
+    let best = null;
+    [row.paid_at, row.updated_at].forEach((v) => {
+        if (!v) return;
+        const text = String(v).trim();
+        const d = new Date(text);
+        if (isNaN(d.getTime())) return;
+        if (!best || d.getTime() > best.d.getTime()) best = { d, hasTime: !/^\d{4}-\d{2}-\d{2}$/.test(text) };
+    });
+    return best;
+}
+
 window.printDuesReceipt = async function(matricNumber) {
     const cleanMatric = String(matricNumber).replace(/[^0-9a-z]/gi, '').toUpperCase();
     if (!isAdminNow() && cleanMatric !== window.currentLoggedInMatric) {
@@ -568,7 +583,7 @@ window.printDuesReceipt = async function(matricNumber) {
             const { data, error } = await supabase
                 .from('student_dues').select('*').eq('matric', cleanMatric).maybeSingle();
             paid = !error && !!(data && data.paid);
-            paidAt = (paid && (data.paid_at || data.updated_at)) || null;
+            paidAt = paid ? latestDuesStamp(data) : null;
         } catch (err) {
             console.error('Receipt verification failed:', err);
         }
@@ -581,10 +596,17 @@ window.printDuesReceipt = async function(matricNumber) {
 
     const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const issuedDate = fmtDate(new Date());
-    const paidDateObj = paidAt ? new Date(paidAt) : null;
-    const paymentDateRow = paidDateObj && !isNaN(paidDateObj.getTime())
-        ? `<tr><td class="label">Payment Date:</td><td class="value">${fmtDate(paidDateObj)}</td></tr>`
-        : '';
+    // Date and time of the most recent change of the paid switch, in Lagos time so every printout matches.
+    let paymentDateRow = '';
+    if (paidAt) {
+        const when = paidAt.hasTime
+            ? paidAt.d.toLocaleString('en-US', {
+                timeZone: 'Africa/Lagos', year: 'numeric', month: 'long', day: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            }) + ' (WAT)'
+            : paidAt.d.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
+        paymentDateRow = `<tr><td class="label">${paidAt.hasTime ? 'Payment Date &amp; Time:' : 'Payment Date:'}</td><td class="value">${when}</td></tr>`;
+    }
     const receiptNo = `TB29-${DUES_SESSION.replace('/', '')}-${cleanMatric}`;
 
     const receiptHtml = `   

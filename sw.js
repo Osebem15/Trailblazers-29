@@ -1,9 +1,7 @@
-// v16: features.js/features.css merged into app.js/style.css; ai.html cached for offline TB AI
-const CACHE_NAME = 'tb29-portal-v16';
+const CACHE_NAME = 'tb29-portal-v19';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './ai.html',
   './style.css',
   './app.js',
   './auth.js',
@@ -83,6 +81,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
 });
 
+// Same tag recipe as noticeTag() in app.js: a push and an in-app alert for the same announcement
+// then replace each other instead of showing twice.
+function noticeTag(title) {
+  return 'tb29-' + String(title || 'notice').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60);
+}
+
 // Web Push: show the announcement even when the app is closed.
 self.addEventListener('push', (event) => {
   let data = {};
@@ -92,34 +96,38 @@ self.addEventListener('push', (event) => {
     data = { body: event.data ? event.data.text() : '' };
   }
   const title = data.title || "Trailblazers '29 Portal";
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body: data.body || 'You have a new announcement.',
+  const body = data.body || data.content || 'You have a new announcement.';
+
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, {
+      body,
       icon: './icon-192.jpg',
       badge: './favicon-32.jpg',
       vibrate: [200, 100, 200],
-      // Same tag as the in-app alert, so one announcement never shows twice.
-      tag: data.tag || ('tb29-' + (data.id || data.title || Date.now()))
-    })
-  );
+      tag: noticeTag(title),
+      data: { view: 'noticesView' }
+    });
+    // If the portal is open, let it add its in-app toast and pull in the new card.
+    const open = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    open.forEach((c) => c.postMessage({
+      type: 'tb-push',
+      notice: { title, body, id: data.id, date: data.date, category: data.category }
+    }));
+  })());
 });
 
-// Mobile push notification tap action
+// Tapping a notification opens the portal on the Notices page.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const view = (event.notification.data && event.notification.data.view) || 'noticesView';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       if (clientList.length > 0) {
-        let client = clientList[0];
-        for (let i = 0; i < clientList.length; i++) {
-          if (clientList[i].focused) {
-            client = clientList[i];
-            break;
-          }
-        }
+        const client = clientList.find((c) => c.focused) || clientList[0];
+        client.postMessage({ type: 'tb-open', view });
         return client.focus();
       }
-      return clients.openWindow(self.registration.scope);
+      return clients.openWindow(self.registration.scope + '?open=' + view);
     })
   );
 });
