@@ -742,14 +742,29 @@ document.getElementById('modalLogoutBtn')?.addEventListener('click', doLogout);
 // ======================================================= 
  
 // 1. Fetch scores for a single course (Used by Results view)
+// Tolerant matching: uploads may say "Second Semester" / "2nd", and "PSY136" / "PSY 136".
+function semesterFilter(semester) {
+    return semester === '2nd'
+        ? 'semester.ilike.second*,semester.ilike.2nd*'
+        : 'semester.ilike.first*,semester.ilike.1st*';
+}
+// "LAG-PSY 136" -> "PSY%136", "ACC 102" -> "ACC%102" (the % matches with or without a space)
+function courseCodePattern(code) {
+    const clean = String(code).toUpperCase().replace(/^[A-Z]+-/, '').replace(/[^0-9A-Z]/g, '');
+    const m = clean.match(/^([A-Z]+)(\d+)$/);
+    return m ? `${m[1]}%${m[2]}` : clean;
+}
+const normCode = (c) => String(c || '').toUpperCase().replace(/^[A-Z]+-/, '').replace(/[^0-9A-Z]/g, '');
+
 async function fetchCourseResultsFromSupabase(semester, courseCode) {
     try {
         const { data, error } = await supabase
             .from('student_results')
             .select('*')
-            .eq('semester', semester)
-            .eq('course_code', courseCode)
-            .order('matric', { ascending: true });
+            .or(semesterFilter(semester))
+            .ilike('course_code', courseCodePattern(courseCode))
+            .order('matric', { ascending: true })
+            .limit(2000);
         if (error) {
             console.warn(`[Supabase] ${courseCode}:`, error.message);
             return [];
@@ -974,7 +989,8 @@ if (autoFillGradesBtn) {
       const tr = select.closest('tr');
       if (tr && tr.style.display === 'none') return;
       const courseText = tr ? tr.querySelector('td')?.textContent || '' : '';
-      const record = studentRecords.find(r => r.course_code && courseText.includes(r.course_code));
+      const rowCode = normCode(courseText.split(' - ')[0]);
+      const record = studentRecords.find(r => r.course_code && normCode(r.course_code) === rowCode);
       if (!record) return;
 
       let pointStr = null;
@@ -1019,3 +1035,39 @@ onReady(() => {
     });
   });
 });
+
+// =======================================================
+// LIVE "STUDENTS RECORDED" COUNTS ON THE RESULTS CARDS
+// =======================================================
+// Replaces the hardcoded footer text. A course with no rows in Supabase shows "Pending Results".
+async function countCourseRows(semester, code) {
+  try {
+    const { count, error } = await supabase
+      .from('student_results')
+      .select('*', { count: 'exact', head: true })
+      .or(semesterFilter(semester))
+      .ilike('course_code', courseCodePattern(code));
+    if (error) {
+      console.warn(`[Supabase count] ${code}:`, error.message);
+      return null;
+    }
+    return count;
+  } catch (err) {
+    console.warn(`[Supabase count] ${code} failed:`, err.message);
+    return null;
+  }
+}
+
+async function refreshResultCounts() {
+  const cards = document.querySelectorAll('.results-course-card');
+  await Promise.all(Array.from(cards).map(async (card) => {
+    const label = card.querySelector('.result-card-footer span:first-child');
+    if (!label) return;
+    const n = await countCourseRows(card.dataset.semester, card.dataset.code);
+    if (n === null) return; // lookup failed: leave whatever text is already there
+    label.textContent = n > 0 ? `${n} ${n === 1 ? 'Student' : 'Students'} Recorded` : 'Pending Results';
+  }));
+}
+window.refreshResultCounts = refreshResultCounts;
+
+onReady(refreshResultCounts);
