@@ -3,6 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Diagnostic + safety net (plain ES5, runs before anything else so old Safari can still parse it) -->
+<script>
+(function () {
+  function resetApp() {
+    var done = function () { location.reload(); };
+    try {
+      var jobs = [];
+      if ('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(function (r) { return Promise.all(r.map(function (x) { return x.unregister(); })); }));
+      if (window.caches) jobs.push(caches.keys().then(function (k) { return Promise.all(k.map(function (n) { return caches.delete(n); })); }));
+      Promise.all(jobs).then(done, done);
+    } catch (e) { done(); }
+  }
+  window.tbHeadReset = resetApp;
+
+  function showError(msg, src, line, col) {
+    try {
+      var box = document.getElementById('debug-error-log');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'debug-error-log';
+        box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:60%;background:#0f172a;color:#ff8080;padding:16px;z-index:9999999;font:13px/1.4 monospace;box-sizing:border-box;overflow:auto;border-top:2px solid #C5A059;';
+        (document.body || document.documentElement).appendChild(box);
+      }
+      var row = document.createElement('div');
+      row.style.cssText = 'margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.15);word-break:break-word;';
+      row.textContent = (msg || 'Unknown error') + '  [' + (src || 'inline/CDN') + ' ' + (line || 0) + ':' + (col || 0) + ']';
+      box.appendChild(row);
+      if (!document.getElementById('debug-error-btns')) {
+        var b = document.createElement('div');
+        b.id = 'debug-error-btns';
+        var mk = function (t, fn, bg) {
+          var x = document.createElement('button');
+          x.type = 'button'; x.textContent = t; x.onclick = fn;
+          x.style.cssText = 'background:' + bg + ';color:#fff;border:0;padding:10px 14px;border-radius:6px;font-weight:600;margin-right:8px;';
+          return x;
+        };
+        b.appendChild(mk('Repair & Reload', resetApp, '#1d9bf0'));
+        b.appendChild(mk('Dismiss', function () { box.parentNode.removeChild(box); }, '#475569'));
+        box.appendChild(b);
+      }
+    } catch (e) {}
+  }
+
+  window.addEventListener('error', function (e) { showError(e.message, e.filename, e.lineno, e.colno); });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    showError('Promise rejected: ' + (r && r.message ? r.message : String(r)), '', 0, 0);
+  });
+
+  // If neither app.js nor auth.js ever reported in (syntax error on an old iPhone, CDN blocked...),
+  // do not leave a frozen splash or a blank page.
+  setTimeout(function () {
+    if (window.tbAuthReady || document.getElementById('tbSlowStartNote')) return;
+    document.documentElement.className = document.documentElement.className.replace('tb-splash-on', '');
+    var out = document.getElementById('loggedOutView');
+    if (out && getComputedStyle(out).display === 'none') out.style.display = 'block';
+    showError('The portal scripts did not finish loading (network blocked or browser too old).', '', 0, 0);
+  }, 10000);
+})();
+</script>
     <title>Department of Accounting | UNILAG</title>
     
     <!-- External Resources -->
@@ -25,7 +85,7 @@
 
 <script>
 try {
-  if (localStorage.getItem('tbWasIn') === '1') {
+  if (window.localStorage && localStorage.getItem('tbWasIn') === '1') {
     document.documentElement.classList.add('tb-splash-on');
     if (localStorage.getItem('theme') === 'light') document.documentElement.classList.add('tb-splash-light');
   }
@@ -2057,8 +2117,7 @@ try {
     </div>
     <div id="toastContainer" class="toast-container"></div>
     <!-- Scripts -->
-     <!-- Supabase JS Client library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     <!-- (Supabase client is imported inside auth.js; no global CDN script needed) -->
     <script type="module" src="auth.js"></script>
     <script type="module" src="app.js"></script>
 

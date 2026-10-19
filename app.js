@@ -9,6 +9,14 @@ try {
     if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
 } catch (_) { /* storage blocked: stay on the default theme */ }
 
+// Safari rejects "YYYY-MM-DD HH:MM:SS" (space instead of T). Only that exact shape is rewritten, so every
+// other string (ISO, "June 15, 2026"...) is parsed exactly as before.
+function tbParseDate(v) {
+    if (v instanceof Date) return v;
+    const t = String(v == null ? '' : v).trim();
+    return new Date(/^\d{4}-\d{2}-\d{2} \d/.test(t) ? t.replace(' ', 'T') : t);
+}
+
 function onSupabaseReady(callback, tries = 50) {
     if (window.tbSupabase) return callback();
     if (tries <= 0) {
@@ -586,7 +594,7 @@ function latestDuesStamp(row) {
     [row.paid_at, row.updated_at].forEach((v) => {
         if (!v) return;
         const text = String(v).trim();
-        const d = new Date(text);
+        const d = tbParseDate(text);
         if (isNaN(d.getTime())) return;
         if (!best || d.getTime() > best.d.getTime()) best = { d, hasTime: !/^\d{4}-\d{2}-\d{2}$/.test(text) };
     });
@@ -1051,7 +1059,7 @@ function formatDateString(dateStr) {
     if (!dateStr) return '';
     // "2026-06-15" alone is read as UTC midnight, which shows as the previous day west of UTC.
     const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr).trim());
-    const dateObj = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : new Date(dateStr);
+    const dateObj = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : tbParseDate(dateStr);
     if (isNaN(dateObj.getTime())) return dateStr;
     return dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
