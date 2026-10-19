@@ -6,7 +6,11 @@ import {
   signInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  initializeAuth,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  browserPopupRedirectResolver
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 
@@ -35,7 +39,26 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Safari/iOS (WebKit) can hang while opening IndexedDB, which is where Firebase keeps the login by
+// default. When that happens onAuthStateChanged never fires and the page stays blank. Private tabs work
+// because they start with fresh storage. On WebKit we therefore skip IndexedDB and use localStorage.
+// (iPhone users are asked to sign in once more after this change; other browsers are untouched.)
+const ua = navigator.userAgent || '';
+const isWebKit = /iPad|iPhone|iPod/.test(ua) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+  (/Safari/.test(ua) && !/Chrome|Chromium|Android/.test(ua));
+let auth;
+try {
+  auth = isWebKit
+    ? initializeAuth(app, {
+        persistence: [browserLocalPersistence, browserSessionPersistence],
+        popupRedirectResolver: browserPopupRedirectResolver
+      })
+    : getAuth(app);
+} catch (e) {
+  console.warn('initializeAuth failed, using getAuth:', e);
+  auth = getAuth(app);
+}
 const googleProvider = new GoogleAuthProvider();
 
 // SUPABASE STORAGE INITIALIZATION
@@ -531,8 +554,11 @@ function clearSessionState() {
   window.currentLoggedInMatric = '';
   window.tbUid = null;
   window.forumIsAdmin = undefined;
-  ['logged_in_user_email', 'logged_in_user_matric', 'trailblazers_user'].forEach(k => localStorage.removeItem(k));
-  sessionStorage.clear();
+  // Safari can throw here (blocked cookies, Lockdown Mode); that must never stop the login screen showing.
+  try {
+    ['logged_in_user_email', 'logged_in_user_matric', 'trailblazers_user'].forEach(k => localStorage.removeItem(k));
+    sessionStorage.clear();
+  } catch (_) { /* storage blocked */ }
   if (Array.isArray(window.studentDuesRegistry)) window.studentDuesRegistry.forEach(s => { s.paid = false; });
   ['adminFeesControl', 'forumAdmin', 'profileModal'].forEach(id => {
     const el = document.getElementById(id);
@@ -541,6 +567,13 @@ function clearSessionState() {
 }
 
 onAuthStateChanged(auth, (user) => {
+  window.tbAuthReady = true;
+  document.getElementById('tbSlowStartNote')?.remove();
+  // Show the right screen first, so a failure in the extra set-up below can never leave a blank page.
+  if (!user) {
+    if (loggedOutView) loggedOutView.style.display = "block";
+    if (loggedInView) loggedInView.style.display = "none";
+  }
   if (user) {
     if (isGoogleUser(user) && !isAdminUser(user)) {
       displayError("This Google account does not have access to this portal.");
@@ -553,11 +586,16 @@ onAuthStateChanged(auth, (user) => {
       return;
     }
 
+    if (loggedOutView) loggedOutView.style.display = "none";
+    if (loggedInView) loggedInView.style.display = "flex";
+
     const cleanMatric = matricFromUser(user);
     window.currentLoggedInMatric = cleanMatric;
     window.tbUid = user.uid;
-    localStorage.setItem('logged_in_user_email', user.email || '');
-    localStorage.setItem('logged_in_user_matric', cleanMatric);
+    try {
+      localStorage.setItem('logged_in_user_email', user.email || '');
+      localStorage.setItem('logged_in_user_matric', cleanMatric);
+    } catch (_) { /* storage blocked */ }
 
     setGreeting((window.studentDirectory && window.studentDirectory[cleanMatric]) || user.displayName || 'Trailblazer');
 

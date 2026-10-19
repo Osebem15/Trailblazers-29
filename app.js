@@ -18,6 +18,40 @@ function onSupabaseReady(callback, tries = 50) {
     setTimeout(() => onSupabaseReady(callback, tries - 1), 100);
 }
 
+// Safety net: auth.js decides which screen to show. If it never reports back (a CDN script failed to load,
+// Safari storage is stuck...), do not leave a blank page: show the login screen and a repair button.
+window.tbResetApp = async function () {
+    try {
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+        }
+    } catch (_) { /* ignore */ }
+    try {
+        if (window.caches) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+    } catch (_) { /* ignore */ }
+    try { indexedDB.deleteDatabase('firebaseLocalStorageDb'); } catch (_) { /* ignore */ }
+    location.reload();
+};
+setTimeout(function () {
+    if (window.tbAuthReady) return;
+    var out = document.getElementById('loggedOutView');
+    var inn = document.getElementById('LoggedInView') || document.getElementById('loggedInView');
+    var hidden = function (el) { return !el || getComputedStyle(el).display === 'none'; };
+    if (!(hidden(out) && hidden(inn))) return;
+    if (out) out.style.display = 'block';
+    var note = document.createElement('button');
+    note.id = 'tbSlowStartNote';
+    note.type = 'button';
+    note.textContent = 'Taking too long to load? Tap here to repair and reload.';
+    note.style.cssText = 'display:block;margin:12px auto;padding:10px 14px;border-radius:8px;border:1px solid #888;background:#222;color:#fff;font-size:14px;';
+    note.addEventListener('click', window.tbResetApp);
+    (out || document.body).prepend(note);
+}, 6000);
+
 function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, c =>
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

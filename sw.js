@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tb29-portal-v20';
+const CACHE_NAME = 'tb29-portal-v21';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -30,18 +30,18 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : undefined))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
+
+// Safari refuses to show a page when the service worker answers with a response that went through a
+// redirect. Rebuild such a response so the offline fallback always works.
+async function cleanRedirect(res) {
+  if (!res || !res.redirected) return res;
+  return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+}
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -69,8 +69,8 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const hit = await caches.match(req);
-          if (hit) return hit;
-          if (req.mode === 'navigate') return caches.match('./index.html');
+          if (hit) return cleanRedirect(hit);
+          if (req.mode === 'navigate') return cleanRedirect(await caches.match('./index.html'));
           return Response.error();
         })
     );
