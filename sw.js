@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tb29-portal-v22';
+const CACHE_NAME = 'tb29-portal-v23';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -43,6 +43,58 @@ async function cleanRedirect(res) {
   return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
 }
 
+// How long a page or script may sit waiting on the network before we serve the cached copy instead.
+// On weak LTE a fetch can hang for a minute; with a cached copy that wait is pointless.
+const NET_WAIT_MS = 6000;
+
+function offlinePage() {
+  const html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Offline</title></head>' +
+    '<body style="font-family:sans-serif;text-align:center;padding:40px;background:#0f172a;color:#fff;">' +
+    '<h2>Connection weak</h2><p>The portal could not be reached. Check your network and try again.</p>' +
+    '<button onclick="location.reload()" style="padding:10px 20px;background:#1d9bf0;color:#fff;border:0;' +
+    'border-radius:6px;font-weight:bold;">Retry</button></body></html>';
+  return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+// Network first, cache as the safety net. This function ALWAYS resolves to a real Response, because
+// respondWith(undefined) or Response.error() is exactly what makes Safari show "couldn't connect to the server".
+async function networkFirst(event, isNav) {
+  const req = event.request;
+  const findCached = async () => {
+    let hit = await caches.match(req);
+    if (!hit && isNav) hit = (await caches.match('./index.html')) || (await caches.match('./'));
+    return hit ? cleanRedirect(hit) : null;
+  };
+
+  // A navigation request cannot be rebuilt with options, so only sub-resources force revalidation.
+  const netReq = isNav ? req : new Request(req, { cache: 'no-cache' });
+  const network = fetch(netReq).then((res) => {
+    if (res && res.ok) {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+    }
+    return res;
+  });
+
+  try {
+    const timer = new Promise((resolve) => setTimeout(() => resolve(null), NET_WAIT_MS));
+    const quick = await Promise.race([network, timer]);
+    if (quick) return quick;                       // network answered in time
+
+    const hit = await findCached();                // network is slow: use the cache if we have one
+    if (hit) {
+      event.waitUntil(network.catch(() => {}));    // let the slow fetch finish and refresh the cache
+      return hit;
+    }
+    return await network;                          // nothing cached: keep waiting for the network
+  } catch (err) {
+    const hit = await findCached();                // network failed outright
+    if (hit) return hit;
+    return isNav ? offlinePage() : new Response('', { status: 503, statusText: 'Offline' });
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -51,34 +103,20 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  const isCode = req.mode === 'navigate' ||
-    ['document', 'script', 'style', 'manifest'].includes(req.destination);
+  const isNav = req.mode === 'navigate';
+  const isCode = isNav || ['document', 'script', 'style', 'manifest'].includes(req.destination);
 
   if (isCode) {
-    // Network first: a new deploy shows up right away. The cache is only the offline fallback.
-    // (A navigation request cannot be rebuilt with options, so only sub-resources force revalidation.)
-    const netReq = req.mode === 'navigate' ? req : new Request(req, { cache: 'no-cache' });
-    event.respondWith(
-      fetch(netReq)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(async () => {
-          const hit = await caches.match(req);
-          if (hit) return cleanRedirect(hit);
-          if (req.mode === 'navigate') return cleanRedirect(await caches.match('./index.html'));
-          return Response.error();
-        })
-    );
+    event.respondWith(networkFirst(event, isNav));
     return;
   }
 
-  // Images and fonts rarely change: cache first.
-  event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
+  // Images and fonts rarely change: cache first, and never let a failed fetch reject the response.
+  event.respondWith(
+    caches.match(req)
+      .then((hit) => hit || fetch(req))
+      .catch(() => new Response('', { status: 504, statusText: 'Offline' }))
+  );
 });
 
 // Same tag recipe as noticeTag() in app.js: a push and an in-app alert for the same announcement
