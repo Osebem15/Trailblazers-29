@@ -329,11 +329,18 @@ try {
 
                 <!-- COURSES VIEW -->
                 <div id="coursesView" class="view-panel" style="display: none;">
+                    <style>
+                        .course-row-link { cursor: pointer; transition: background 0.2s; }
+                        .course-row-link:hover, .course-row-link:focus-visible { background: rgba(197, 160, 89, 0.12); outline: none; }
+                        .course-row-arrow { width: 32px; text-align: right; color: #8fa5c3; }
+                        .course-row-link:hover .course-row-arrow { color: var(--gold-glow, #C5A059); }
+                    </style>
                     <div class="matrix-card">
                         <div class="table-header-row">
-                            <h3>Registered Departmental Courses For 100 level Second Semester</h3>
+                            <h3>Registered Departmental Courses For 200 level First Semester</h3>
                             <span class="total-units-badge">Total Units: 16</span>
                         </div>
+                        <p class="card-description">Tap a course to open its materials in the Documents tab.</p>
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
@@ -341,51 +348,51 @@ try {
                                         <th>Course Code</th>
                                         <th>Course Title</th>
                                         <th>Units</th>
-                                        <th>Lecturer Name</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td class="course-code-tag">ACC 102</td>
-                                        <td>INTRODUCTION TO FINANCIAL ACCOUNTING II</td>
+                                    <tr class="course-row-link" data-topics-id="acc210-topics" tabindex="0" role="link" title="View ACC-CM 201 course materials">
+                                        <td class="course-code-tag">ACC-CM 201</td>
+                                        <td>Financial Accounting I</td>
+                                        <td>2</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
+                                    </tr>
+                                    <tr class="course-row-link" data-topics-id="acc-cm203-topics" tabindex="0" role="link" title="View ACC-CM 203 course materials">
+                                        <td class="course-code-tag">ACC-CM 203</td>
+                                        <td>Corporate Governance &amp; Accounting Ethics</td>
                                         <td>3</td>
-                                        <td>DR. OBOH COLLINS</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
-                                    <tr>
-                                        <td class="course-code-tag">AMS 102</td>
-                                        <td>BASIC MATHEMATICS</td>
+                                    <tr class="course-row-link" data-topics-id="eco-201-topics" tabindex="0" role="link" title="View ECO 201 course materials">
+                                        <td class="course-code-tag">ECO 201</td>
+                                        <td>Introduction to Microeconomics</td>
                                         <td>2</td>
-                                        <td>DR. SHOGUNRO</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
-                                    <tr>
-                                        <td class="course-code-tag">AMS 104</td>
-                                        <td>PRINCIPLES OF PROJECT MANAGEMENT</td>
+                                    <tr class="course-row-link" data-topics-id="ent-211-topics" tabindex="0" role="link" title="View ENT 211 course materials">
+                                        <td class="course-code-tag">ENT 211</td>
+                                        <td>Entrepreneurship and Innovation</td>
                                         <td>2</td>
-                                        <td>DR. J. E EXPUDU</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
-                                    <tr>
-                                        <td class="course-code-tag">ECO 102</td>
-                                        <td>PRINCIPLES OF ECONOMICS II</td>
+                                    <tr class="course-row-link" data-topics-id="lag-acs-209-topics" tabindex="0" role="link" title="View LAG-ACS 209 course materials">
+                                        <td class="course-code-tag">LAG-ACS 209</td>
+                                        <td>Business Statistics I</td>
                                         <td>2</td>
-                                        <td>NIL</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
-                                    <tr>
-                                        <td class="course-code-tag">GST 112</td>
-                                        <td>NIGERIAN PEOPLE AND CULTURE</td>
+                                    <tr class="course-row-link" data-topics-id="tx-cm-313-topics" tabindex="0" role="link" title="View TAX-CM 313 course materials">
+                                        <td class="course-code-tag">TAX-CM 313</td>
+                                        <td>Business Law I (Mercantile Law)</td>
                                         <td>2</td>
-                                        <td>NIL</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
-                                    <tr>
-                                        <td class="course-code-tag">LAG-PSY 136</td>
-                                        <td>INTRODUCTION TO PSYCHOLOGY II</td>
+                                    <tr class="course-row-link" data-topics-id="fin-101-topics" tabindex="0" role="link" title="View FIN-CM 101 course materials">
+                                        <td class="course-code-tag">FIN-CM 101</td>
+                                        <td>Introduction to Finance</td>
                                         <td>3</td>
-                                        <td>DR. UMUKORO</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="course-code-tag">SOC 106</td>
-                                        <td>INTRODUCTION TO SOCIOLOGY II</td>
-                                        <td>2</td>
-                                        <td>PROF. OMOBOLANLE AMAIKE</td>
+                                        <td class="course-row-arrow"><i class="fa-solid fa-chevron-right"></i></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1284,8 +1291,8 @@ try {
                             <div class="accordion-course-item matrix-card" style="margin-bottom: 12px; padding: 16px;">
                                 <div class="accordion-header" onclick="toggleCourseTopics('acc210-topics', 'ACC 210')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
-                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">ACC 210</span>
-                                        <strong style="color: #ffffff; margin-left: 8px;">Financial Accounting II (Core Modules)</strong>
+                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">ACC-CM 201</span>
+                                        <strong style="color: #ffffff; margin-left: 8px;">Financial Accounting I</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
                                 </div>
@@ -1422,7 +1429,7 @@ try {
                                 <div class="accordion-header" onclick="toggleCourseTopics('acc-cm203-topics', 'ACC-CM 203')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
                                         <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">ACC-CM 203</span>
-                                        <strong style="color: #ffffff; margin-left: 8px;">Corporate Governance & Accounting Ethics (Core Modules)</strong>
+                                        <strong style="color: #ffffff; margin-left: 8px;">Corporate Governance &amp; Accounting Ethics</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
                                 </div>
@@ -1563,7 +1570,7 @@ try {
                                 <div class="accordion-header" onclick="toggleCourseTopics('eco-201-topics', 'ECO 201')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
                                         <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">ECO 201</span>
-                                        <strong style="color: #ffffff; margin-left: 8px;">Introduction to Microeconomics I</strong>
+                                        <strong style="color: #ffffff; margin-left: 8px;">Introduction to Microeconomics</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
                                 </div>
@@ -1726,7 +1733,7 @@ try {
                                 <div class="accordion-header" onclick="toggleCourseTopics('ent-211-topics', 'ENT 211')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
                                         <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">ENT 211</span>
-                                        <strong style="color: #ffffff; margin-left: 8px;">Enterpreneurship and Innovation</strong>
+                                        <strong style="color: #ffffff; margin-left: 8px;">Entrepreneurship and Innovation</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
                                 </div>
@@ -1760,7 +1767,7 @@ try {
                             <div class="accordion-course-item matrix-card" style="margin-bottom: 12px; padding: 16px;">
                                 <div class="accordion-header" onclick="toggleCourseTopics('fin-101-topics', 'FIN 101')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
-                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">FIN 101</span>
+                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">FIN-CM 101</span>
                                         <strong style="color: #ffffff; margin-left: 8px;">Introduction to Finance</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
@@ -1891,8 +1898,8 @@ try {
                             <div class="accordion-course-item matrix-card" style="margin-bottom: 12px; padding: 16px;">
                                 <div class="accordion-header" onclick="toggleCourseTopics('tx-cm-313-topics', 'TX-CM 313')" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                                     <div>
-                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">TX-CM 313</span>
-                                        <strong style="color: #ffffff; margin-left: 8px;">Business Law</strong>
+                                        <span class="course-code-tag" style="background: rgba(29, 155, 240, 0.15); color: #1d9bf0; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;">TAX-CM 313</span>
+                                        <strong style="color: #ffffff; margin-left: 8px;">Business Law I (Mercantile Law)</strong>
                                     </div>
                                     <i class="fa-solid fa-chevron-down" style="color: #8fa5c3;"></i>
                                 </div>
@@ -2116,6 +2123,36 @@ try {
         </main>
     </div>
     <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+    // Courses tab -> Documents tab: open the clicked course's collapsed topic list
+    (function () {
+        function openCourseMaterials(topicsId) {
+            var items = document.querySelectorAll('.sidebar-grid-menu .menu-item');
+            for (var i = 0; i < items.length; i++) {
+                var span = items[i].querySelector('span');
+                if (span && span.textContent.trim() === 'Documents') { items[i].click(); break; }
+            }
+            setTimeout(function () {
+                var wrapper = document.getElementById(topicsId);
+                if (!wrapper) return;
+                var header = document.querySelector('.accordion-header[onclick*="' + topicsId + '"]');
+                if (header && getComputedStyle(wrapper).display === 'none') header.click();
+                var card = header ? header.closest('.accordion-course-item') : wrapper;
+                if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        }
+        document.addEventListener('click', function (e) {
+            var row = e.target.closest && e.target.closest('.course-row-link');
+            if (row) openCourseMaterials(row.getAttribute('data-topics-id'));
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            var row = e.target.closest && e.target.closest('.course-row-link');
+            if (row) { e.preventDefault(); openCourseMaterials(row.getAttribute('data-topics-id')); }
+        });
+    })();
+    </script>
     <!-- Scripts -->
      <!-- (Supabase client is imported inside auth.js; no global CDN script needed) -->
     <script type="module" src="auth.js"></script>
