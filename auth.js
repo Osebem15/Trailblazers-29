@@ -560,6 +560,7 @@ function clearSessionState() {
     sessionStorage.clear();
   } catch (_) { /* storage blocked */ }
   if (Array.isArray(window.studentDuesRegistry)) window.studentDuesRegistry.forEach(s => { s.paid = false; });
+  if (typeof window.tbFeesReset === 'function') window.tbFeesReset();
   ['adminFeesControl', 'forumAdmin', 'profileModal'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';

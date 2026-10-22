@@ -1073,90 +1073,96 @@ try {
                     </div>
                 </div>
 
-                <!-- ACCESSIBLE & RESPONSIVE FEES VIEW -->
+                <!-- FEES VIEW: loaded from Supabase (tables: fees, fee_payments). Built for phones first. -->
                 <div id="feesView" class="view-panel" style="display: none;">
-                    <!-- Class Dues Summary Card -->
-                    <!-- Replace lines 498–528 in index.html -->
-                    <div class="matrix-card gpa-summary-card">
-                        <div class="gpa-info">
-                            <span class="gpa-label">ACC '29 TRAILBLAZERS CLASS DUES</span>
-                                <h2 class="gpa-value">₦ 500.00</h2>
-                                    <p id="studentDuesStatusText" class="gpa-status status-pending" style="color: #ff4d4d;">
-                                        <i class="fa-solid fa-circle-xmark"></i> Status: Pending Payment
-                                    </p>
+
+                    <!-- Summary: what you still owe (students) or what has been collected (admins) -->
+                    <div class="matrix-card fx-summary">
+                        <div class="fx-summary-main">
+                            <span class="fx-summary-label" id="feesSummaryLabel">Outstanding</span>
+                            <h2 class="fx-summary-value" id="feesSummaryValue">₦ 0.00</h2>
+                            <p class="fx-status fx-neutral" id="feesSummaryStatus" role="status" aria-live="polite">
+                                <i class="fa-solid fa-spinner"></i> Loading fees...
+                            </p>
                         </div>
-                        <div class="gpa-stats">
-                            <div class="stat-badge"><span>Session</span> <strong>2026/2027</strong></div>
-                            <div class="stat-badge"><span>Class Dues</span> <strong>₦ 500</strong></div>
+                        <div class="fx-summary-stats">
+                            <div class="stat-badge"><span>Session</span> <strong id="feesSummarySession">2026/2027</strong></div>
+                            <div class="stat-badge"><span id="feesStatLabel">Paid</span> <strong id="feesStatValue">-</strong></div>
                         </div>
                     </div>
 
-                    <!-- ADMIN ONLY: DUES PAYMENT TOGGLE CONTROL PANEL -->
-                    <div id="adminFeesControl" class="matrix-card admin-fees-card" style="display: none;">
-                        <div class="table-header-row">
-                            <h3><i class="fa-solid fa-user-gear gold-header-icon"></i> Admin Payment Manager</h3>
-                            <div class="admin-search-wrapper">
-                                <div class="search-input-box">
-                                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                                    <input type="text" id="duesAdminSearchInput" placeholder="Search student matric...">
+                    <!-- ADMIN ONLY: add and delete fees, then record payments -->
+                    <div id="adminFeesControl" style="display: none;">
+                        <div class="matrix-card">
+                            <div class="fx-head">
+                                <h3><i class="fa-solid fa-circle-plus gold-header-icon"></i> Manage fees</h3>
+                            </div>
+                            <p class="card-description">Each fee gets its own payment list and its own receipt.</p>
+
+                            <form id="addFeeForm" class="fx-form" autocomplete="off">
+                                <div class="fx-field fx-span2">
+                                    <label for="feeTitleInput">Fee name</label>
+                                    <input type="text" id="feeTitleInput" maxlength="120" placeholder="e.g. Departmental dues" required>
+                                </div>
+                                <div class="fx-field">
+                                    <label for="feeAmountInput">Amount (₦)</label>
+                                    <input type="number" id="feeAmountInput" inputmode="decimal" min="1" step="0.01" placeholder="500" required>
+                                </div>
+                                <div class="fx-field">
+                                    <label for="feeSessionInput">Session</label>
+                                    <input type="text" id="feeSessionInput" maxlength="20" value="2026/2027" required>
+                                </div>
+                                <div class="fx-field">
+                                    <label for="feeTargetInput">Who pays (optional)</label>
+                                    <input type="text" id="feeTargetInput" maxlength="120" placeholder="e.g. 200 Level Accounting">
+                                </div>
+                                <div class="fx-field">
+                                    <label for="feeDueInput">Due date (optional)</label>
+                                    <input type="date" id="feeDueInput">
+                                </div>
+                                <button type="submit" class="btn-primary fx-span2" id="addFeeBtn">Add fee</button>
+                            </form>
+                            <p id="feesAdminMsg" class="fx-msg" role="status" aria-live="polite"></p>
+
+                            <ul id="adminFeeList" class="fx-fee-list"></ul>
+                        </div>
+
+                        <div class="matrix-card">
+                            <div class="fx-head">
+                                <h3><i class="fa-solid fa-user-gear gold-header-icon"></i> Record payments</h3>
+                                <span class="total-units-badge" id="feesPaidCount"></span>
+                            </div>
+                            <p class="card-description">Pick a fee, then switch a student on once they have paid.</p>
+
+                            <div class="fx-controls">
+                                <div class="fx-field">
+                                    <label for="feesAdminFeeSelect">Fee</label>
+                                    <select id="feesAdminFeeSelect" class="fx-select"></select>
+                                </div>
+                                <div class="admin-search-wrapper">
+                                    <div class="search-input-box">
+                                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                        <input type="text" id="duesAdminSearchInput" placeholder="Search name or matric no" aria-label="Search students">
+                                    </div>
+                                </div>
+                                <div id="feesFilterChips" class="fx-chips" role="group" aria-label="Filter students">
+                                    <button type="button" class="fx-chip active" data-filter="all" aria-pressed="true">All</button>
+                                    <button type="button" class="fx-chip" data-filter="paid" aria-pressed="false">Paid</button>
+                                    <button type="button" class="fx-chip" data-filter="pending" aria-pressed="false">Pending</button>
                                 </div>
                             </div>
-                        </div>
-                        <p class="card-description">
-                            Toggle the payment switch next to a student's matric number to update their dues clearance.
-                        </p>
 
-                        <div class="table-responsive admin-table-scroll">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>S/N</th>
-                                        <th>Matric No</th>
-                                        <th>Student Name</th>
-                                        <th>Dues Status</th>
-                                        <th>Toggle Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adminDuesTbody">
-                                    <!-- Dynamic student rows generated by JavaScript -->
-                                </tbody>
-                            </table>
+                            <ul id="adminDuesList" class="fx-student-list"></ul>
                         </div>
                     </div>
 
-                    <!-- Student Class Dues Receipt & Breakdown -->
-                    <div class="matrix-card">
-                        <div class="table-header-row">
-                            <h3><i class="fa-solid fa-file-invoice-dollar section-header-icon"></i> Class Dues Record</h3>
-                            <span class="total-units-badge">2026/2027 Session</span>
+                    <!-- Student: every fee as its own card, each with its own receipt -->
+                    <div class="matrix-card" id="myFeesCard">
+                        <div class="fx-head">
+                            <h3><i class="fa-solid fa-file-invoice-dollar section-header-icon"></i> My fees</h3>
+                            <span class="total-units-badge" id="myFeesCount"></span>
                         </div>
-
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Fee Description</th>
-                                        <th>Target Group</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>ACC '29 Departmental & Class Package Dues</strong></td>
-                                        <td>Department of Accounting (200 Level)</td>
-                                        <td>₦ 500.00</td>
-                                        <td><span id="duesStatusBadge" class="grade-badge grade-b" style="background: rgba(255, 77, 77, 0.2); color: #ff4d4d;">Pending</span></td>
-                                        <td>
-                                            <button id="downloadDuesReceiptBtn" class="btn-outline btn-receipt-action" disabled style="opacity: 0.5; cursor: not-allowed;">
-                                                <i class="fa-solid fa-receipt"></i> Print Receipt
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <div id="myFeesList" class="fx-list"></div>
                     </div>
                 </div>
 

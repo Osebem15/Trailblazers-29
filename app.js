@@ -276,65 +276,137 @@ const studentDirectory = {
 };   
 window.studentDirectory = studentDirectory;   
    
-// Change these once per session: the receipt reads them.
-const DUES_AMOUNT = 500;            // naira
-const DUES_SESSION = '2026/2027';
+// =======================================================
+// FEES: STATE, LOADING AND LIVE UPDATES
+// =======================================================
+// Fees live in two Supabase tables: `fees` (one row per fee) and `fee_payments` (one row per student per fee).
+// Everyone can read them. Only admins can add/delete fees or mark payments, and those writes go through the
+// admin-actions Edge function (actions: add_fee, delete_fee, set_fee_payment).
+const DUES_SESSION = '2026/2027';   // default session shown in the "Add fee" form
 
-const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({   
-    matric: matric,   
-    name: studentDirectory[matric],   
-    paid: false   
-}));   
-window.studentDuesRegistry = studentDuesRegistry;  
- 
-// Fetch payment statuses from Supabase database
+const studentDuesRegistry = Object.keys(studentDirectory).map(matric => ({
+    matric: matric,
+    name: studentDirectory[matric],
+    paid: false
+}));
+window.studentDuesRegistry = studentDuesRegistry;
+
+const feesState = {
+    fees: [],                 // rows from `fees`, oldest first
+    payments: new Map(),      // "feeId|matric" -> row from `fee_payments`
+    selectedFeeId: '',        // fee shown in the admin payment manager
+    filter: 'all',            // admin list filter: all | paid | pending
+    query: '',                // admin list search text
+    loaded: false,
+    loadError: ''
+};
+let feesFetchTicket = 0;      // lets a newer fetch win over an older, slower one
+
+const cleanMatricValue = (m) => String(m || '').replace(/[^0-9a-z]/gi, '').toUpperCase();
+const feePayKey = (feeId, matric) => feeId + '|' + matric;
+const feePayment = (feeId, matric) => feesState.payments.get(feePayKey(feeId, matric)) || null;
+const feeIsPaid = (feeId, matric) => { const p = feePayment(feeId, matric); return !!(p && p.paid); };
+const formatNaira = (n) => '₦ ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function upsertFeeLocal(fee) {
+    if (!fee || !fee.id) return;
+    const i = feesState.fees.findIndex(f => f.id === fee.id);
+    if (i >= 0) feesState.fees[i] = fee; else feesState.fees.push(fee);
+    feesState.fees.sort((a, b) => (a.seq || 0) - (b.seq || 0));
+}
+
+function removeFeeLocal(feeId) {
+    feesState.fees = feesState.fees.filter(f => f.id !== feeId);
+    Array.from(feesState.payments.keys()).forEach(k => { if (k.startsWith(feeId + '|')) feesState.payments.delete(k); });
+}
+
+// Fetch fees and payments from Supabase. Admins load every payment; students only their own.
 async function fetchInitialStudentDues() {
-    if (typeof window.renderAdminDuesTable === 'function') window.renderAdminDuesTable();
+    if (typeof renderFeesView === 'function') renderFeesView();
 
     const supabase = window.tbSupabase;
     if (!supabase) return;
+    const ticket = ++feesFetchTicket;
 
     try {
-        const { data, error } = await supabase.from('student_dues').select('*');
-        if (error) {
-            console.error('Error fetching student dues:', error);
-        } else if (data) {
-            data.forEach(item => {
-                const student = studentDuesRegistry.find(s => s.matric === item.matric);
-                if (student) student.paid = item.paid;
-            });
-        }
-    } catch (err) {
-        console.error('Error fetching student dues:', err);
-    }
+        const feesRes = await supabase.from('fees').select('*').order('seq', { ascending: true });
+        if (feesRes.error) throw feesRes.error;
 
-    if (window.currentLoggedInMatric && typeof window.updateStudentDuesUI === 'function') {
-        window.updateStudentDuesUI(window.currentLoggedInMatric);
+        const admin = isAdminNow();
+        const me = window.currentLoggedInMatric;
+        const payments = new Map();
+        if (admin || me) {
+            const PAGE = 1000;   // Supabase returns at most 1000 rows per request
+            for (let from = 0; ; from += PAGE) {
+                let q = supabase.from('fee_payments').select('*')
+                    .order('fee_id').order('matric').range(from, from + PAGE - 1);
+                if (!admin) q = q.eq('matric', me);
+                const { data, error } = await q;
+                if (error) throw error;
+                (data || []).forEach(r => payments.set(feePayKey(r.fee_id, r.matric), r));
+                if (!data || data.length < PAGE) break;
+            }
+        }
+        if (ticket !== feesFetchTicket) return;
+        feesState.fees = feesRes.data || [];
+        feesState.payments = payments;
+        feesState.loaded = true;
+        feesState.loadError = '';
+    } catch (err) {
+        if (ticket !== feesFetchTicket) return;
+        console.error('Error fetching fees:', err);
+        feesState.loadError = 'Could not load fees. Check your connection and try again.';
     }
-    const searchInput = document.getElementById('duesAdminSearchInput');
-    if (typeof window.renderAdminDuesTable === 'function') {
-        window.renderAdminDuesTable(searchInput ? searchInput.value.toLowerCase().trim() : '');
-    }
+    renderFeesView();
 }
-// auth.js calls this after login so the registry is (re)loaded for the signed-in user.
+// auth.js calls this after login so fees are (re)loaded for the signed-in user.
 window.refreshStudentDues = fetchInitialStudentDues;
+
+// Called from auth.js when the session ends, so one person's fee data never lingers for the next.
+window.tbFeesReset = function () {
+    feesFetchTicket++;
+    feesState.fees = [];
+    feesState.payments = new Map();
+    feesState.selectedFeeId = '';
+    feesState.filter = 'all';
+    feesState.query = '';
+    feesState.loaded = false;
+    feesState.loadError = '';
+    const search = document.getElementById('duesAdminSearchInput');
+    if (search) search.value = '';
+    if (typeof renderFeesView === 'function') renderFeesView();
+};
 
 function subscribeToRealtimeDues() {
     const supabase = window.tbSupabase;
     if (!supabase) return;
+
     supabase
-        .channel('public:student_dues')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'student_dues' }, payload => {
-            const updated = payload.new;
-            if (!updated || !updated.matric) return;
-            const student = studentDuesRegistry.find(s => s.matric === updated.matric);
-            if (student) student.paid = updated.paid;
-            if (window.currentLoggedInMatric === updated.matric && typeof window.updateStudentDuesUI === 'function') {
-                window.updateStudentDuesUI(updated.matric);
+        .channel('public:fees')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'fees' }, payload => {
+            if (payload.eventType === 'DELETE') {
+                if (payload.old && payload.old.id) removeFeeLocal(payload.old.id);
+            } else if (payload.new && payload.new.id) {
+                upsertFeeLocal(payload.new);
             }
-            const searchInput = document.getElementById('duesAdminSearchInput');
-            if (typeof window.renderAdminDuesTable === 'function') {
-                window.renderAdminDuesTable(searchInput ? searchInput.value.toLowerCase().trim() : '');
+            renderFeesView();
+        })
+        .subscribe();
+
+    supabase
+        .channel('public:fee_payments')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'fee_payments' }, payload => {
+            const row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+            if (!row || !row.fee_id || !row.matric) return;
+            // Students only keep their own rows; admins keep everything.
+            if (!isAdminNow() && row.matric !== window.currentLoggedInMatric) return;
+            if (payload.eventType === 'DELETE') feesState.payments.delete(feePayKey(row.fee_id, row.matric));
+            else feesState.payments.set(feePayKey(row.fee_id, row.matric), row);
+            renderFeesSummary();
+            renderMyFees();
+            if (isAdminNow()) {
+                renderAdminFeeManager();
+                patchAdminStudentRow(row.fee_id, row.matric);
             }
         })
         .subscribe();
@@ -536,57 +608,459 @@ window.tbNavStop = function () {
    
 // switchSemester lives in auth.js (it also resets the scores detail view).
 
-window.updateStudentDuesUI = function(matricNumber) {    
-    if (!matricNumber) return;   
-    const cleanMatric = String(matricNumber).replace(/[^0-9a-z]/gi, '').toUpperCase();    
-    const student = studentDuesRegistry.find(s => s.matric === cleanMatric);    
-   
-    const statusText = document.getElementById('studentDuesStatusText');    
-    const statusBadge = document.getElementById('duesStatusBadge');    
-    const downloadBtn = document.getElementById('downloadDuesReceiptBtn');   
-    const isPaid = student ? Boolean(student.paid) : false;    
-   
-    if (statusText) {    
-        if (isPaid) {    
-            statusText.className = "gpa-status status-success";    
-            statusText.style.color = "#4ade80";   
-            statusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> Status: Verified Paid`;    
-        } else {    
-            statusText.className = "gpa-status status-pending";    
-            statusText.style.color = "#ff4d4d";    
-            statusText.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Status: Pending 
-Payment`;    
-        }    
-    }    
-   
-    if (statusBadge) {    
-        if (isPaid) {    
-            statusBadge.className = "grade-badge grade-a";    
-            statusBadge.style.background = "";    
-            statusBadge.style.color = "";    
-            statusBadge.textContent = "Paid";    
-        } else {    
-            statusBadge.className = "grade-badge grade-b";    
-            statusBadge.style.background = "rgba(255, 77, 77, 0.2)";    
-            statusBadge.style.color = "#ff4d4d";    
-            statusBadge.textContent = "Pending";    
-        }    
-    }    
-   
-    if (downloadBtn) {   
-        if (isPaid) {   
-            downloadBtn.disabled = false;   
-            downloadBtn.style.opacity = "1";   
-            downloadBtn.style.cursor = "pointer";   
-        } else {   
-            downloadBtn.disabled = true;   
-            downloadBtn.style.opacity = "0.5";   
-            downloadBtn.style.cursor = "not-allowed";   
-        }   
-    }   
-};    
-   
-// The receipt shows when the paid switch was last changed. The dues table can carry that as paid_at and/or
+// =======================================================
+// FEES: SCREEN (student cards, admin tools)
+// =======================================================
+const fxEl = (id) => document.getElementById(id);
+const fxIcon = (name) => mk('i', 'fa-solid ' + name);
+
+// Fee dates are plain "YYYY-MM-DD" values; build them as local dates so they never shift a day.
+function fxDate(value) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || ''));
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+}
+function formatFeeDay(value) {
+    const d = fxDate(value);
+    return d ? d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+}
+function feeIsOverdue(fee) {
+    const d = fxDate(fee.due_date);
+    if (!d) return false;
+    d.setHours(23, 59, 59, 999);
+    return d.getTime() < Date.now();
+}
+function feePaidCount(feeId) {
+    let n = 0;
+    studentDuesRegistry.forEach(s => { if (feeIsPaid(feeId, s.matric)) n++; });
+    return n;
+}
+function selectedFee() {
+    return feesState.fees.find(f => f.id === feesState.selectedFeeId) || null;
+}
+function fxSetStatus(el, kind, icon, text) {
+    if (!el) return;
+    el.className = 'fx-status fx-' + kind;
+    el.replaceChildren(fxIcon(icon), document.createTextNode(' ' + text));
+}
+let fxMsgTimer = null;
+function showFeesMsg(text, isError) {
+    const el = fxEl('feesAdminMsg');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'fx-msg ' + (isError ? 'error' : 'ok');
+    clearTimeout(fxMsgTimer);
+    if (text) fxMsgTimer = setTimeout(() => { el.textContent = ''; el.className = 'fx-msg'; }, 6000);
+}
+
+function renderFeesView() {
+    renderFeesSummary();
+    renderMyFees();
+    renderAdminFeeManager();
+    renderAdminStudentList();
+}
+// Kept under the old names because auth.js still calls them.
+window.updateStudentDuesUI = function () { renderFeesView(); };
+window.renderAdminDuesTable = function (filterQuery) {
+    if (typeof filterQuery === 'string') feesState.query = filterQuery.toLowerCase().trim();
+    renderAdminFeeManager();
+    renderAdminStudentList();
+};
+
+// ---------- Summary card ----------
+function renderFeesSummary() {
+    const label = fxEl('feesSummaryLabel');
+    const value = fxEl('feesSummaryValue');
+    const status = fxEl('feesSummaryStatus');
+    const sessionEl = fxEl('feesSummarySession');
+    const statLabel = fxEl('feesStatLabel');
+    const statValue = fxEl('feesStatValue');
+    if (!value || !status) return;
+
+    const fees = feesState.fees;
+    const sessions = Array.from(new Set(fees.map(f => f.session).filter(Boolean)));
+    if (sessionEl) sessionEl.textContent = sessions.length === 1 ? sessions[0] : (sessions.length > 1 ? 'Multiple' : DUES_SESSION);
+
+    if (feesState.loadError) {
+        fxSetStatus(status, 'bad', 'fa-circle-exclamation', feesState.loadError);
+        return;
+    }
+    if (!feesState.loaded) {
+        fxSetStatus(status, 'neutral', 'fa-spinner', 'Loading fees...');
+        return;
+    }
+
+    if (isAdminNow()) {
+        let collected = 0, expected = 0;
+        fees.forEach(f => {
+            collected += feePaidCount(f.id) * Number(f.amount);
+            expected += studentDuesRegistry.length * Number(f.amount);
+        });
+        if (label) label.textContent = 'Collected so far';
+        value.textContent = formatNaira(collected);
+        fxSetStatus(status, 'neutral', 'fa-coins', fees.length ? 'of ' + formatNaira(expected) + ' expected' : 'No fees yet. Add one below.');
+        if (statLabel) statLabel.textContent = 'Active fees';
+        if (statValue) statValue.textContent = String(fees.length);
+        return;
+    }
+
+    const me = window.currentLoggedInMatric;
+    const owed = fees.filter(f => !feeIsPaid(f.id, me));
+    const outstanding = owed.reduce((sum, f) => sum + Number(f.amount), 0);
+    if (label) label.textContent = 'Outstanding';
+    value.textContent = formatNaira(outstanding);
+    if (!fees.length) fxSetStatus(status, 'neutral', 'fa-circle-info', 'No fees have been set yet.');
+    else if (!owed.length) fxSetStatus(status, 'ok', 'fa-circle-check', 'All fees paid');
+    else fxSetStatus(status, 'bad', 'fa-circle-xmark', owed.length + ' of ' + fees.length + ' unpaid');
+    if (statLabel) statLabel.textContent = 'Paid';
+    if (statValue) statValue.textContent = (fees.length - owed.length) + ' of ' + fees.length;
+}
+
+// ---------- Student: one card per fee, each with its own receipt ----------
+function buildFeeCard(fee, matric) {
+    const payment = feePayment(fee.id, matric);
+    const paid = !!(payment && payment.paid);
+    const overdue = !paid && feeIsOverdue(fee);
+
+    const card = mk('article', 'fx-item');
+    const main = mk('div', 'fx-item-main');
+    main.appendChild(mk('h4', 'fx-item-title', fee.title));
+    const meta = mk('p', 'fx-item-meta');
+    [
+        fee.target_group,
+        fee.session ? fee.session + ' session' : '',
+        fee.due_date ? 'Due ' + formatFeeDay(fee.due_date) : ''
+    ].filter(Boolean).forEach(t => meta.appendChild(mk('span', '', t)));
+    main.appendChild(meta);
+
+    const side = mk('div', 'fx-item-side');
+    side.appendChild(mk('strong', 'fx-amount', formatNaira(fee.amount)));
+    side.appendChild(mk('span',
+        'fx-pill ' + (paid ? 'fx-pill-paid' : overdue ? 'fx-pill-overdue' : 'fx-pill-pending'),
+        paid ? 'Paid' : overdue ? 'Overdue' : 'Pending'));
+
+    const foot = mk('div', 'fx-item-foot');
+    if (paid) {
+        const stamp = latestDuesStamp(payment);
+        if (stamp) {
+            foot.appendChild(mk('span', 'fx-hint', 'Paid on ' + stamp.d.toLocaleDateString('en-US', {
+                timeZone: stamp.hasTime ? 'Africa/Lagos' : 'UTC', year: 'numeric', month: 'short', day: 'numeric'
+            })));
+        }
+        const btn = mk('button', 'btn-outline fx-receipt-btn');
+        btn.type = 'button';
+        btn.append(fxIcon('fa-receipt'), document.createTextNode(' Print receipt'));
+        btn.addEventListener('click', () => window.printFeeReceipt(fee.id, matric));
+        foot.appendChild(btn);
+    } else {
+        foot.appendChild(mk('span', 'fx-hint', 'Your receipt appears here once this payment is confirmed.'));
+    }
+    card.append(main, side, foot);
+    return card;
+}
+
+function renderMyFees() {
+    const card = fxEl('myFeesCard');
+    const list = fxEl('myFeesList');
+    if (!card || !list) return;
+    if (isAdminNow()) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    list.replaceChildren();
+
+    const count = fxEl('myFeesCount');
+    if (count) count.textContent = feesState.fees.length === 1 ? '1 fee' : feesState.fees.length + ' fees';
+
+    if (feesState.loadError) {
+        const box = mk('div', 'fx-empty');
+        box.appendChild(mk('p', '', feesState.loadError));
+        const retry = mk('button', 'btn-outline', 'Try again');
+        retry.type = 'button';
+        retry.addEventListener('click', () => fetchInitialStudentDues());
+        box.appendChild(retry);
+        list.appendChild(box);
+        return;
+    }
+    if (!feesState.loaded) { list.appendChild(mk('p', 'fx-empty', 'Loading fees...')); return; }
+    if (!feesState.fees.length) {
+        list.appendChild(mk('p', 'fx-empty', 'No fees yet. When your class executives add one, it shows up here.'));
+        return;
+    }
+    const me = window.currentLoggedInMatric;
+    feesState.fees.forEach(fee => list.appendChild(buildFeeCard(fee, me)));
+}
+
+// ---------- Admin: add and delete fees ----------
+function renderAdminFeeManager() {
+    const list = fxEl('adminFeeList');
+    if (!list) return;
+    list.replaceChildren();
+    if (!isAdminNow()) return;
+
+    if (!feesState.loaded) return;
+    if (!feesState.fees.length) {
+        list.appendChild(mk('li', 'fx-empty', 'No fees yet. Add the first one above.'));
+        return;
+    }
+    const total = studentDuesRegistry.length;
+    feesState.fees.forEach(fee => {
+        const paid = feePaidCount(fee.id);
+        const li = mk('li', 'fx-fee-row');
+        const main = mk('div', 'fx-fee-row-main');
+        main.appendChild(mk('strong', 'fx-fee-row-title', fee.title));
+        const meta = mk('div', 'fx-item-meta');
+        [formatNaira(fee.amount), fee.session, fee.due_date ? 'Due ' + formatFeeDay(fee.due_date) : '']
+            .filter(Boolean).forEach(t => meta.appendChild(mk('span', '', t)));
+        main.appendChild(meta);
+        const bar = mk('div', 'fx-bar');
+        const fill = mk('span');
+        fill.style.width = (total ? Math.round((paid / total) * 100) : 0) + '%';
+        bar.appendChild(fill);
+        main.appendChild(bar);
+        main.appendChild(mk('small', 'fx-hint', paid + ' of ' + total + ' paid'));
+
+        const del = mk('button', 'fx-icon-btn');
+        del.type = 'button';
+        del.setAttribute('aria-label', 'Delete ' + fee.title);
+        del.appendChild(fxIcon('fa-trash'));
+        del.addEventListener('click', () => deleteFee(fee));
+
+        li.append(main, del);
+        list.appendChild(li);
+    });
+}
+
+async function onAddFeeSubmit(e) {
+    e.preventDefault();
+    if (!isAdminNow()) { showFeesMsg('Only admins can add fees.', true); return; }
+    const form = e.currentTarget;
+    const title = (fxEl('feeTitleInput').value || '').trim();
+    const amount = Math.round(parseFloat(fxEl('feeAmountInput').value) * 100) / 100;
+    const session = (fxEl('feeSessionInput').value || '').trim() || DUES_SESSION;
+    const target = (fxEl('feeTargetInput').value || '').trim();
+    const due = fxEl('feeDueInput').value || null;
+
+    if (!title) { showFeesMsg('Enter a name for the fee.', true); return; }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) {
+        showFeesMsg('Enter an amount greater than zero.', true);
+        return;
+    }
+    const btn = fxEl('addFeeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Adding...';
+    try {
+        const out = await window.adminCall({
+            action: 'add_fee', title, amount, session, target_group: target || null, due_date: due
+        });
+        form.reset();
+        fxEl('feeSessionInput').value = session;   // keep the session for the next fee
+        if (out && out.fee) {
+            upsertFeeLocal(out.fee);
+            feesState.selectedFeeId = out.fee.id;
+            renderFeesView();
+        } else {
+            await fetchInitialStudentDues();
+        }
+        showFeesMsg('Added "' + title + '".', false);
+    } catch (err) {
+        console.error('Add fee failed:', err);
+        showFeesMsg('Could not add the fee: ' + (err.message || err), true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Add fee';
+    }
+}
+
+async function deleteFee(fee) {
+    if (!isAdminNow()) { showFeesMsg('Only admins can delete fees.', true); return; }
+    const paid = feePaidCount(fee.id);
+    const msg = 'Delete "' + fee.title + '"?\n\n' +
+        (paid ? paid + ' recorded payment' + (paid === 1 ? '' : 's') + ' and their receipts will be deleted too. ' : '') +
+        'This cannot be undone.';
+    if (!window.confirm(msg)) return;
+    try {
+        await window.adminCall({ action: 'delete_fee', id: fee.id });
+        removeFeeLocal(fee.id);
+        renderFeesView();
+        showFeesMsg('Deleted "' + fee.title + '".', false);
+    } catch (err) {
+        console.error('Delete fee failed:', err);
+        showFeesMsg('Could not delete the fee: ' + (err.message || err), true);
+    }
+}
+
+// ---------- Admin: mark payments, one fee at a time ----------
+function syncFeeSelect() {
+    const sel = fxEl('feesAdminFeeSelect');
+    if (!sel) return;
+    const fees = feesState.fees;
+    if (!fees.some(f => f.id === feesState.selectedFeeId)) feesState.selectedFeeId = fees.length ? fees[0].id : '';
+    // Rebuild the options only when they changed, so an open picker is not closed by a live update.
+    const sig = fees.map(f => [f.id, f.title, f.amount].join('\u0001')).join('\u0002');
+    if (sel.dataset.sig !== sig) {
+        sel.replaceChildren();
+        if (!fees.length) {
+            const o = mk('option', '', 'No fees yet');
+            o.value = '';
+            sel.appendChild(o);
+        }
+        fees.forEach(f => {
+            const o = mk('option', '', f.title + ' (' + formatNaira(f.amount) + ')');
+            o.value = f.id;
+            sel.appendChild(o);
+        });
+        sel.dataset.sig = sig;
+    }
+    sel.value = feesState.selectedFeeId;
+    sel.disabled = !fees.length;
+}
+
+function updatePaidCount() {
+    const el = fxEl('feesPaidCount');
+    if (!el) return;
+    const fee = selectedFee();
+    el.textContent = fee ? feePaidCount(fee.id) + ' of ' + studentDuesRegistry.length + ' paid' : '';
+}
+
+function paintStudentRow(li, feeId, matric) {
+    const paid = feeIsPaid(feeId, matric);
+    const chk = li.querySelector('input');
+    if (chk) chk.checked = paid;
+    const state = li.querySelector('.fx-state');
+    if (state) {
+        state.textContent = paid ? 'Paid' : 'Pending';
+        state.className = 'fx-state ' + (paid ? 'is-paid' : 'is-pending');
+    }
+}
+
+// A live update for one student repaints just that row, so the admin's scroll position is not lost.
+function patchAdminStudentRow(feeId, matric) {
+    if (feeId !== feesState.selectedFeeId) return;
+    const list = fxEl('adminDuesList');
+    const li = list && list.querySelector('li[data-matric="' + cleanMatricValue(matric) + '"]');
+    if (li) paintStudentRow(li, feeId, matric);
+    updatePaidCount();
+}
+
+function setPaymentLocal(feeId, matric, paid) {
+    const key = feePayKey(feeId, matric);
+    const now = new Date().toISOString();
+    const prev = feesState.payments.get(key);
+    feesState.payments.set(key, {
+        fee_id: feeId, matric, paid,
+        paid_at: paid ? now : (prev ? prev.paid_at : null),
+        updated_at: now
+    });
+}
+
+function buildStudentRow(fee, student) {
+    const li = mk('li', 'fx-student');
+    li.dataset.matric = student.matric;
+    const label = mk('label', 'fx-student-label');
+
+    const info = mk('span', 'fx-student-info');
+    info.appendChild(mk('strong', '', student.name));
+    const sub = mk('small', '');
+    sub.append(document.createTextNode(student.matric + '  '), mk('span', 'fx-state'));
+    info.appendChild(sub);
+
+    const sw = mk('span', 'fx-switch');
+    const chk = mk('input', 'dues-toggle-checkbox');
+    chk.type = 'checkbox';
+    chk.setAttribute('role', 'switch');
+    chk.setAttribute('aria-label', 'Mark ' + student.name + ' as paid for ' + fee.title);
+    sw.append(chk, mk('span', 'toggle-slider'));
+    label.append(info, sw);
+    li.appendChild(label);
+    paintStudentRow(li, fee.id, student.matric);
+
+    chk.addEventListener('change', async () => {
+        if (!isAdminNow()) {
+            alert('Only admins can change payment status.');
+            paintStudentRow(li, fee.id, student.matric);
+            return;
+        }
+        const want = chk.checked;
+        const key = feePayKey(fee.id, student.matric);
+        const before = feesState.payments.get(key);
+        chk.disabled = true;
+        setPaymentLocal(fee.id, student.matric, want);
+        paintStudentRow(li, fee.id, student.matric);
+        updatePaidCount();
+        try {
+            const out = await window.adminCall({ action: 'set_fee_payment', fee_id: fee.id, matric: student.matric, paid: want });
+            if (out && out.payment) feesState.payments.set(key, out.payment);
+        } catch (err) {
+            console.error('Error updating payment:', err);
+            if (before) feesState.payments.set(key, before); else feesState.payments.delete(key);
+            paintStudentRow(li, fee.id, student.matric);
+            updatePaidCount();
+            alert('Could not save the change: ' + (err.message || err));
+        } finally {
+            chk.disabled = false;
+            renderFeesSummary();
+            renderAdminFeeManager();
+        }
+    });
+    return li;
+}
+
+function renderAdminStudentList() {
+    const list = fxEl('adminDuesList');
+    if (!list) return;
+    list.replaceChildren();
+    if (!isAdminNow()) return;
+
+    syncFeeSelect();
+    document.querySelectorAll('#feesFilterChips [data-filter]').forEach(b => {
+        const on = b.dataset.filter === feesState.filter;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', String(on));
+    });
+
+    const fee = selectedFee();
+    updatePaidCount();
+    if (!fee) {
+        list.appendChild(mk('li', 'fx-empty', feesState.loaded ? 'Add a fee above to start recording payments.' : 'Loading fees...'));
+        return;
+    }
+    const q = feesState.query;
+    const rows = studentDuesRegistry.filter(s => {
+        if (q && !(s.name.toLowerCase().includes(q) || s.matric.toLowerCase().includes(q))) return false;
+        if (feesState.filter === 'all') return true;
+        return feesState.filter === 'paid' ? feeIsPaid(fee.id, s.matric) : !feeIsPaid(fee.id, s.matric);
+    });
+    if (!rows.length) {
+        list.appendChild(mk('li', 'fx-empty', 'No students match.'));
+        return;
+    }
+    const frag = document.createDocumentFragment();
+    rows.forEach(s => frag.appendChild(buildStudentRow(fee, s)));
+    list.appendChild(frag);
+}
+
+function initFeesUI() {
+    const search = fxEl('duesAdminSearchInput');
+    if (search) search.addEventListener('input', e => {
+        feesState.query = e.target.value.toLowerCase().trim();
+        renderAdminStudentList();
+    });
+    const sel = fxEl('feesAdminFeeSelect');
+    if (sel) sel.addEventListener('change', () => {
+        feesState.selectedFeeId = sel.value;
+        renderAdminStudentList();
+    });
+    document.querySelectorAll('#feesFilterChips [data-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            feesState.filter = btn.dataset.filter;
+            renderAdminStudentList();
+        });
+    });
+    const form = fxEl('addFeeForm');
+    if (form) form.addEventListener('submit', onAddFeeSubmit);
+    renderFeesView();
+}
+
+// ---------- Receipts: one receipt per fee ----------
+// The receipt shows when the paid switch was last changed. The payment row can carry that as paid_at and/or
 // updated_at, so take whichever is newer. Returns { d: Date, hasTime: boolean } or null.
 function latestDuesStamp(row) {
     if (!row) return null;
@@ -601,204 +1075,124 @@ function latestDuesStamp(row) {
     return best;
 }
 
-window.printDuesReceipt = async function(matricNumber) {
-    const cleanMatric = String(matricNumber).replace(/[^0-9a-z]/gi, '').toUpperCase();
+window.printFeeReceipt = async function (feeId, matricNumber) {
+    const cleanMatric = cleanMatricValue(matricNumber);
     if (!isAdminNow() && cleanMatric !== window.currentLoggedInMatric) {
         alert("You can only print your own receipt.");
         return;
     }
     const studentName = esc(studentDirectory[cleanMatric] || "Trailblazer Student");
 
-    // Open synchronously (popup blockers), then confirm payment with the database instead of
-    // trusting the client-side flag, which anyone can flip in DevTools.
+    // Open synchronously (popup blockers), then confirm the fee and payment with the database instead of
+    // trusting client-side data, which anyone can change in DevTools.
     const printWindow = window.open('', '_blank', 'width=800,height=750');
     if (!printWindow) {
         alert("Please allow popups to generate and print your receipt.");
         return;
     }
 
-    let paid = false;
-    let paidAt = null;
+    let fee = null;
+    let payment = null;
     const supabase = window.tbSupabase;
     if (supabase) {
         try {
-            const { data, error } = await supabase
-                .from('student_dues').select('*').eq('matric', cleanMatric).maybeSingle();
-            paid = !error && !!(data && data.paid);
-            paidAt = paid ? latestDuesStamp(data) : null;
+            const [feeRes, payRes] = await Promise.all([
+                supabase.from('fees').select('*').eq('id', feeId).maybeSingle(),
+                supabase.from('fee_payments').select('*').eq('fee_id', feeId).eq('matric', cleanMatric).maybeSingle()
+            ]);
+            if (!feeRes.error && feeRes.data) fee = feeRes.data;
+            if (!payRes.error && payRes.data && payRes.data.paid) payment = payRes.data;
         } catch (err) {
             console.error('Receipt verification failed:', err);
         }
     }
-    if (!paid) {
+    if (!fee || !payment) {
         printWindow.close();
-        alert("Receipt unavailable. Class dues are Pending, or payment could not be verified.");
+        alert("Receipt unavailable. This fee is Pending, or the payment could not be verified.");
         return;
     }
 
-    const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const issuedDate = fmtDate(new Date());
-    // Date and time of the most recent change of the paid switch, in Lagos time so every printout matches.
+    const stamp = latestDuesStamp(payment);
+    const issuedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     let paymentDateRow = '';
-    if (paidAt) {
-        const when = paidAt.hasTime
-            ? paidAt.d.toLocaleString('en-US', {
+    if (stamp) {
+        const when = stamp.hasTime
+            ? stamp.d.toLocaleString('en-US', {
                 timeZone: 'Africa/Lagos', year: 'numeric', month: 'long', day: 'numeric',
                 hour: 'numeric', minute: '2-digit', hour12: true
             }) + ' (WAT)'
-            : paidAt.d.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
-        paymentDateRow = `<tr><td class="label">${paidAt.hasTime ? 'Payment Date &amp; Time:' : 'Payment Date:'}</td><td class="value">${when}</td></tr>`;
+            : stamp.d.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
+        paymentDateRow = `<tr><td class="label">${stamp.hasTime ? 'Payment Date &amp; Time:' : 'Payment Date:'}</td><td class="value">${when}</td></tr>`;
     }
-    const receiptNo = `TB29-${DUES_SESSION.replace('/', '')}-${cleanMatric}`;
+    const sessionCode = String(fee.session || '').replace(/[^0-9a-z]/gi, '');
+    const receiptNo = `TB29-${sessionCode}-F${String(fee.seq || 0).padStart(2, '0')}-${cleanMatric}`;
+    const feeTitle = esc(fee.title);
+    const targetRow = fee.target_group
+        ? `<tr><td class="label">Applies To:</td><td class="value">${esc(fee.target_group)}</td></tr>` : '';
 
-    const receiptHtml = `   
-        <!DOCTYPE html>   
-        <html>   
-        <head>   
-            <title>ACC '29 Class Dues Receipt - ${cleanMatric}</title>   
-            <style>   
-                body { font-family: 'Montserrat', Arial, sans-serif; padding: 40px; color: #111; 
-background: #fff; }   
-                .receipt-card { border: 2px solid #C5A059; padding: 30px; border-radius: 10px; 
-max-width: 600px; margin: 0 auto; }   
-                .receipt-header { text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 
-15px; margin-bottom: 20px; }   
-                .receipt-header h2 { margin: 0; color: #000b18; font-size: 22px; font-weight: 700; }   
-                .receipt-header h4 { margin: 5px 0 0; color: #C5A059; font-weight: 600; }   
-                .receipt-table { width: 100%; border-collapse: collapse; margin: 20px 0; }   
-                .receipt-table td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }   
-                .label { font-weight: 600; color: #555; width: 45%; }   
-                .value { font-weight: 700; color: #111; }   
-                .paid-stamp { display: inline-block; padding: 6px 16px; background: #e6f4ea; color: 
-#137333; border-radius: 20px; font-weight: 700; font-size: 13px; }   
-                .receipt-footer { margin-top: 30px; text-align: center; font-size: 12px; color: #777; 
-border-top: 1px solid #f0f0f0; padding-top: 15px; }   
-            </style>   
-        </head>   
-        <body>   
-            <div class="receipt-card">   
-                <div class="receipt-header">   
-                    <h2>UNIVERSITY OF LAGOS</h2>   
-                    <h4>DEPARTMENT OF ACCOUNTING (ACC '29)</h4>   
-                    <small>OFFICIAL CLASS DUES PAYMENT RECEIPT</small>   
-                </div>   
-                <table class="receipt-table">
-                    <tr><td class="label">Receipt No:</td><td class="value">${receiptNo}</td></tr>   
-                    <tr><td class="label">Student Name:</td><td 
-class="value">${studentName}</td></tr>   
-                    <tr><td class="label">Matriculation No:</td><td 
-class="value">${cleanMatric}</td></tr>   
-                    <tr><td class="label">Fee Description:</td><td class="value">ACC '29 
-Departmental & Class Package Dues</td></tr>   
-                    <tr><td class="label">Academic Session:</td><td class="value">${DUES_SESSION} Session</td></tr>   
-                    <tr><td class="label">Amount Paid:</td><td class="value">₦ ${DUES_AMOUNT.toFixed(2)}</td></tr>   
-                    <tr><td class="label">Verification Status:</td><td class="value"><span 
-class="paid-stamp">VERIFIED PAID</span></td></tr>   
-                    ${paymentDateRow}<tr><td class="label">Date Issued:</td><td class="value">${issuedDate}</td></tr>   
-                </table>   
-                <div class="receipt-footer">   
-                    <p>Generated officially via Trailblazers '29 Student Departmental Portal.</p>   
-                </div>   
-            </div>   
-            <script>   
-                window.onload = function() { window.print(); }   
-            </script>   
-        </body>   
-        </html>   
-    `;   
-   
-    printWindow.document.write(receiptHtml);   
-    printWindow.document.close();   
-};   
- 
-window.generateDuesReceipt = function () {  
-    const currentMatric = window.currentLoggedInMatric;  
-    if (!currentMatric) {  
-        alert("Please log in to access your receipt.");  
-        return;  
-    }  
-    window.printDuesReceipt(currentMatric);  
-};  
- 
-// ======================================================= 
-// 4. ADMIN DUES TABLE RENDERING 
-// ======================================================= 
-window.renderAdminDuesTable = function(filterQuery = '') {
-    const tbody = document.getElementById('adminDuesTbody');
-    if (!tbody) return;
+    const receiptHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${feeTitle} Receipt - ${cleanMatric}</title>
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; padding: 40px; color: #111; background: #fff; }
+        .receipt-card { border: 2px solid #C5A059; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px; }
+        .receipt-header h2 { margin: 0; color: #000b18; font-size: 22px; font-weight: 700; }
+        .receipt-header h4 { margin: 5px 0 0; color: #C5A059; font-weight: 600; }
+        .receipt-fee { margin: 14px 0 0; font-size: 16px; font-weight: 700; color: #000b18; overflow-wrap: anywhere; }
+        .receipt-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .receipt-table td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; overflow-wrap: anywhere; }
+        .label { font-weight: 600; color: #555; width: 45%; }
+        .value { font-weight: 700; color: #111; }
+        .paid-stamp { display: inline-block; padding: 6px 16px; background: #e6f4ea; color: #137333; border-radius: 20px; font-weight: 700; font-size: 13px; }
+        .receipt-footer { margin-top: 30px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #f0f0f0; padding-top: 15px; }
+        .print-btn { display: block; margin: 20px auto 0; padding: 12px 24px; background: #1d9bf0; color: #fff; border: 0; border-radius: 8px; font-size: 15px; font-weight: 700; }
+        @media (max-width: 520px) {
+            body { padding: 12px; }
+            .receipt-card { padding: 18px; }
+            .receipt-table td { display: block; width: auto; }
+            .receipt-table td.label { padding: 10px 0 0; border-bottom: 0; font-size: 12px; }
+            .receipt-table td.value { padding: 2px 0 10px; }
+        }
+        @media print { .print-btn { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="receipt-card">
+        <div class="receipt-header">
+            <h2>UNIVERSITY OF LAGOS</h2>
+            <h4>DEPARTMENT OF ACCOUNTING (ACC '29)</h4>
+            <small>OFFICIAL PAYMENT RECEIPT</small>
+            <p class="receipt-fee">${feeTitle}</p>
+        </div>
+        <table class="receipt-table">
+            <tr><td class="label">Receipt No:</td><td class="value">${receiptNo}</td></tr>
+            <tr><td class="label">Student Name:</td><td class="value">${studentName}</td></tr>
+            <tr><td class="label">Matriculation No:</td><td class="value">${cleanMatric}</td></tr>
+            <tr><td class="label">Fee Description:</td><td class="value">${feeTitle}</td></tr>
+            ${targetRow}
+            <tr><td class="label">Academic Session:</td><td class="value">${esc(fee.session)} Session</td></tr>
+            <tr><td class="label">Amount Paid:</td><td class="value">${formatNaira(fee.amount)}</td></tr>
+            <tr><td class="label">Verification Status:</td><td class="value"><span class="paid-stamp">VERIFIED PAID</span></td></tr>
+            ${paymentDateRow}
+            <tr><td class="label">Date Issued:</td><td class="value">${issuedDate}</td></tr>
+        </table>
+        <div class="receipt-footer">
+            <p>Generated officially via Trailblazers '29 Student Departmental Portal.</p>
+        </div>
+    </div>
+    <button class="print-btn" onclick="window.print()">Print or save as PDF</button>
+    <script>window.onload = function () { window.print(); };<\/script>
+</body>
+</html>`;
 
-    tbody.replaceChildren();
-    const q = String(filterQuery || '').toLowerCase();
-    const filtered = studentDuesRegistry.filter(s =>
-        s.name.toLowerCase().includes(q) || s.matric.toLowerCase().includes(q)
-    );
-
-    if (filtered.length === 0) {
-        const tr = mk('tr');
-        const td = mk('td', '', 'No students found.');
-        td.colSpan = 5;
-        td.style.cssText = 'text-align:center; color:#8fa5c3;';
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return;
-    }
-
-    filtered.forEach((student, index) => {
-        const tr = mk('tr');
-        tr.appendChild(mk('td', '', String(index + 1)));
-        tr.appendChild(mk('td', 'course-code-tag', student.matric));
-
-        const nameTd = mk('td');
-        nameTd.appendChild(mk('strong', '', student.name));
-        tr.appendChild(nameTd);
-
-        const badgeTd = mk('td');
-        const badge = mk('span', `grade-badge ${student.paid ? 'grade-a' : 'grade-b'}`, student.paid ? 'Paid' : 'Pending');
-        if (!student.paid) badge.style.cssText = 'background: rgba(255, 77, 77, 0.2); color: #ff4d4d;';
-        badgeTd.appendChild(badge);
-        tr.appendChild(badgeTd);
-
-        const toggleTd = mk('td');
-        const label = mk('label', 'status-toggle-label');
-        const chk = mk('input', 'dues-toggle-checkbox');
-        chk.type = 'checkbox';
-        chk.dataset.matric = student.matric;
-        chk.checked = !!student.paid;
-        label.append(chk, mk('span', 'toggle-slider'));
-        toggleTd.appendChild(label);
-        tr.appendChild(toggleTd);
-
-        chk.addEventListener('change', async () => {
-            const isChecked = chk.checked;
-            const previous = !isChecked;
-            const refresh = () => {
-                if (window.currentLoggedInMatric === student.matric && typeof window.updateStudentDuesUI === 'function') {
-                    window.updateStudentDuesUI(student.matric);
-                }
-                window.renderAdminDuesTable(q);
-            };
-            const revert = () => { student.paid = previous; refresh(); };
-
-            // UI-level guard only; the real rule is RLS on student_dues (see supabase_security.sql).
-            if (!isAdminNow()) {
-                alert("Only admins can change payment status.");
-                revert();
-                return;
-            }
-            student.paid = isChecked;
-            try {
-                await window.adminCall({ action: 'set_dues', matric: student.matric, paid: isChecked });
-                refresh();
-            } catch (err) {
-                console.error('Error updating status in Supabase:', err);
-                alert("Could not save the change: " + (err.message || err));
-                revert();
-            }
-        });
-
-        tbody.appendChild(tr);
-    });
+    printWindow.document.write(receiptHtml);
+    printWindow.document.close();
 };
+
 
 // ======================================================= 
 // 5. ANNOUNCEMENTS & NOTIFICATIONS LOGIC 
@@ -1573,24 +1967,7 @@ window.studentDirectory[cleanMatric]) || "Trailblazer";
         });
     }
 
-    const duesAdminSearchInput = document.getElementById('duesAdminSearchInput');   
-    if (duesAdminSearchInput) {   
-        duesAdminSearchInput.addEventListener('input', (e) => {   
-            window.renderAdminDuesTable(e.target.value.toLowerCase().trim());   
-        });   
-    }   
-   
-    const downloadDuesReceiptBtn = document.getElementById('downloadDuesReceiptBtn');   
-    if (downloadDuesReceiptBtn) {   
-        downloadDuesReceiptBtn.addEventListener('click', () => {   
-            const activeMatric = window.currentLoggedInMatric;   
-            if (activeMatric) {   
-                window.printDuesReceipt(activeMatric);   
-            } else {   
-                alert("Could not identify logged-in student account.");   
-            }   
-        });   
-    }   
+    initFeesUI();
 });  
  
 // ======================================================= 

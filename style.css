@@ -2551,3 +2551,217 @@ body.light-theme #gpaMatricLookupInput:focus {
     border-color: #1d9bf0 !important;
     box-shadow: 0 0 10px rgba(29, 155, 240, 0.25) !important;
 }
+
+/* ==========================================
+   FEES TAB (fx-*)  Phone first; widens gracefully.
+   ========================================== */
+#feesView {
+    --fx-line: rgba(255, 255, 255, 0.14);
+    --fx-surface: rgba(255, 255, 255, 0.04);
+    --fx-ok: #4ade80;
+    --fx-warn: #fbbf24;
+    --fx-bad: #ff6b6b;
+}
+body.light-theme #feesView {
+    --fx-line: rgba(15, 23, 42, 0.16);
+    --fx-surface: rgba(15, 23, 42, 0.03);
+    --fx-ok: #15803d;
+    --fx-warn: #b45309;
+    --fx-bad: #b91c1c;
+}
+
+/* Summary */
+.fx-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px 20px;
+}
+.fx-summary-main { min-width: 0; }
+.fx-summary-label { font-size: 0.85rem; font-weight: 600; color: var(--gold-glow); }
+.fx-summary-value { font-size: 2.1rem; font-weight: 800; line-height: 1.1; margin: 4px 0 6px; overflow-wrap: anywhere; }
+.fx-summary-stats { display: flex; gap: 12px; }
+.fx-status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.85rem; font-weight: 600; }
+.fx-status.fx-ok { color: var(--fx-ok); }
+.fx-status.fx-bad { color: var(--fx-bad); }
+.fx-status.fx-neutral { color: var(--text-muted); }
+
+/* Card heading row */
+.fx-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; }
+.fx-head h3 { margin: 0; }
+.fx-hint { color: var(--text-muted); font-size: 0.8rem; }
+.fx-empty { color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 18px 8px; list-style: none; }
+.fx-empty p { margin: 0 0 12px; }
+
+/* Forms and inputs (16px text stops iOS from zooming in on focus) */
+.fx-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+.fx-span2 { grid-column: 1 / -1; }
+.fx-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fx-field label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.fx-field input,
+.fx-select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text-main);
+    background: var(--fx-surface);
+    border: 1px solid var(--fx-line);
+    border-radius: 10px;
+    outline: none;
+}
+.fx-field input:focus,
+.fx-select:focus { border-color: #1d9bf0; box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.25); }
+.fx-select option { background: var(--card-bg); color: var(--text-main); }
+.fx-form .btn-primary { min-height: 46px; font-size: 0.95rem; }
+.fx-msg { min-height: 1.2em; margin: 0 0 10px; font-size: 0.85rem; font-weight: 600; }
+.fx-msg.ok { color: var(--fx-ok); }
+.fx-msg.error { color: var(--fx-bad); }
+
+/* Admin: fee list with delete */
+.fx-fee-list, .fx-student-list { list-style: none; margin: 0; padding: 0; }
+.fx-fee-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--fx-line);
+}
+.fx-fee-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.fx-fee-row-title { overflow-wrap: anywhere; }
+.fx-bar { height: 6px; border-radius: 999px; background: var(--fx-line); overflow: hidden; }
+.fx-bar span { display: block; height: 100%; background: var(--fx-ok); border-radius: 999px; }
+.fx-icon-btn {
+    flex: none;
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--fx-bad);
+    border: 1px solid var(--fx-line);
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.fx-icon-btn:hover { background: rgba(255, 107, 107, 0.12); border-color: var(--fx-bad); }
+.fx-icon-btn:focus-visible, .fx-chip:focus-visible, .fx-receipt-btn:focus-visible { outline: 2px solid #1d9bf0; outline-offset: 2px; }
+
+/* Admin: payment manager */
+.fx-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.fx-chips { display: flex; gap: 8px; }
+.fx-chip {
+    flex: 1;
+    min-height: 40px;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    background: transparent;
+    border: 1px solid var(--fx-line);
+    border-radius: 999px;
+    cursor: pointer;
+}
+.fx-chip.active { background: #1d9bf0; border-color: #1d9bf0; color: #fff; }
+.fx-student-list { max-height: 60vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.fx-student { border-top: 1px solid var(--fx-line); }
+.fx-student-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 58px;
+    padding: 8px 2px;
+    cursor: pointer;
+}
+.fx-student-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fx-student-info strong { font-size: 0.92rem; overflow-wrap: anywhere; }
+.fx-student-info small { color: var(--text-muted); font-size: 0.78rem; }
+.fx-state { font-weight: 700; }
+.fx-state.is-paid { color: var(--fx-ok); }
+.fx-state.is-pending { color: var(--fx-warn); }
+
+/* Paid switch: a 46x28 control inside a 58px-tall tappable row */
+.fx-switch { position: relative; flex: none; width: 46px; height: 28px; }
+.fx-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 2; }
+.fx-switch .toggle-slider { position: absolute; inset: 0; border-radius: 999px; background: var(--fx-line); transition: background 0.2s ease; }
+.fx-switch .toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease;
+}
+.fx-switch input:checked + .toggle-slider { background: #22c55e; }
+.fx-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.fx-switch input:focus-visible + .toggle-slider { outline: 2px solid #1d9bf0; outline-offset: 2px; }
+.fx-switch input:disabled { cursor: progress; }
+.fx-switch input:disabled + .toggle-slider { opacity: 0.55; }
+
+/* Student: fee cards */
+.fx-list { display: flex; flex-direction: column; gap: 12px; }
+.fx-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 14px;
+    background: var(--fx-surface);
+    border: 1px solid var(--fx-line);
+    border-radius: 16px;
+}
+.fx-item-title { margin: 0; font-size: 1rem; font-weight: 700; overflow-wrap: anywhere; }
+.fx-item-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 4px 0 0; color: var(--text-muted); font-size: 0.8rem; }
+.fx-item-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.fx-amount { font-size: 1.05rem; white-space: nowrap; }
+.fx-item-foot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.fx-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.fx-pill-paid { color: var(--fx-ok); }
+.fx-pill-pending { color: var(--fx-warn); }
+.fx-pill-overdue { color: var(--fx-bad); }
+.fx-receipt-btn { min-height: 44px; }
+
+/* Your global search-box rule uses !important and a 13.6px font; on phones that is a small target and makes iOS zoom in. */
+#feesView #duesAdminSearchInput { min-height: 46px !important; font-size: 16px !important; }
+
+/* Phones */
+@media (max-width: 600px) {
+    #feesView { padding-bottom: 96px; }   /* keeps the last card clear of the floating Install / AI buttons */
+    #feesView .matrix-card { padding: 16px; border-radius: 18px; margin-bottom: 14px; }
+    .fx-summary { flex-direction: column; align-items: stretch; }
+    .fx-summary-value { font-size: 1.8rem; }
+    .fx-summary-stats { width: 100%; }
+    .fx-summary-stats .stat-badge { flex: 1; min-width: 0; padding: 10px 8px; }
+    .fx-form { grid-template-columns: 1fr; }
+    .fx-item-foot { flex-direction: column; align-items: stretch; }
+    .fx-receipt-btn { width: 100%; min-height: 48px; }
+}
+@media (max-width: 360px) {
+    .fx-summary-value { font-size: 1.6rem; }
+    .fx-item { padding: 12px; }
+}
+@media (min-width: 900px) {
+    .fx-controls { flex-direction: row; align-items: flex-end; }
+    .fx-controls .fx-field { flex: 1; }
+    .fx-controls .fx-chips { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fx-switch .toggle-slider, .fx-switch .toggle-slider::before { transition: none; }
+}
