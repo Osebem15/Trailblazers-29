@@ -2765,3 +2765,43 @@ body.light-theme #feesView {
 @media (prefers-reduced-motion: reduce) {
     .fx-switch .toggle-slider, .fx-switch .toggle-slider::before { transition: none; }
 }
+
+/* --- Timetable: course codes open that course's topics in the Documents tab --- */
+.timetable-table td.tt-title { white-space: normal; min-width: 170px; line-height: 1.3; }
+.tt-course-link { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease; -webkit-tap-highlight-color: transparent; }
+.tt-course-link:hover { filter: brightness(1.18); box-shadow: 0 0 0 1px var(--gold-accent, #C5A059); }
+.tt-course-link:active { transform: scale(0.96); }
+.tt-course-link:focus-visible { outline: 2px solid #1d9bf0; outline-offset: 2px; }
+body.light-theme .tt-course-link:hover { filter: brightness(0.95); box-shadow: 0 0 0 1px #0284c7; }
+.tt-note { margin: 14px 0 0; line-height: 2; }
+.tt-note .course-code-badge { display: inline-block; margin: 0 2px; }
+@media (max-width: 768px) {
+    .timetable-table td.tt-title { min-width: 120px; }
+    .timetable-table .time-cell { white-space: normal; min-width: 78px; }
+}
+
+/* Phones: the table is too wide for the card (codes got cut off), so show one card per day instead. */
+.tt-cards { display: none; }
+@media (max-width: 600px) {
+    #timetableView { padding-bottom: 96px; }                 /* clear of the floating Install / AI buttons */
+    #timetableView .matrix-card { padding: 16px; border-radius: 18px; }
+    #timetableView.tt-has-cards .table-responsive { display: none; }
+    #timetableView.tt-has-cards .tt-cards { display: grid; gap: 14px; }
+}
+.tt-day { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 14px; padding: 12px 12px 6px; min-width: 0; }
+.tt-day-title { font-size: 0.92rem; font-weight: 700; color: var(--gold-glow, #D4AF37); margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+.tt-free { font-size: 0.82rem; color: #64748b; margin: 0 0 8px; }
+.tt-slots { list-style: none; margin: 0; padding: 0; display: grid; }
+.tt-slot { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.08); min-width: 0; }
+.tt-slot-time { font-size: 0.78rem; font-weight: 700; color: #cbd5e1; }
+.tt-slot-main { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.tt-slot-main .tt-course-link { padding: 8px 14px; font-size: 0.82rem; min-height: 36px; display: inline-flex; align-items: center; }
+.tt-slot-title { font-size: 0.88rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; flex: 1 1 140px; min-width: 0; }
+.tt-slot-venue { font-size: 0.78rem; color: var(--text-muted, #A0AEC0); }
+.tt-slot-venue i { margin-right: 4px; }
+body.light-theme .tt-day { background: #f8fafc; border-color: #cbd5e1; }
+body.light-theme .tt-slot { border-top-color: #e2e8f0; }
+body.light-theme .tt-slot-time { color: #334155; }
+body.light-theme .tt-slot-title { color: #000b18; }
+body.light-theme .tt-day-title { color: #0284c7; }
+body.light-theme .tt-slot-venue { color: #475569; }
