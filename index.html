@@ -611,7 +611,7 @@ try {
                             </div>
 
                             <!-- Semester Toggle Group -->
-                            <div class="semester-toggle-group" style="display: flex; background: rgba(255, 255, 255, 0.05); padding: 4px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <div class="semester-toggle-group">
                                 <button id="btnFirstSemester" onclick="switchSemester('1st')" style="padding: 6px 16px; border-radius: 16px; border: none; background: #1d9bf0; color: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s;">
                                     1st Semester
                                 </button>
@@ -841,9 +841,9 @@ try {
                                 <h3 style="margin: 0; font-size: 1rem; color: #f0f6fc;">Semester Selection</h3>
                                 <!-- Semester Filter Buttons -->
                                 <div class="semester-toggle-group" style="display: flex; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 4px; gap: 4px;">
-                                    <button type="button" class="gpa-toggle-btn active" data-filter="1st" style="background: #1d9bf0; color: #ffffff; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);">1st Semester</button>
-                                    <button type="button" class="gpa-toggle-btn" data-filter="2nd" style="background: transparent; color: #8b949e; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer;">2nd Semester</button>
-                                    <button type="button" class="gpa-toggle-btn" data-filter="all" style="background: transparent; color: #8b949e; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer;">All (CGPA)</button>
+                                    <button type="button" class="gpa-toggle-btn active" data-filter="1st">1st Semester</button>
+                                    <button type="button" class="gpa-toggle-btn" data-filter="2nd">2nd Semester</button>
+                                    <button type="button" class="gpa-toggle-btn" data-filter="all">All (CGPA)</button>
                                 </div>
                             </div>
 
@@ -852,8 +852,8 @@ try {
                                     <thead>
                                         <tr style="text-align: left; border-bottom: 1px solid #30363d; color: #8b949e;">
                                             <th style="padding: 10px 12px; font-weight: 600;">Course</th>
-                                            <th style="padding: 10px 12px; font-weight: 600; width: 90px;">Units</th>
-                                            <th style="padding: 10px 12px; font-weight: 600; width: 200px;">Grade Earned</th>
+                                            <th style="padding: 10px 12px; font-weight: 600;">Units</th>
+                                            <th style="padding: 10px 12px; font-weight: 600;">Grade Earned</th>
                                         </tr>
                                     </thead>
                                     <tbody id="gpaTableBody">

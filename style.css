@@ -2805,3 +2805,100 @@ body.light-theme .tt-slot-time { color: #334155; }
 body.light-theme .tt-slot-title { color: #000b18; }
 body.light-theme .tt-day-title { color: #0284c7; }
 body.light-theme .tt-slot-venue { color: #475569; }
+
+/* ==========================================================
+   FIXES: semester toggle, GPA table, quick-access tiles, courses table
+   ========================================================== */
+
+/* --- Semester toggle: the active state now comes from the .active class
+       (it used to be hard-coded inline on "1st Semester", so it never moved) --- */
+.semester-toggle-group {
+    display: flex;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+    max-width: 100%;
+}
+.gpa-toggle-btn {
+    background: transparent;
+    color: #8b949e;
+    border: none;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.gpa-toggle-btn.active {
+    background: #1d9bf0;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(29, 155, 240, 0.3);
+}
+.gpa-toggle-btn:not(.active):hover { color: #e2e8f0; }
+.gpa-toggle-btn:focus-visible { outline: 2px solid #1d9bf0; outline-offset: 2px; }
+
+/* --- GPA table: fixed layout so columns stop resizing (and clipping the
+       grade dropdown) every time the semester rows change --- */
+.gpa-table { table-layout: fixed; width: 100%; }
+.gpa-table th:nth-child(2), .gpa-table td:nth-child(2) { width: 64px; }
+.gpa-table th:nth-child(3), .gpa-table td:nth-child(3) { width: 200px; }
+.gpa-table td:first-child { overflow-wrap: anywhere; line-height: 1.35; }
+.gpa-table .grade-select { min-width: 0; text-overflow: ellipsis; }
+
+@media (max-width: 600px) {
+    .gpa-calc-card, #resultsView .gpa-calculator-card { padding: 14px !important; }
+    .gpa-calculator-card { padding: 14px !important; }
+    .gpa-table th, .gpa-table td { padding: 10px 6px !important; }
+    .gpa-table th:nth-child(2), .gpa-table td:nth-child(2) { width: 46px; text-align: center; }
+    .gpa-table th:nth-child(3), .gpa-table td:nth-child(3) { width: 118px; }
+    .gpa-table .grade-select { padding: 8px 4px !important; font-size: 0.8rem !important; }
+    .semester-toggle-group { width: 100%; }
+    .gpa-toggle-btn { flex: 1 1 0; min-width: 0; padding: 8px 4px; font-size: 0.75rem; }
+}
+
+/* --- Quick-access tiles: labels like "Assignments" / "Documents" ran past the tile edge --- */
+.access-box {
+    min-width: 0;
+    height: auto;
+    min-height: 120px;
+    padding: 12px 6px;
+    box-sizing: border-box;
+    text-align: center;
+}
+.access-box span {
+    display: block;
+    max-width: 100%;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+}
+@media (max-width: 480px) {
+    .quick-access-box-grid { gap: 10px; }
+    .access-box { min-height: 104px; gap: 10px; border-radius: 16px; }
+    .access-box span { font-size: 0.74rem; letter-spacing: -0.1px; }
+}
+@media (max-width: 340px) {
+    .access-box span { font-size: 0.68rem; }
+}
+
+/* --- Courses table: the arrow column pushed the table wider than its card, so the
+       course codes wrapped ("ACC- / CM / 201") and the chevron was cut off --- */
+#coursesView .course-code-tag { white-space: nowrap; }
+#coursesView .data-table td:nth-child(2) { overflow-wrap: anywhere; line-height: 1.3; }
+#coursesView .course-row-arrow { width: 28px; }
+@media (max-width: 600px) {
+    #coursesView { padding-bottom: 96px; }          /* clear of the floating AI button */
+    #coursesView .matrix-card { padding: 16px; border-radius: 18px; }
+    #coursesView .table-header-row h3 { font-size: 1rem; line-height: 1.3; }
+    #coursesView .data-table { font-size: 0.8rem; }
+    #coursesView .data-table th,
+    #coursesView .data-table td { padding: 12px 6px; }
+    #coursesView .data-table th:nth-child(3),
+    #coursesView .data-table td:nth-child(3) { text-align: center; width: 44px; }
+    #coursesView .course-row-arrow { width: 18px; padding-left: 0; padding-right: 2px; }
+}
